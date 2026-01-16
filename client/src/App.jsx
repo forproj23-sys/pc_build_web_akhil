@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AssemblerDashboard from './pages/AssemblerDashboard';
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
           path="/assembler"
           element={
             <ProtectedRoute allowedRoles={['assembler']}>
-              <div>Assembler Dashboard - Coming in Phase 8</div>
+              <AssemblerDashboard />
             </ProtectedRoute>
           }
         />
