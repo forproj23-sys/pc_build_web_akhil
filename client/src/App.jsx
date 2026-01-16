@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={['admin']}>
-              <div>Admin Dashboard - Coming in Phase 7</div>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />
