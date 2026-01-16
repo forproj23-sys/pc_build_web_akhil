@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AssemblerDashboard from './pages/AssemblerDashboard';
+import SupplierDashboard from './pages/SupplierDashboard';
 
 function App() {
   return (
@@ -44,7 +45,7 @@ function App() {
           path="/supplier"
           element={
             <ProtectedRoute allowedRoles={['supplier']}>
-              <div>Supplier Dashboard - Coming in Phase 9</div>
+              <SupplierDashboard />
             </ProtectedRoute>
           }
         />
