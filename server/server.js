@@ -14,6 +14,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/components', require('./routes/components'));
 
 app.get('/', (req, res) => {
   res.send('API is running');
