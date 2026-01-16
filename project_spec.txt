@@ -1,0 +1,84 @@
+PC BUILDING WEBSITE – PROJECT OVERVIEW
+1. PROJECT OVERVIEW
+________________________________________
+Project Title: PC Build Configuration Website
+Tech Stack: MERN (MongoDB, Express, React, Node.js)
+________________________________________
+2. PROBLEM STATEMENT
+________________________________________
+Building a custom PC is complex due to compatibility issues between hardware components.
+Users often lack technical knowledge and must rely on multiple websites for specifications and prices.
+There is no proper coordination between users, PC assemblers, and component suppliers in traditional systems.
+________________________________________
+3. PROPOSED SOLUTION
+________________________________________
+A centralized web application that allows users to build custom PC configurations with compatibility validation.
+The system connects users, PC assemblers, and suppliers through role-based access.
+Admins manage the platform, ensuring accurate component data and smooth workflow.
+________________________________________
+4. USER ROLES & PERMISSIONS
+________________________________________
+A. Admin:
+•	Can Login through secure Admin Dashboard.
+•	Can Add/Edit/Delete PC components.
+•	Can Manage all users and roles.
+•	Can Monitor PC builds and system activity.
+
+B. User (Customer):
+•	Can Register and Login.
+•	Can Browse PC components.
+•	Can Create and save PC builds.
+•	Can View compatibility status and total price.
+•	Can Request PC assembly service.
+C. PC Assembler:
+•	Can Login to assembler dashboard.
+•	Can View assigned PC build requests.
+•	Can Review component list of a build.
+•	Can Update assembly status (Pending → Assembling → Completed).
+D. Supplier (Vendor):
+•	Can Login to supplier dashboard.
+•	Can Manage component stock availability.
+•	Can Update component prices.
+•	Can Mark items as in-stock or out-of-stock.
+________________________________________
+5. DATABASE STRUCTURE (Schemas)
+________________________________________
+A. User Schema:
+•	Name (String)
+•	Email (String, Unique)
+•	Password (Hashed)
+•	Role (String: 'admin', 'user', 'assembler', 'supplier')
+B. Component Schema:
+•	Name (String)
+•	Category (String: CPU, GPU, RAM, Storage, PSU)
+•	Price (Number)
+•	Specifications (String)
+•	Compatibility (String)
+•	StockStatus (Boolean)
+•	SupplierID (Reference)
+C. PC Build Schema:
+•	UserID (Reference to User)
+•	Components (Array of Objects)
+•	TotalPrice (Number)
+•	AssemblyStatus (Pending, Assembling, Completed)
+•	CreatedAt (Timestamp)
+________________________________________
+6. FEATURE WORKFLOW (User Journey)
+________________________________________
+1.	User logs in and creates a PC build.
+2.	System checks compatibility and saves the build.
+3.	User requests assembly service.
+4.	PC Assembler receives the build request.
+5.	Supplier updates stock and pricing.
+6.	Assembler completes the build.
+7.	User receives build completion notification.
+________________________________________
+7. API ENDPOINTS (The URL Rules)
+________________________________________
+•	POST /api/auth/register → Register user
+•	POST /api/auth/login → Login
+•	GET /api/components → View components
+•	POST /api/components → Add component (Admin/Supplier)
+•	PUT /api/components/:id → Update component
+•	POST /api/builds → Create PC build
+•	PUT /api/builds/:id/status → Update assembly status
