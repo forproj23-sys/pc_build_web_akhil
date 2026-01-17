@@ -429,6 +429,14 @@ function UsersTab() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingRole, setEditingRole] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'user',
+  });
+  const [formError, setFormError] = useState('');
   const { user: currentUser } = useAuth();
 
   useEffect(() => {
@@ -443,6 +451,45 @@ function UsersTab() {
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+    setFormError('');
+  };
+
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    setFormError('');
+
+    // Validation
+    if (!formData.name || !formData.email || !formData.password) {
+      setFormError('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setFormError('Password must be at least 6 characters');
+      return;
+    }
+
+    try {
+      const res = await api.post('/users', formData);
+      setUsers([res.data.data, ...users]);
+      setShowAddForm(false);
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        role: 'user',
+      });
+      setFormError('');
+    } catch (error) {
+      setFormError(error.response?.data?.message || 'Error creating user');
     }
   };
 
@@ -476,7 +523,81 @@ function UsersTab() {
 
   return (
     <div>
-      <h2>User Management ({users.length})</h2>
+      <div style={styles.header}>
+        <h2>User Management ({users.length})</h2>
+        <button
+          onClick={() => setShowAddForm(!showAddForm)}
+          style={styles.addButton}
+        >
+          {showAddForm ? 'Cancel' : 'Register New User'}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={handleAddUser} style={styles.form}>
+          <h3>Register New User</h3>
+          {formError && <div style={styles.error}>{formError}</div>}
+          <div style={styles.formGrid}>
+            <div style={styles.formGroup}>
+              <label>Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="User's full name"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Email *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="user@example.com"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Password *</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+                minLength="6"
+                style={styles.input}
+                placeholder="Minimum 6 characters"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Role *</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+              >
+                {roles.map((role) => (
+                  <option key={role} value={role}>
+                    {role.charAt(0).toUpperCase() + role.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <button type="submit" style={styles.submitButton}>
+            Create User
+          </button>
+        </form>
+      )}
+
       <div style={styles.tableContainer}>
         <table style={styles.table}>
           <thead>
@@ -913,6 +1034,13 @@ const styles = {
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
+  },
+  error: {
+    backgroundColor: '#fee',
+    color: '#c33',
+    padding: '0.75rem',
+    borderRadius: '4px',
+    marginBottom: '1rem',
   },
 };
 

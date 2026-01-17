@@ -1,8 +1,53 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+
+// POST /api/users - Create user (Admin only)
+router.post('/', protect, authorize('admin'), async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide name, email, and password' });
+    }
+
+    // Validate role
+    if (role && !['user', 'admin', 'assembler', 'supplier'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Check if user exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User with this email already exists' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || 'user',
+    });
+
+    const createdUser = await User.findById(user._id).select('-password');
+
+    res.status(201).json({
+      success: true,
+      data: createdUser,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // GET /api/users - Get all users (Admin only)
 router.get('/', protect, authorize('admin'), async (req, res) => {
