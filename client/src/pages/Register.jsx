@@ -11,22 +11,66 @@ function Register() {
     role: 'user',
   });
   const [error, setError] = useState('');
+  const [nameError, setNameError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const { register } = useAuth();
   const navigate = useNavigate();
 
+  // Validate name field
+  const validateName = (name) => {
+    if (!name || name.trim() === '') {
+      return 'Name is required';
+    }
+    
+    if (name.length < 3) {
+      return 'Name must be at least 3 characters';
+    }
+    
+    if (name.length > 30) {
+      return 'Name must not exceed 30 characters';
+    }
+    
+    // Only alphabetic characters and spaces allowed
+    const namePattern = /^[a-zA-Z\s]+$/;
+    if (!namePattern.test(name)) {
+      return 'Name can only contain alphabetic characters and spaces';
+    }
+    
+    return '';
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
     setError('');
+
+    // Validate name field in real-time
+    if (name === 'name') {
+      const validationError = validateName(value);
+      setNameError(validationError);
+    }
+  };
+
+  const handleNameBlur = () => {
+    // Validate on blur to ensure error is shown if field is left invalid
+    const validationError = validateName(formData.name);
+    setNameError(validationError);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Validate name field before submission
+    const nameValidationError = validateName(formData.name);
+    if (nameValidationError) {
+      setNameError(nameValidationError);
+      return;
+    }
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -80,9 +124,15 @@ function Register() {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              onBlur={handleNameBlur}
               required
-              style={styles.input}
+              maxLength={30}
+              style={{
+                ...styles.input,
+                ...(nameError ? styles.inputError : {}),
+              }}
             />
+            {nameError && <div style={styles.fieldError}>{nameError}</div>}
           </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Email</label>
@@ -132,7 +182,14 @@ function Register() {
               style={styles.input}
             />
           </div>
-          <button type="submit" disabled={loading} style={styles.button}>
+          <button
+            type="submit"
+            disabled={loading || !!nameError}
+            style={{
+              ...styles.button,
+              ...((loading || nameError) ? styles.buttonDisabled : {}),
+            }}
+          >
             {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
@@ -186,6 +243,14 @@ const styles = {
     fontSize: '1rem',
     boxSizing: 'border-box',
   },
+  inputError: {
+    border: '1px solid #dc3545',
+  },
+  fieldError: {
+    color: '#dc3545',
+    fontSize: '0.875rem',
+    marginTop: '0.25rem',
+  },
   button: {
     padding: '0.75rem',
     backgroundColor: '#007bff',
@@ -195,6 +260,11 @@ const styles = {
     fontSize: '1rem',
     cursor: 'pointer',
     marginTop: '1rem',
+  },
+  buttonDisabled: {
+    backgroundColor: '#6c757d',
+    cursor: 'not-allowed',
+    opacity: 0.6,
   },
   error: {
     backgroundColor: '#fee',
