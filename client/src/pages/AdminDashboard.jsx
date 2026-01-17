@@ -92,7 +92,7 @@ function OverviewTab() {
       const users = usersRes.data.data;
       setStats({
         totalUsers: usersRes.data.count,
-        pendingUsers: users.filter((u) => !u.approved).length,
+        pendingUsers: users.filter((u) => u.approved === false).length,
         totalComponents: componentsRes.data.count,
         totalBuilds: builds.length,
         pendingBuilds: builds.filter((b) => b.assemblyStatus === 'Pending').length,
@@ -520,14 +520,15 @@ function UsersTab() {
   };
 
   const handleReject = async (userId) => {
-    if (!window.confirm('Are you sure you want to reject this user?')) {
+    if (!window.confirm('Are you sure you want to reject and delete this user account? This action cannot be undone.')) {
       return;
     }
     try {
-      const res = await api.put(`/users/${userId}/reject`);
-      setUsers(users.map((u) => (u._id === userId ? res.data.data : u)));
+      await api.put(`/users/${userId}/reject`);
+      // Remove user from list after deletion
+      setUsers(users.filter((u) => u._id !== userId));
     } catch (error) {
-      alert(error.response?.data?.message || 'Error rejecting user');
+      alert(error.response?.data?.message || 'Error deleting user');
     }
   };
 
@@ -543,8 +544,9 @@ function UsersTab() {
     }
   };
 
-  const pendingUsers = users.filter((u) => !u.approved);
-  const approvedUsers = users.filter((u) => u.approved);
+  // Handle existing users without approved field (treat as approved)
+  const pendingUsers = users.filter((u) => u.approved === false);
+  const approvedUsers = users.filter((u) => u.approved === true || u.approved === undefined);
 
   if (loading) {
     return <div style={styles.loading}>Loading users...</div>;
@@ -725,15 +727,15 @@ function UsersTab() {
                     )}
                   </td>
                   <td>
-                    {user.approved ? (
-                      <span style={styles.approvedBadge}>Approved</span>
-                    ) : (
+                    {user.approved === false ? (
                       <span style={styles.pendingBadge}>Pending</span>
+                    ) : (
+                      <span style={styles.approvedBadge}>Approved</span>
                     )}
                   </td>
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
-                    {!user.approved && (
+                    {user.approved === false && (
                       <button
                         onClick={() => handleApprove(user._id)}
                         style={styles.approveButton}
@@ -741,7 +743,7 @@ function UsersTab() {
                         Approve
                       </button>
                     )}
-                    {user.approved && user._id !== currentUser._id && (
+                    {(user.approved === true || user.approved === undefined) && user._id !== currentUser._id && (
                       <button
                         onClick={() => handleReject(user._id)}
                         style={styles.rejectButton}

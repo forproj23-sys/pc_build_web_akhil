@@ -55,10 +55,18 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
   try {
     const users = await User.find({}).select('-password').sort({ createdAt: -1 });
 
+    // Set approved: true for existing users without the approved field (backward compatibility)
+    const usersWithApproved = users.map((user) => {
+      if (user.approved === undefined) {
+        user.approved = true; // Existing users are considered approved
+      }
+      return user;
+    });
+
     res.json({
       success: true,
       count: users.length,
-      data: users,
+      data: usersWithApproved,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -122,7 +130,7 @@ router.put('/:id/approve', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-// PUT /api/users/:id/reject - Reject/Unapprove user (Admin only)
+// PUT /api/users/:id/reject - Reject/Delete user (Admin only)
 router.put('/:id/reject', protect, authorize('admin'), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -136,14 +144,12 @@ router.put('/:id/reject', protect, authorize('admin'), async (req, res) => {
       return res.status(400).json({ message: 'You cannot reject your own account' });
     }
 
-    user.approved = false;
-    await user.save();
-
-    const updatedUser = await User.findById(user._id).select('-password');
+    // Delete the user account instead of just unapproving
+    await User.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
-      data: updatedUser,
+      message: 'User account deleted successfully',
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
