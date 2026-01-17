@@ -23,6 +23,10 @@ const UserSchema = new mongoose.Schema(
       enum: ['user', 'admin', 'assembler', 'supplier'],
       default: 'user',
     },
+    approved: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

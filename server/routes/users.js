@@ -30,12 +30,13 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user (admin-created users are auto-approved)
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role: role || 'user',
+      approved: true, // Admin-created users are auto-approved
     });
 
     const createdUser = await User.findById(user._id).select('-password');
@@ -85,6 +86,57 @@ router.put('/:id/role', protect, authorize('admin'), async (req, res) => {
     }
 
     user.role = role;
+    await user.save();
+
+    const updatedUser = await User.findById(user._id).select('-password');
+
+    res.json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PUT /api/users/:id/approve - Approve user (Admin only)
+router.put('/:id/approve', protect, authorize('admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.approved = true;
+    await user.save();
+
+    const updatedUser = await User.findById(user._id).select('-password');
+
+    res.json({
+      success: true,
+      data: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PUT /api/users/:id/reject - Reject/Unapprove user (Admin only)
+router.put('/:id/reject', protect, authorize('admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent admin from rejecting themselves
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot reject your own account' });
+    }
+
+    user.approved = false;
     await user.save();
 
     const updatedUser = await User.findById(user._id).select('-password');

@@ -69,6 +69,7 @@ function AdminDashboard() {
 function OverviewTab() {
   const [stats, setStats] = useState({
     totalUsers: 0,
+    pendingUsers: 0,
     totalComponents: 0,
     totalBuilds: 0,
     pendingBuilds: 0,
@@ -88,8 +89,10 @@ function OverviewTab() {
       ]);
 
       const builds = buildsRes.data.data;
+      const users = usersRes.data.data;
       setStats({
         totalUsers: usersRes.data.count,
+        pendingUsers: users.filter((u) => !u.approved).length,
         totalComponents: componentsRes.data.count,
         totalBuilds: builds.length,
         pendingBuilds: builds.filter((b) => b.assemblyStatus === 'Pending').length,
@@ -112,6 +115,10 @@ function OverviewTab() {
         <div style={styles.statCard}>
           <h3 style={styles.statValue}>{stats.totalUsers}</h3>
           <p style={styles.statLabel}>Total Users</p>
+        </div>
+        <div style={{ ...styles.statCard, border: '2px solid #ffc107' }}>
+          <h3 style={{ ...styles.statValue, color: '#ffc107' }}>{stats.pendingUsers}</h3>
+          <p style={styles.statLabel}>Pending Approval</p>
         </div>
         <div style={styles.statCard}>
           <h3 style={styles.statValue}>{stats.totalComponents}</h3>
@@ -503,6 +510,27 @@ function UsersTab() {
     }
   };
 
+  const handleApprove = async (userId) => {
+    try {
+      const res = await api.put(`/users/${userId}/approve`);
+      setUsers(users.map((u) => (u._id === userId ? res.data.data : u)));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error approving user');
+    }
+  };
+
+  const handleReject = async (userId) => {
+    if (!window.confirm('Are you sure you want to reject this user?')) {
+      return;
+    }
+    try {
+      const res = await api.put(`/users/${userId}/reject`);
+      setUsers(users.map((u) => (u._id === userId ? res.data.data : u)));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error rejecting user');
+    }
+  };
+
   const handleDelete = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user?')) {
       return;
@@ -514,6 +542,9 @@ function UsersTab() {
       alert(error.response?.data?.message || 'Error deleting user');
     }
   };
+
+  const pendingUsers = users.filter((u) => !u.approved);
+  const approvedUsers = users.filter((u) => u.approved);
 
   if (loading) {
     return <div style={styles.loading}>Loading users...</div>;
@@ -598,50 +629,47 @@ function UsersTab() {
         </form>
       )}
 
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>
-                  {editingRole === user._id ? (
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                      style={styles.inlineInput}
-                    >
-                      {roles.map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <span style={styles.roleBadge}>{user.role}</span>
-                  )}
-                </td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>
-                  {user._id !== currentUser._id && (
-                    <>
+      {pendingUsers.length > 0 && (
+        <div style={styles.section}>
+          <h3 style={styles.sectionTitle}>
+            Pending Approval ({pendingUsers.length})
+          </h3>
+          <div style={styles.tableContainer}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingUsers.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <span style={styles.roleBadge}>{user.role}</span>
+                    </td>
+                    <td>
+                      <span style={styles.pendingBadge}>Pending</span>
+                    </td>
+                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>
                       <button
-                        onClick={() =>
-                          setEditingRole(editingRole === user._id ? null : user._id)
-                        }
-                        style={styles.editButton}
+                        onClick={() => handleApprove(user._id)}
+                        style={styles.approveButton}
                       >
-                        {editingRole === user._id ? 'Cancel' : 'Change Role'}
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => handleReject(user._id)}
+                        style={styles.rejectButton}
+                      >
+                        Reject
                       </button>
                       <button
                         onClick={() => handleDelete(user._id)}
@@ -649,13 +677,102 @@ function UsersTab() {
                       >
                         Delete
                       </button>
-                    </>
-                  )}
-                </td>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div style={styles.section}>
+        <h3 style={styles.sectionTitle}>
+          All Users ({users.length})
+        </h3>
+        <div style={styles.tableContainer}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    {editingRole === user._id ? (
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                        style={styles.inlineInput}
+                      >
+                        {roles.map((role) => (
+                          <option key={role} value={role}>
+                            {role}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span style={styles.roleBadge}>{user.role}</span>
+                    )}
+                  </td>
+                  <td>
+                    {user.approved ? (
+                      <span style={styles.approvedBadge}>Approved</span>
+                    ) : (
+                      <span style={styles.pendingBadge}>Pending</span>
+                    )}
+                  </td>
+                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    {!user.approved && (
+                      <button
+                        onClick={() => handleApprove(user._id)}
+                        style={styles.approveButton}
+                      >
+                        Approve
+                      </button>
+                    )}
+                    {user.approved && user._id !== currentUser._id && (
+                      <button
+                        onClick={() => handleReject(user._id)}
+                        style={styles.rejectButton}
+                      >
+                        Reject
+                      </button>
+                    )}
+                    {user._id !== currentUser._id && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setEditingRole(editingRole === user._id ? null : user._id)
+                          }
+                          style={styles.editButton}
+                        >
+                          {editingRole === user._id ? 'Cancel' : 'Change Role'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          style={styles.deleteButton}
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -1041,6 +1158,50 @@ const styles = {
     padding: '0.75rem',
     borderRadius: '4px',
     marginBottom: '1rem',
+  },
+  section: {
+    marginBottom: '2rem',
+  },
+  sectionTitle: {
+    marginBottom: '1rem',
+    color: '#333',
+    fontSize: '1.25rem',
+  },
+  pendingBadge: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#fff3cd',
+    color: '#856404',
+    borderRadius: '12px',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+  },
+  approvedBadge: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#d1e7dd',
+    color: '#0f5132',
+    borderRadius: '12px',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+  },
+  approveButton: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#28a745',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginRight: '0.5rem',
+    fontSize: '0.875rem',
+  },
+  rejectButton: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#ffc107',
+    color: '#333',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginRight: '0.5rem',
+    fontSize: '0.875rem',
   },
 };
 
