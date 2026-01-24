@@ -211,6 +211,7 @@ function SupplierDashboard() {
                 <table style={styles.table}>
                   <thead>
                     <tr>
+                      <th>Image</th>
                       <th>Name</th>
                       <th>Category</th>
                       <th>Price</th>
@@ -225,6 +226,20 @@ function SupplierDashboard() {
 
                       return editing === component._id ? (
                         <tr key={component._id}>
+                          <td>
+                            {component.url ? (
+                              <img
+                                src={component.url}
+                                alt={component.name}
+                                style={styles.componentImage}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div style={styles.noImage}>No Image</div>
+                            )}
+                          </td>
                           <td>
                             <input
                               type="text"
@@ -284,6 +299,20 @@ function SupplierDashboard() {
                         </tr>
                       ) : (
                         <tr key={component._id}>
+                          <td>
+                            {component.url ? (
+                              <img
+                                src={component.url}
+                                alt={component.name}
+                                style={styles.componentImage}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div style={styles.noImage}>No Image</div>
+                            )}
+                          </td>
                           <td>{component.name}</td>
                           <td>{component.category}</td>
                           <td>
@@ -666,6 +695,30 @@ const styles = {
     textAlign: 'center',
     padding: '2rem',
     color: '#666',
+  },
+  componentImage: {
+    width: '60px',
+    height: '60px',
+    objectFit: 'cover',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+  },
+  noImage: {
+    width: '60px',
+    height: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    fontSize: '0.75rem',
+    color: '#999',
+    textAlign: 'center',
+  },
+  imageError: {
+    fontSize: '0.75rem',
+    color: '#dc3545',
   },
   form: {
     maxWidth: '800px',
