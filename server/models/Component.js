@@ -25,6 +25,11 @@ const ComponentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    url: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     stockStatus: {
       type: Boolean,
       default: true,

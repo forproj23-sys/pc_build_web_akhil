@@ -18,6 +18,7 @@ function SupplierDashboard() {
     price: '',
     specifications: '',
     compatibility: '',
+    url: '',
     stockStatus: true,
   });
 
@@ -62,6 +63,7 @@ function SupplierDashboard() {
         price: '',
         specifications: '',
         compatibility: '',
+        url: '',
         stockStatus: true,
       });
     } catch (error) {
@@ -82,6 +84,7 @@ function SupplierDashboard() {
       price: component.price,
       specifications: component.specifications,
       compatibility: component.compatibility || '',
+      url: component.url || '',
       stockStatus: component.stockStatus,
     });
   };
@@ -430,6 +433,17 @@ function SupplierDashboard() {
                     onChange={handleInputChange}
                     style={styles.input}
                     placeholder="e.g., LGA 1700, AM4"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label>Product URL (optional)</label>
+                  <input
+                    type="url"
+                    name="url"
+                    value={formData.url}
+                    onChange={handleInputChange}
+                    style={styles.input}
+                    placeholder="https://example.com/product"
                   />
                 </div>
                 <button type="submit" style={styles.submitButton}>

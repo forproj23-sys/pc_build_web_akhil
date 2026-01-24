@@ -54,7 +54,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/components - Create component (Admin/Supplier only)
 router.post('/', protect, authorize('admin', 'supplier'), async (req, res) => {
   try {
-    const { name, category, price, specifications, compatibility, stockStatus } = req.body;
+    const { name, category, price, specifications, compatibility, url, stockStatus } = req.body;
 
     // Validation
     if (!name || !category || price === undefined || !specifications) {
@@ -70,6 +70,7 @@ router.post('/', protect, authorize('admin', 'supplier'), async (req, res) => {
       price,
       specifications,
       compatibility: compatibility || '',
+      url: url || '',
       stockStatus: stockStatus !== undefined ? stockStatus : true,
       supplierID,
     });
@@ -100,13 +101,14 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
     }
 
     // Update fields
-    const { name, category, price, specifications, compatibility, stockStatus } = req.body;
+    const { name, category, price, specifications, compatibility, url, stockStatus } = req.body;
 
     if (name) component.name = name;
     if (category) component.category = category;
     if (price !== undefined) component.price = price;
     if (specifications) component.specifications = specifications;
     if (compatibility !== undefined) component.compatibility = compatibility;
+    if (url !== undefined) component.url = url;
     if (stockStatus !== undefined) component.stockStatus = stockStatus;
 
     // Admin can change supplierID
