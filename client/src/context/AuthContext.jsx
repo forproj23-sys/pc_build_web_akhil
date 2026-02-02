@@ -49,10 +49,19 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password, role = 'user') => {
     try {
       const res = await api.post('/auth/register', { name, email, password, role });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      setUser(res.data.user);
-      return { success: true, user: res.data.user };
+      
+      // Only store token and user if approved (admin is auto-approved)
+      if (res.data.user.approved) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        setUser(res.data.user);
+      }
+      
+      return {
+        success: true,
+        user: res.data.user,
+        message: res.data.message,
+      };
     } catch (error) {
       return {
         success: false,
@@ -72,6 +81,7 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         message: error.response?.data?.message || 'Login failed',
+        approved: error.response?.data?.approved,
       };
     }
   };

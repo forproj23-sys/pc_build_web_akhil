@@ -11,6 +11,7 @@ function Register() {
     role: 'user',
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [nameError, setNameError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ function Register() {
       [name]: value,
     });
     setError('');
+    setSuccess('');
 
     // Validate name field in real-time
     if (name === 'name') {
@@ -93,19 +95,33 @@ function Register() {
     );
 
     if (result.success) {
-      // Redirect based on role
-      const role = result.user.role;
-      if (role === 'admin') {
-        navigate('/admin');
-      } else if (role === 'assembler') {
-        navigate('/assembler');
-      } else if (role === 'supplier') {
-        navigate('/supplier');
+      // Check if user is approved
+      if (result.user.approved) {
+        // Redirect based on role if approved
+        const role = result.user.role;
+        if (role === 'admin') {
+          navigate('/admin');
+        } else if (role === 'assembler') {
+          navigate('/assembler');
+        } else if (role === 'supplier') {
+          navigate('/supplier');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
-        navigate('/dashboard');
+        // User registered but needs approval
+        setSuccess(
+          'Registration successful! Your account is pending admin approval. You will be redirected to login page shortly.'
+        );
+        setError('');
+        // Redirect to login after 3 seconds
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
       }
     } else {
       setError(result.message);
+      setSuccess('');
     }
 
     setLoading(false);
@@ -116,6 +132,7 @@ function Register() {
       <div style={styles.card}>
         <h1 style={styles.title}>Register</h1>
         {error && <div style={styles.error}>{error}</div>}
+        {success && <div style={styles.success}>{success}</div>}
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formGroup}>
             <label style={styles.label}>Name</label>
@@ -269,6 +286,13 @@ const styles = {
   error: {
     backgroundColor: '#fee',
     color: '#c33',
+    padding: '0.75rem',
+    borderRadius: '4px',
+    marginBottom: '1rem',
+  },
+  success: {
+    backgroundColor: '#d1e7dd',
+    color: '#0f5132',
     padding: '0.75rem',
     borderRadius: '4px',
     marginBottom: '1rem',

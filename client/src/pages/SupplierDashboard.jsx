@@ -72,11 +72,7 @@ function SupplierDashboard() {
   };
 
   const handleEdit = (component) => {
-    // Check if supplier can edit this component
-    if (component.supplierID && component.supplierID._id !== user._id) {
-      alert('You can only edit your own components');
-      return;
-    }
+    // Suppliers can edit any component in inventory
     setEditing(component._id);
     setFormData({
       name: component.name,
@@ -229,7 +225,6 @@ function SupplierDashboard() {
                       <th>Price</th>
                       <th>Stock</th>
                       <th>Supplier</th>
-                      <th>Image URL</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -310,16 +305,6 @@ function SupplierDashboard() {
                           </td>
                           <td>{component.supplierID?.name || 'Unassigned'}</td>
                           <td>
-                            <input
-                              type="url"
-                              name="url"
-                              value={formData.url}
-                              onChange={handleInputChange}
-                              placeholder="Image URL"
-                              style={styles.inlineInput}
-                            />
-                          </td>
-                          <td>
                             <button
                               onClick={() => handleUpdate(component._id)}
                               style={styles.saveButton}
@@ -353,80 +338,49 @@ function SupplierDashboard() {
                           <td>{component.name}</td>
                           <td>{component.category}</td>
                           <td>
-                            {isMine ? (
-                              <input
-                                type="number"
-                                value={component.price}
-                                onChange={(e) =>
-                                  handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                                }
-                                onBlur={(e) =>
-                                  handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                                }
-                                style={styles.priceInput}
-                                step="0.01"
-                              />
-                            ) : (
-                              `$${component.price.toFixed(2)}`
-                            )}
+                            <input
+                              type="number"
+                              value={component.price}
+                              onChange={(e) =>
+                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                              }
+                              onBlur={(e) =>
+                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                              }
+                              style={styles.priceInput}
+                              step="0.01"
+                            />
                           </td>
                           <td>
-                            {isMine ? (
-                              <label style={styles.checkboxLabel}>
-                                <input
-                                  type="checkbox"
-                                  checked={component.stockStatus}
-                                  onChange={(e) =>
-                                    handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
-                                  }
-                                />
-                                {component.stockStatus ? (
-                                  <span style={styles.inStock}>In Stock</span>
-                                ) : (
-                                  <span style={styles.outOfStock}>Out</span>
-                                )}
-                              </label>
-                            ) : (
-                              component.stockStatus ? (
+                            <label style={styles.checkboxLabel}>
+                              <input
+                                type="checkbox"
+                                checked={component.stockStatus}
+                                onChange={(e) =>
+                                  handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
+                                }
+                              />
+                              {component.stockStatus ? (
                                 <span style={styles.inStock}>In Stock</span>
                               ) : (
-                                <span style={styles.outOfStock}>Out of Stock</span>
-                              )
-                            )}
+                                <span style={styles.outOfStock}>Out</span>
+                              )}
+                            </label>
                           </td>
                           <td>{component.supplierID?.name || 'Unassigned'}</td>
                           <td>
-                            {component.url ? (
-                              <a
-                                href={component.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={styles.urlLink}
-                              >
-                                View URL
-                              </a>
-                            ) : (
-                              <span style={styles.noUrl}>No URL</span>
-                            )}
-                          </td>
-                          <td>
-                            {isMine && (
-                              <>
-                                <button
-                                  onClick={() => handleEdit(component)}
-                                  style={styles.editButton}
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(component._id)}
-                                  style={styles.deleteButton}
-                                >
-                                  Delete
-                                </button>
-                              </>
-                            )}
-                            {!isMine && <span style={styles.readOnly}>Read Only</span>}
+                            <button
+                              onClick={() => handleEdit(component)}
+                              style={styles.editButton}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(component._id)}
+                              style={styles.deleteButton}
+                            >
+                              Delete
+                            </button>
                           </td>
                         </tr>
                       );

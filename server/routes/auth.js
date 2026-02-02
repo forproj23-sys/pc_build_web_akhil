@@ -25,12 +25,17 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Determine approval status: Admin is auto-approved, others need approval
+    const userRole = role || 'user';
+    const approved = userRole === 'admin' ? true : false;
+
     // Create user
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: role || 'user',
+      role: userRole,
+      approved: approved,
     });
 
     // Generate token
@@ -46,7 +51,11 @@ router.post('/register', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        approved: user.approved,
       },
+      message: approved
+        ? 'Registration successful'
+        : 'Registration successful. Your account is pending admin approval.',
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -75,6 +84,14 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    // Check if user is approved (admin is always approved)
+    if (user.role !== 'admin' && !user.approved) {
+      return res.status(403).json({
+        message: 'Your account is pending admin approval. Please wait for approval before logging in.',
+        approved: false,
+      });
+    }
+
     // Generate token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '30d',
@@ -88,6 +105,7 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        approved: user.approved,
       },
     });
   } catch (error) {
@@ -107,6 +125,7 @@ router.get('/me', protect, async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        approved: user.approved,
       },
     });
   } catch (error) {

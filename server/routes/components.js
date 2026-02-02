@@ -95,9 +95,10 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
       return res.status(404).json({ message: 'Component not found' });
     }
 
-    // If supplier, only allow updating their own components
-    if (req.user.role === 'supplier' && component.supplierID && component.supplierID.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only update your own components' });
+    // Suppliers can update any component (they manage the inventory)
+    // If updating and component has no supplier, assign it to the current supplier
+    if (req.user.role === 'supplier' && !component.supplierID) {
+      component.supplierID = req.user._id;
     }
 
     // Update fields
@@ -138,10 +139,7 @@ router.delete('/:id', protect, authorize('admin', 'supplier'), async (req, res) 
       return res.status(404).json({ message: 'Component not found' });
     }
 
-    // If supplier, only allow deleting their own components
-    if (req.user.role === 'supplier' && component.supplierID && component.supplierID.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only delete your own components' });
-    }
+    // Suppliers can delete any component (they manage the inventory)
 
     await Component.findByIdAndDelete(req.params.id);
 
