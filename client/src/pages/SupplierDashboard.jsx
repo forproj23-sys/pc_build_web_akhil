@@ -108,6 +108,18 @@ function SupplierDashboard() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this component? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      await api.delete(`/components/${id}`);
+      setComponents(components.filter((c) => c._id !== id));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error deleting component');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -217,6 +229,7 @@ function SupplierDashboard() {
                       <th>Price</th>
                       <th>Stock</th>
                       <th>Supplier</th>
+                      <th>Image URL</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -228,14 +241,28 @@ function SupplierDashboard() {
                         <tr key={component._id}>
                           <td>
                             {component.url ? (
-                              <img
-                                src={component.url}
-                                alt={component.name}
-                                style={styles.componentImage}
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
+                              <div style={styles.imageContainer}>
+                                <img
+                                  key={component.url}
+                                  src={component.url}
+                                  alt={component.name}
+                                  style={styles.componentImage}
+                                  onError={(e) => {
+                                    console.error('Image failed to load:', component.url);
+                                    e.target.style.display = 'none';
+                                    const errorDiv = e.target.nextSibling;
+                                    if (errorDiv) {
+                                      errorDiv.style.display = 'flex';
+                                    }
+                                  }}
+                                  onLoad={() => {
+                                    console.log('Image loaded successfully:', component.url);
+                                  }}
+                                />
+                                <div style={{ ...styles.noImage, display: 'none' }}>
+                                  Failed to load
+                                </div>
+                              </div>
                             ) : (
                               <div style={styles.noImage}>No Image</div>
                             )}
@@ -282,6 +309,16 @@ function SupplierDashboard() {
                             />
                           </td>
                           <td>{component.supplierID?.name || 'Unassigned'}</td>
+                          <td>
+                            <input
+                              type="url"
+                              name="url"
+                              value={formData.url}
+                              onChange={handleInputChange}
+                              placeholder="Image URL"
+                              style={styles.inlineInput}
+                            />
+                          </td>
                           <td>
                             <button
                               onClick={() => handleUpdate(component._id)}
@@ -359,13 +396,35 @@ function SupplierDashboard() {
                           </td>
                           <td>{component.supplierID?.name || 'Unassigned'}</td>
                           <td>
-                            {isMine && (
-                              <button
-                                onClick={() => handleEdit(component)}
-                                style={styles.editButton}
+                            {component.url ? (
+                              <a
+                                href={component.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={styles.urlLink}
                               >
-                                Edit
-                              </button>
+                                View URL
+                              </a>
+                            ) : (
+                              <span style={styles.noUrl}>No URL</span>
+                            )}
+                          </td>
+                          <td>
+                            {isMine && (
+                              <>
+                                <button
+                                  onClick={() => handleEdit(component)}
+                                  style={styles.editButton}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(component._id)}
+                                  style={styles.deleteButton}
+                                >
+                                  Delete
+                                </button>
+                              </>
                             )}
                             {!isMine && <span style={styles.readOnly}>Read Only</span>}
                           </td>
@@ -679,6 +738,16 @@ const styles = {
     cursor: 'pointer',
     fontSize: '0.875rem',
   },
+  deleteButton: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+    marginLeft: '0.5rem',
+  },
   inStock: {
     color: '#28a745',
     fontWeight: '500',
@@ -696,12 +765,18 @@ const styles = {
     padding: '2rem',
     color: '#666',
   },
+  imageContainer: {
+    position: 'relative',
+    width: '60px',
+    height: '60px',
+  },
   componentImage: {
     width: '60px',
     height: '60px',
     objectFit: 'cover',
     borderRadius: '4px',
     border: '1px solid #ddd',
+    display: 'block',
   },
   noImage: {
     width: '60px',
@@ -719,6 +794,15 @@ const styles = {
   imageError: {
     fontSize: '0.75rem',
     color: '#dc3545',
+  },
+  urlLink: {
+    color: '#007bff',
+    textDecoration: 'none',
+    fontSize: '0.875rem',
+  },
+  noUrl: {
+    color: '#999',
+    fontSize: '0.875rem',
   },
   form: {
     maxWidth: '800px',

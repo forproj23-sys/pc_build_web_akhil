@@ -129,13 +129,18 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
   }
 });
 
-// DELETE /api/components/:id - Delete component (Admin only)
-router.delete('/:id', protect, authorize('admin'), async (req, res) => {
+// DELETE /api/components/:id - Delete component (Admin/Supplier - suppliers can only delete their own)
+router.delete('/:id', protect, authorize('admin', 'supplier'), async (req, res) => {
   try {
     const component = await Component.findById(req.params.id);
 
     if (!component) {
       return res.status(404).json({ message: 'Component not found' });
+    }
+
+    // If supplier, only allow deleting their own components
+    if (req.user.role === 'supplier' && component.supplierID && component.supplierID.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only delete your own components' });
     }
 
     await Component.findByIdAndDelete(req.params.id);
