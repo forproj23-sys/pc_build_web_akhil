@@ -97,7 +97,8 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
 
     // Suppliers can update any component (they manage the inventory)
     // If updating and component has no supplier, assign it to the current supplier
-    if (req.user.role === 'supplier' && !component.supplierID) {
+    if (req.user.role === 'supplier') {
+      // Always set supplierID to current supplier when they update
       component.supplierID = req.user._id;
     }
 

@@ -109,10 +109,24 @@ function SupplierDashboard() {
       return;
     }
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You are not logged in. Please login again.');
+        logout();
+        navigate('/login');
+        return;
+      }
       await api.delete(`/components/${id}`);
       setComponents(components.filter((c) => c._id !== id));
     } catch (error) {
-      alert(error.response?.data?.message || 'Error deleting component');
+      console.error('Delete error:', error);
+      if (error.response?.status === 401) {
+        alert('Your session has expired. Please login again.');
+        logout();
+        navigate('/login');
+      } else {
+        alert(error.response?.data?.message || 'Error deleting component');
+      }
     }
   };
 
@@ -224,7 +238,6 @@ function SupplierDashboard() {
                       <th>Category</th>
                       <th>Price</th>
                       <th>Stock</th>
-                      <th>Supplier</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -303,7 +316,6 @@ function SupplierDashboard() {
                               onChange={handleInputChange}
                             />
                           </td>
-                          <td>{component.supplierID?.name || 'Unassigned'}</td>
                           <td>
                             <button
                               onClick={() => handleUpdate(component._id)}
@@ -367,7 +379,6 @@ function SupplierDashboard() {
                               )}
                             </label>
                           </td>
-                          <td>{component.supplierID?.name || 'Unassigned'}</td>
                           <td>
                             <button
                               onClick={() => handleEdit(component)}
