@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Component = require('../models/Component');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -17,8 +18,11 @@ router.get('/', async (req, res) => {
     if (stockStatus !== undefined) {
       query.stockStatus = stockStatus === 'true';
     }
-    if (supplierID) {
-      query.supplierID = supplierID;
+    if (supplierID && supplierID !== 'undefined') {
+      // Validate ObjectId format
+      if (mongoose.Types.ObjectId.isValid(supplierID)) {
+        query.supplierID = supplierID;
+      }
     }
 
     const components = await Component.find(query).populate('supplierID', 'name email').sort({ createdAt: -1 });
@@ -89,6 +93,11 @@ router.post('/', protect, authorize('admin', 'supplier'), async (req, res) => {
 // PUT /api/components/:id - Update component (Admin/Supplier)
 router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => {
   try {
+    // Check if user is approved (admin is always approved)
+    if (req.user.role !== 'admin' && !req.user.approved) {
+      return res.status(403).json({ message: 'Your account is pending approval' });
+    }
+
     let component = await Component.findById(req.params.id);
 
     if (!component) {
@@ -131,9 +140,14 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
   }
 });
 
-// DELETE /api/components/:id - Delete component (Admin/Supplier - suppliers can only delete their own)
+// DELETE /api/components/:id - Delete component (Admin/Supplier)
 router.delete('/:id', protect, authorize('admin', 'supplier'), async (req, res) => {
   try {
+    // Check if user is approved (admin is always approved)
+    if (req.user.role !== 'admin' && !req.user.approved) {
+      return res.status(403).json({ message: 'Your account is pending approval' });
+    }
+
     const component = await Component.findById(req.params.id);
 
     if (!component) {
@@ -141,7 +155,6 @@ router.delete('/:id', protect, authorize('admin', 'supplier'), async (req, res) 
     }
 
     // Suppliers can delete any component (they manage the inventory)
-
     await Component.findByIdAndDelete(req.params.id);
 
     res.json({
@@ -149,6 +162,7 @@ router.delete('/:id', protect, authorize('admin', 'supplier'), async (req, res) 
       message: 'Component deleted successfully',
     });
   } catch (error) {
+    console.error('Delete component error:', error);
     res.status(500).json({ message: error.message });
   }
 });

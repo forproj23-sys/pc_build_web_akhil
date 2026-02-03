@@ -17,6 +17,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/components', require('./routes/components'));
 app.use('/api/builds', require('./routes/builds'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/categories', require('./routes/categories'));
 
 app.get('/', (req, res) => {
   res.send('API is running');

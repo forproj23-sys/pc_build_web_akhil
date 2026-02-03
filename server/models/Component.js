@@ -9,8 +9,9 @@ const ComponentSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['CPU', 'GPU', 'RAM', 'Storage', 'PSU', 'Motherboard', 'Case'],
       required: true,
+      trim: true,
+      uppercase: true,
     },
     price: {
       type: Number,

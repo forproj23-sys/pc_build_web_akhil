@@ -8,13 +8,14 @@ function SupplierDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('inventory');
   const [components, setComponents] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all', 'mine', or category
   const [editing, setEditing] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    category: 'CPU',
+    category: '',
     price: '',
     specifications: '',
     compatibility: '',
@@ -24,14 +25,29 @@ function SupplierDashboard() {
 
   useEffect(() => {
     fetchComponents();
+    fetchCategories();
   }, [filter]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories');
+      const activeCategories = res.data.data.filter(cat => cat.isActive);
+      setCategories(activeCategories);
+      // Set default category if available and not already set
+      if (activeCategories.length > 0 && !formData.category) {
+        setFormData(prev => ({ ...prev, category: activeCategories[0].name }));
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchComponents = async () => {
     try {
       setLoading(true);
       let url = '/components';
-      if (filter === 'mine') {
-        url = `/components?supplierID=${user._id}`;
+      if (filter === 'mine' && user?.id) {
+        url = `/components?supplierID=${user.id}`;
       } else if (filter !== 'all') {
         url = `/components?category=${filter}`;
       }
@@ -59,7 +75,7 @@ function SupplierDashboard() {
       setShowAddForm(false);
       setFormData({
         name: '',
-        category: 'CPU',
+        category: categories.length > 0 ? categories[0].name : '',
         price: '',
         specifications: '',
         compatibility: '',
@@ -135,13 +151,13 @@ function SupplierDashboard() {
     navigate('/');
   };
 
-  const myComponents = components.filter(
-    (c) => c.supplierID && c.supplierID._id === user._id
-  );
+    const myComponents = components.filter(
+      (c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)
+    );
   const inStockCount = myComponents.filter((c) => c.stockStatus).length;
   const outOfStockCount = myComponents.filter((c) => !c.stockStatus).length;
 
-  const categories = ['CPU', 'GPU', 'RAM', 'Storage', 'PSU', 'Motherboard', 'Case'];
+
 
   if (loading && components.length === 0) {
     return (
@@ -243,7 +259,8 @@ function SupplierDashboard() {
                   </thead>
                   <tbody>
                     {components.map((component) => {
-                      const isMine = component.supplierID && component.supplierID._id === user._id;
+                      // This is no longer needed since suppliers manage all inventory
+                      // const isMine = component.supplierID && (component.supplierID._id === user?.id || component.supplierID._id?.toString() === user?.id);
 
                       return editing === component._id ? (
                         <tr key={component._id}>
@@ -291,11 +308,15 @@ function SupplierDashboard() {
                               onChange={handleInputChange}
                               style={styles.inlineInput}
                             >
-                              {categories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                  {cat}
-                                </option>
-                              ))}
+                              {categories.length === 0 ? (
+                                <option value="">No categories available</option>
+                              ) : (
+                                categories.map((cat) => (
+                                  <option key={cat._id || cat.name} value={cat.name}>
+                                    {cat.name}
+                                  </option>
+                                ))
+                              )}
                             </select>
                           </td>
                           <td>
@@ -431,11 +452,15 @@ function SupplierDashboard() {
                       required
                       style={styles.input}
                     >
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
+                      {categories.length === 0 ? (
+                        <option value="">No categories available</option>
+                      ) : (
+                        categories.map((cat) => (
+                          <option key={cat._id || cat.name} value={cat.name}>
+                            {cat.name}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
                   <div style={styles.formGroup}>

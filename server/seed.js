@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Component = require('./models/Component');
+const Category = require('./models/Category');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/pc_build_db';
 
@@ -210,6 +211,7 @@ async function seedDatabase() {
     console.log('Clearing existing data...');
     await User.deleteMany({});
     await Component.deleteMany({});
+    await Category.deleteMany({});
     console.log('Existing data cleared');
 
     // Hash password for users
@@ -246,6 +248,20 @@ async function seedDatabase() {
     const createdUsers = await User.insertMany(users);
     console.log(`Created ${createdUsers.length} users`);
 
+    // Create default categories
+    const defaultCategories = [
+      { name: 'CPU', description: 'Central Processing Unit', isActive: true },
+      { name: 'GPU', description: 'Graphics Processing Unit', isActive: true },
+      { name: 'RAM', description: 'Random Access Memory', isActive: true },
+      { name: 'Storage', description: 'Storage Drives (SSD/HDD)', isActive: true },
+      { name: 'PSU', description: 'Power Supply Unit', isActive: true },
+      { name: 'Motherboard', description: 'Motherboard', isActive: true },
+      { name: 'Case', description: 'PC Case/Chassis', isActive: true },
+    ];
+
+    const createdCategories = await Category.insertMany(defaultCategories);
+    console.log(`Created ${createdCategories.length} categories`);
+
     // Get supplier user for component assignment
     const supplier = createdUsers.find((u) => u.role === 'supplier');
 
@@ -264,7 +280,8 @@ async function seedDatabase() {
       console.log(`  - ${user.email} (${user.role}) - Password: password123`);
     });
     console.log(`\nComponents created: ${createdComponents.length}`);
-    console.log('Categories: CPU, GPU, RAM, Storage, PSU, Motherboard, Case');
+    console.log(`Categories created: ${createdCategories.length}`);
+    console.log('Category names:', createdCategories.map(c => c.name).join(', '));
     console.log('\n=== Seed Complete ===');
     console.log('\nYou can now login with any of the test accounts.');
     console.log('All accounts use password: password123');

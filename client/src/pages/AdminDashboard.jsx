@@ -47,6 +47,12 @@ function AdminDashboard() {
             Users
           </button>
           <button
+            onClick={() => setActiveTab('categories')}
+            style={{ ...styles.tab, ...(activeTab === 'categories' ? styles.activeTab : {}) }}
+          >
+            Categories
+          </button>
+          <button
             onClick={() => setActiveTab('builds')}
             style={{ ...styles.tab, ...(activeTab === 'builds' ? styles.activeTab : {}) }}
           >
@@ -58,6 +64,7 @@ function AdminDashboard() {
           {activeTab === 'overview' && <OverviewTab />}
           {activeTab === 'components' && <ComponentsTab />}
           {activeTab === 'users' && <UsersTab />}
+          {activeTab === 'categories' && <CategoriesTab />}
           {activeTab === 'builds' && <BuildsTab />}
         </div>
       </div>
@@ -182,7 +189,7 @@ function ComponentsTab() {
       setShowAddForm(false);
       setFormData({
         name: '',
-        category: 'CPU',
+        category: categories.length > 0 ? categories[0].name : '',
         price: '',
         specifications: '',
         compatibility: '',
@@ -231,8 +238,6 @@ function ComponentsTab() {
     return <div style={styles.loading}>Loading components...</div>;
   }
 
-  const categories = ['CPU', 'GPU', 'RAM', 'Storage', 'PSU', 'Motherboard', 'Case'];
-
   return (
     <div>
       <div style={styles.header}>
@@ -266,11 +271,15 @@ function ComponentsTab() {
                 required
                 style={styles.input}
               >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
+                {categories.length === 0 ? (
+                  <option value="">No categories available</option>
+                ) : (
+                  categories.map((cat) => (
+                    <option key={cat._id || cat.name} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
             <div style={styles.formGroup}>
@@ -355,11 +364,15 @@ function ComponentsTab() {
                         onChange={handleInputChange}
                         style={styles.inlineInput}
                       >
-                        {categories.map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
+                        {categories.length === 0 ? (
+                          <option value="">No categories available</option>
+                        ) : (
+                          categories.map((cat) => (
+                            <option key={cat._id || cat.name} value={cat.name}>
+                              {cat.name}
+                            </option>
+                          ))
+                        )}
                       </select>
                     </td>
                     <td>
@@ -781,6 +794,257 @@ function UsersTab() {
 }
 
 // Builds Tab Component
+// Categories Tab Component
+function CategoriesTab() {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    isActive: true,
+  });
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories?includeInactive=true');
+      setCategories(res.data.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
+    });
+  };
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.post('/categories', formData);
+      setCategories([res.data.data, ...categories]);
+      setShowAddForm(false);
+      setFormData({
+        name: '',
+        description: '',
+        isActive: true,
+      });
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error adding category');
+    }
+  };
+
+  const handleEdit = (category) => {
+    setEditing(category._id);
+    setFormData({
+      name: category.name,
+      description: category.description || '',
+      isActive: category.isActive,
+    });
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      const res = await api.put(`/categories/${id}`, formData);
+      setCategories(categories.map((c) => (c._id === id ? res.data.data : c)));
+      setEditing(null);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error updating category');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category? This will fail if any components are using it.')) {
+      return;
+    }
+    try {
+      await api.delete(`/categories/${id}`);
+      setCategories(categories.filter((c) => c._id !== id));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error deleting category');
+    }
+  };
+
+  const handleToggleActive = async (id, currentStatus) => {
+    try {
+      const res = await api.put(`/categories/${id}`, { isActive: !currentStatus });
+      setCategories(categories.map((c) => (c._id === id ? res.data.data : c)));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error updating category status');
+    }
+  };
+
+  if (loading) {
+    return <div style={styles.loading}>Loading categories...</div>;
+  }
+
+  return (
+    <div>
+      <div style={styles.header}>
+        <h2>Category Management</h2>
+        <button onClick={() => setShowAddForm(!showAddForm)} style={styles.addButton}>
+          {showAddForm ? 'Cancel' : 'Add Category'}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <form onSubmit={handleAdd} style={styles.form}>
+          <h3>Add New Category</h3>
+          <div style={styles.formGrid}>
+            <div style={styles.formGroup}>
+              <label>Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                style={styles.input}
+                placeholder="e.g., CPU, GPU, RAM"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Description</label>
+              <input
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Optional description"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>
+                <input
+                  type="checkbox"
+                  name="isActive"
+                  checked={formData.isActive}
+                  onChange={handleInputChange}
+                />
+                Active
+              </label>
+            </div>
+          </div>
+          <button type="submit" style={styles.submitButton}>
+            Add Category
+          </button>
+        </form>
+      )}
+
+      <div style={styles.tableContainer}>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((category) => (
+              <tr key={category._id}>
+                {editing === category._id ? (
+                  <>
+                    <td>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        style={styles.inlineInput}
+                        required
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        style={styles.inlineInput}
+                      />
+                    </td>
+                    <td>
+                      <label style={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          name="isActive"
+                          checked={formData.isActive}
+                          onChange={handleInputChange}
+                        />
+                        {formData.isActive ? 'Active' : 'Inactive'}
+                      </label>
+                    </td>
+                    <td>{new Date(category.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        onClick={() => handleUpdate(category._id)}
+                        style={styles.saveButton}
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditing(null)}
+                        style={styles.cancelButton}
+                      >
+                        Cancel
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td>{category.name}</td>
+                    <td>{category.description || '-'}</td>
+                    <td>
+                      <button
+                        onClick={() => handleToggleActive(category._id, category.isActive)}
+                        style={category.isActive ? styles.activeButton : styles.inactiveButton}
+                      >
+                        {category.isActive ? 'Active' : 'Inactive'}
+                      </button>
+                    </td>
+                    <td>{new Date(category.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        onClick={() => handleEdit(category)}
+                        style={styles.editButton}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(category._id)}
+                        style={styles.deleteButton}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {categories.length === 0 && (
+          <p style={styles.emptyMessage}>No categories found. Add your first category!</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function BuildsTab() {
   const [builds, setBuilds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1199,6 +1463,24 @@ const styles = {
     padding: '0.25rem 0.75rem',
     backgroundColor: '#ffc107',
     color: '#333',
+  },
+  activeButton: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#28a745',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+  },
+  inactiveButton: {
+    padding: '0.25rem 0.75rem',
+    backgroundColor: '#6c757d',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
