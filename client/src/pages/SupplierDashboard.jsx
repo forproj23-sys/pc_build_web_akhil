@@ -231,9 +231,10 @@ function SupplierDashboard() {
                 >
                   <option value="all">All Components</option>
                   <option value="mine">My Components Only</option>
+                  <option disabled>--- Categories ---</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat} Only
+                    <option key={cat._id || cat.name} value={cat.name}>
+                      {cat.name}
                     </option>
                   ))}
                 </select>

@@ -147,12 +147,13 @@ function OverviewTab() {
 // Components Tab Component
 function ComponentsTab() {
   const [components, setComponents] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    category: 'CPU',
+    category: '',
     price: '',
     specifications: '',
     compatibility: '',
@@ -161,7 +162,22 @@ function ComponentsTab() {
 
   useEffect(() => {
     fetchComponents();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get('/categories');
+      const activeCategories = res.data.data.filter(cat => cat.isActive);
+      setCategories(activeCategories);
+      // Set default category if available
+      if (activeCategories.length > 0 && !formData.category) {
+        setFormData(prev => ({ ...prev, category: activeCategories[0].name }));
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchComponents = async () => {
     try {
