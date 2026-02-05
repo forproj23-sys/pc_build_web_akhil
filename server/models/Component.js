@@ -26,6 +26,46 @@ const ComponentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    // Structured compatibility fields
+    socket: {
+      type: String,
+      default: '',
+      trim: true,
+      uppercase: true,
+    },
+    chipset: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    formFactor: {
+      type: String,
+      default: '',
+      trim: true,
+      uppercase: true,
+    },
+    powerRequirement: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    ramType: {
+      type: String,
+      default: '',
+      trim: true,
+      uppercase: true,
+    },
+    storageInterface: {
+      type: String,
+      default: '',
+      trim: true,
+      uppercase: true,
+    },
+    wattage: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     url: {
       type: String,
       default: '',
@@ -34,6 +74,11 @@ const ComponentSchema = new mongoose.Schema(
     stockStatus: {
       type: Boolean,
       default: true,
+    },
+    priority: {
+      type: Number,
+      default: 1,
+      min: 1,
     },
     supplierID: {
       type: mongoose.Schema.Types.ObjectId,

@@ -25,6 +25,8 @@ const sampleComponents = [
     price: 399.99,
     specifications: '13th Gen, 16 cores (8P+8E), 3.4GHz base, 5.4GHz boost',
     compatibility: 'LGA 1700',
+    socket: 'LGA1700',
+    powerRequirement: 125,
     stockStatus: true,
   },
   {
@@ -33,6 +35,8 @@ const sampleComponents = [
     price: 399.99,
     specifications: 'Zen 4, 8 cores, 4.5GHz base, 5.4GHz boost',
     compatibility: 'AM5',
+    socket: 'AM5',
+    powerRequirement: 105,
     stockStatus: true,
   },
   {
@@ -41,6 +45,8 @@ const sampleComponents = [
     price: 229.99,
     specifications: '13th Gen, 10 cores (6P+4E), 2.5GHz base, 4.6GHz boost',
     compatibility: 'LGA 1700',
+    socket: 'LGA1700',
+    powerRequirement: 65,
     stockStatus: true,
   },
   
@@ -51,6 +57,7 @@ const sampleComponents = [
     price: 599.99,
     specifications: '12GB GDDR6X, 192-bit bus, Ray Tracing, DLSS 3',
     compatibility: 'PCIe 4.0',
+    powerRequirement: 200,
     stockStatus: true,
   },
   {
@@ -59,6 +66,7 @@ const sampleComponents = [
     price: 499.99,
     specifications: '16GB GDDR6, 256-bit bus, FSR support',
     compatibility: 'PCIe 4.0',
+    powerRequirement: 263,
     stockStatus: true,
   },
   {
@@ -67,6 +75,7 @@ const sampleComponents = [
     price: 299.99,
     specifications: '8GB GDDR6, 128-bit bus, Ray Tracing, DLSS 3',
     compatibility: 'PCIe 4.0',
+    powerRequirement: 115,
     stockStatus: true,
   },
   
@@ -77,6 +86,7 @@ const sampleComponents = [
     price: 129.99,
     specifications: 'DDR5-5600, CL36, 1.25V',
     compatibility: 'DDR5',
+    ramType: 'DDR5',
     stockStatus: true,
   },
   {
@@ -85,6 +95,7 @@ const sampleComponents = [
     price: 89.99,
     specifications: 'DDR5-6000, CL36, 1.35V',
     compatibility: 'DDR5',
+    ramType: 'DDR5',
     stockStatus: true,
   },
   {
@@ -93,6 +104,7 @@ const sampleComponents = [
     price: 59.99,
     specifications: 'DDR4-3200, CL16, 1.35V',
     compatibility: 'DDR4',
+    ramType: 'DDR4',
     stockStatus: true,
   },
   
@@ -103,6 +115,7 @@ const sampleComponents = [
     price: 99.99,
     specifications: 'PCIe 4.0, Read: 7000MB/s, Write: 5000MB/s',
     compatibility: 'M.2 NVMe',
+    storageInterface: 'NVME M.2',
     stockStatus: true,
   },
   {
@@ -111,6 +124,7 @@ const sampleComponents = [
     price: 179.99,
     specifications: 'PCIe 4.0, Read: 7300MB/s, Write: 6300MB/s',
     compatibility: 'M.2 NVMe',
+    storageInterface: 'NVME M.2',
     stockStatus: true,
   },
   {
@@ -119,6 +133,7 @@ const sampleComponents = [
     price: 49.99,
     specifications: '7200 RPM, SATA III, 256MB cache',
     compatibility: 'SATA',
+    storageInterface: 'SATA',
     stockStatus: true,
   },
   
@@ -129,6 +144,7 @@ const sampleComponents = [
     price: 149.99,
     specifications: '850W, 80+ Gold, Fully Modular, 140mm Fan',
     compatibility: 'ATX',
+    wattage: 850,
     stockStatus: true,
   },
   {
@@ -137,6 +153,7 @@ const sampleComponents = [
     price: 119.99,
     specifications: '750W, 80+ Gold, Fully Modular',
     compatibility: 'ATX',
+    wattage: 750,
     stockStatus: true,
   },
   {
@@ -145,6 +162,7 @@ const sampleComponents = [
     price: 99.99,
     specifications: '650W, 80+ Gold, Semi-Modular',
     compatibility: 'ATX',
+    wattage: 650,
     stockStatus: true,
   },
   
@@ -155,6 +173,10 @@ const sampleComponents = [
     price: 279.99,
     specifications: 'AM5, DDR5, PCIe 5.0, WiFi 6E, Bluetooth 5.2',
     compatibility: 'AM5',
+    socket: 'AM5',
+    chipset: 'B650',
+    formFactor: 'ATX',
+    ramType: 'DDR5',
     stockStatus: true,
   },
   {
@@ -163,6 +185,10 @@ const sampleComponents = [
     price: 329.99,
     specifications: 'LGA 1700, DDR5, PCIe 5.0, WiFi 6E',
     compatibility: 'LGA 1700',
+    socket: 'LGA1700',
+    chipset: 'Z790',
+    formFactor: 'ATX',
+    ramType: 'DDR5',
     stockStatus: true,
   },
   {
@@ -171,6 +197,10 @@ const sampleComponents = [
     price: 139.99,
     specifications: 'AM5, DDR5, PCIe 4.0, Micro-ATX',
     compatibility: 'AM5',
+    socket: 'AM5',
+    chipset: 'B650',
+    formFactor: 'MATX',
+    ramType: 'DDR5',
     stockStatus: true,
   },
   
@@ -181,6 +211,7 @@ const sampleComponents = [
     price: 89.99,
     specifications: 'Mid Tower, Tempered Glass, 3x120mm fans, ATX',
     compatibility: 'ATX',
+    formFactor: 'ATX',
     stockStatus: true,
   },
   {
@@ -189,6 +220,7 @@ const sampleComponents = [
     price: 94.99,
     specifications: 'Mid Tower, Tempered Glass, 2x140mm fans, ATX',
     compatibility: 'ATX',
+    formFactor: 'ATX',
     stockStatus: true,
   },
   {
@@ -197,6 +229,7 @@ const sampleComponents = [
     price: 79.99,
     specifications: 'Mid Tower, Tempered Glass, 3x120mm fans, RGB',
     compatibility: 'ATX',
+    formFactor: 'ATX',
     stockStatus: true,
   },
 ];
@@ -248,15 +281,15 @@ async function seedDatabase() {
     const createdUsers = await User.insertMany(users);
     console.log(`Created ${createdUsers.length} users`);
 
-    // Create default categories
+    // Create default categories with priorities
     const defaultCategories = [
-      { name: 'CPU', description: 'Central Processing Unit', isActive: true },
-      { name: 'GPU', description: 'Graphics Processing Unit', isActive: true },
-      { name: 'RAM', description: 'Random Access Memory', isActive: true },
-      { name: 'Storage', description: 'Storage Drives (SSD/HDD)', isActive: true },
-      { name: 'PSU', description: 'Power Supply Unit', isActive: true },
-      { name: 'Motherboard', description: 'Motherboard', isActive: true },
-      { name: 'Case', description: 'PC Case/Chassis', isActive: true },
+      { name: 'CPU', description: 'Central Processing Unit', priority: 10, isActive: true },
+      { name: 'GPU', description: 'Graphics Processing Unit', priority: 9, isActive: true },
+      { name: 'RAM', description: 'Random Access Memory', priority: 8, isActive: true },
+      { name: 'Storage', description: 'Storage Drives (SSD/HDD)', priority: 6, isActive: true },
+      { name: 'PSU', description: 'Power Supply Unit', priority: 5, isActive: true },
+      { name: 'Motherboard', description: 'Motherboard', priority: 7, isActive: true },
+      { name: 'Case', description: 'PC Case/Chassis', priority: 3, isActive: true },
     ];
 
     const createdCategories = await Category.insertMany(defaultCategories);
@@ -266,8 +299,19 @@ async function seedDatabase() {
     const supplier = createdUsers.find((u) => u.role === 'supplier');
 
     // Create sample components
+    const priorityByCategory = {
+      CPU: 10,
+      GPU: 9,
+      RAM: 8,
+      Storage: 6,
+      PSU: 5,
+      Motherboard: 7,
+      Case: 3,
+    };
+
     const componentsWithSupplier = sampleComponents.map((comp) => ({
       ...comp,
+      priority: comp.priority ?? priorityByCategory[comp.category] ?? 1,
       supplierID: supplier._id,
     }));
 

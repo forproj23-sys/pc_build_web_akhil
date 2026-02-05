@@ -58,7 +58,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/components - Create component (Admin/Supplier only)
 router.post('/', protect, authorize('admin', 'supplier'), async (req, res) => {
   try {
-    const { name, category, price, specifications, compatibility, url, stockStatus } = req.body;
+    const { name, category, price, specifications, compatibility, url, stockStatus, priority, socket, chipset, formFactor, ramType, storageInterface, powerRequirement, wattage } = req.body;
 
     // Validation
     if (!name || !category || price === undefined || !specifications) {
@@ -76,6 +76,14 @@ router.post('/', protect, authorize('admin', 'supplier'), async (req, res) => {
       compatibility: compatibility || '',
       url: url || '',
       stockStatus: stockStatus !== undefined ? stockStatus : true,
+      priority: priority !== undefined ? Number(priority) : 1,
+      socket: socket || '',
+      chipset: chipset || '',
+      formFactor: formFactor || '',
+      ramType: ramType || '',
+      storageInterface: storageInterface || '',
+      powerRequirement: powerRequirement !== undefined ? Number(powerRequirement) : 0,
+      wattage: wattage !== undefined ? Number(wattage) : 0,
       supplierID,
     });
 
@@ -112,7 +120,7 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
     }
 
     // Update fields
-    const { name, category, price, specifications, compatibility, url, stockStatus } = req.body;
+    const { name, category, price, specifications, compatibility, url, stockStatus, priority, socket, chipset, formFactor, ramType, storageInterface, powerRequirement, wattage } = req.body;
 
     if (name) component.name = name;
     if (category) component.category = category;
@@ -121,6 +129,15 @@ router.put('/:id', protect, authorize('admin', 'supplier'), async (req, res) => 
     if (compatibility !== undefined) component.compatibility = compatibility;
     if (url !== undefined) component.url = url;
     if (stockStatus !== undefined) component.stockStatus = stockStatus;
+    if (priority !== undefined) component.priority = Number(priority) || 1;
+    if (socket !== undefined) component.socket = socket;
+    if (chipset !== undefined) component.chipset = chipset;
+    if (formFactor !== undefined) component.formFactor = formFactor;
+    if (ramType !== undefined) component.ramType = ramType;
+    if (storageInterface !== undefined) component.storageInterface = storageInterface;
+    if (powerRequirement !== undefined) component.powerRequirement = Number(powerRequirement) || 0;
+    if (wattage !== undefined) component.wattage = Number(wattage) || 0;
+    if (priority !== undefined) component.priority = Number(priority);
 
     // Admin can change supplierID
     if (req.user.role === 'admin' && req.body.supplierID !== undefined) {

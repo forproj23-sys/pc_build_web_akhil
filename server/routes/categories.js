@@ -47,7 +47,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/categories - Create category (Admin only)
 router.post('/', protect, authorize('admin'), async (req, res) => {
   try {
-    const { name, description, isActive } = req.body;
+    const { name, description, priority, isActive } = req.body;
 
     // Validation
     if (!name || !name.trim()) {
@@ -66,6 +66,7 @@ router.post('/', protect, authorize('admin'), async (req, res) => {
     const category = await Category.create({
       name: name.trim().toUpperCase(),
       description: description || '',
+      priority: priority !== undefined ? Math.max(1, Number(priority) || 1) : 1,
       isActive: isActive !== undefined ? isActive : true,
     });
 
@@ -90,7 +91,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    const { name, description, isActive } = req.body;
+    const { name, description, priority, isActive } = req.body;
 
     if (name && name.trim()) {
       // Check if new name conflicts with existing category
@@ -108,6 +109,10 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
 
     if (description !== undefined) {
       category.description = description;
+    }
+
+    if (priority !== undefined) {
+      category.priority = Math.max(1, Number(priority) || 1);
     }
 
     if (isActive !== undefined) {

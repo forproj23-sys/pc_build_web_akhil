@@ -17,8 +17,16 @@ function SupplierDashboard() {
     name: '',
     category: '',
     price: '',
+    priority: 1,
     specifications: '',
     compatibility: '',
+    socket: '',
+    chipset: '',
+    formFactor: '',
+    ramType: '',
+    storageInterface: '',
+    powerRequirement: 0,
+    wattage: 0,
     url: '',
     stockStatus: true,
   });
@@ -77,8 +85,16 @@ function SupplierDashboard() {
         name: '',
         category: categories.length > 0 ? categories[0].name : '',
         price: '',
+        priority: 1,
         specifications: '',
         compatibility: '',
+        socket: '',
+        chipset: '',
+        formFactor: '',
+        ramType: '',
+        storageInterface: '',
+        powerRequirement: 0,
+        wattage: 0,
         url: '',
         stockStatus: true,
       });
@@ -94,8 +110,16 @@ function SupplierDashboard() {
       name: component.name,
       category: component.category,
       price: component.price,
+      priority: component.priority ?? 1,
       specifications: component.specifications,
       compatibility: component.compatibility || '',
+      socket: component.socket || '',
+      chipset: component.chipset || '',
+      formFactor: component.formFactor || '',
+      ramType: component.ramType || '',
+      storageInterface: component.storageInterface || '',
+      powerRequirement: component.powerRequirement || 0,
+      wattage: component.wattage || 0,
       url: component.url || '',
       stockStatus: component.stockStatus,
     });
@@ -254,6 +278,7 @@ function SupplierDashboard() {
                       <th>Name</th>
                       <th>Category</th>
                       <th>Price</th>
+                      <th>Priority</th>
                       <th>Stock</th>
                       <th>Actions</th>
                     </tr>
@@ -332,6 +357,17 @@ function SupplierDashboard() {
                           </td>
                           <td>
                             <input
+                              type="number"
+                              name="priority"
+                              value={formData.priority}
+                              onChange={handleInputChange}
+                              min="1"
+                              step="1"
+                              style={styles.inlineInput}
+                            />
+                          </td>
+                          <td>
+                            <input
                               type="checkbox"
                               name="stockStatus"
                               checked={formData.stockStatus}
@@ -383,6 +419,21 @@ function SupplierDashboard() {
                               }
                               style={styles.priceInput}
                               step="0.01"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={component.priority ?? 1}
+                              onChange={(e) =>
+                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                              }
+                              onBlur={(e) =>
+                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                              }
+                              style={styles.priceInput}
+                              step="1"
+                              min="1"
                             />
                           </td>
                           <td>
@@ -479,6 +530,19 @@ function SupplierDashboard() {
                     />
                   </div>
                   <div style={styles.formGroup}>
+                    <label>Priority</label>
+                    <input
+                      type="number"
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleInputChange}
+                      min="1"
+                      step="1"
+                      style={styles.input}
+                      placeholder="1"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
                     <label>Stock Status</label>
                     <label style={styles.checkboxLabel}>
                       <input
@@ -504,15 +568,96 @@ function SupplierDashboard() {
                   />
                 </div>
                 <div style={styles.formGroup}>
-                  <label>Compatibility (optional)</label>
+                  <label>Compatibility (Legacy - optional)</label>
                   <input
                     type="text"
                     name="compatibility"
                     value={formData.compatibility}
                     onChange={handleInputChange}
                     style={styles.input}
-                    placeholder="e.g., LGA 1700, AM4"
+                    placeholder="Legacy compatibility string"
                   />
+                </div>
+                <div style={styles.formGrid}>
+                  <div style={styles.formGroup}>
+                    <label>Socket (CPU/Motherboard)</label>
+                    <input
+                      type="text"
+                      name="socket"
+                      value={formData.socket}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., LGA1700, AM4"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Chipset (Motherboard)</label>
+                    <input
+                      type="text"
+                      name="chipset"
+                      value={formData.chipset}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., Z690, B550"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Form Factor (Motherboard/Case)</label>
+                    <input
+                      type="text"
+                      name="formFactor"
+                      value={formData.formFactor}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., ATX, mATX"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>RAM Type (Motherboard/RAM)</label>
+                    <input
+                      type="text"
+                      name="ramType"
+                      value={formData.ramType}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., DDR4, DDR5"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Storage Interface (Storage)</label>
+                    <input
+                      type="text"
+                      name="storageInterface"
+                      value={formData.storageInterface}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., SATA, NVMe M.2"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Power Requirement (W) (CPU/GPU)</label>
+                    <input
+                      type="number"
+                      name="powerRequirement"
+                      value={formData.powerRequirement}
+                      onChange={handleInputChange}
+                      min="0"
+                      style={styles.input}
+                      placeholder="e.g., 150"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Wattage (W) (PSU)</label>
+                    <input
+                      type="number"
+                      name="wattage"
+                      value={formData.wattage}
+                      onChange={handleInputChange}
+                      min="0"
+                      style={styles.input}
+                      placeholder="e.g., 650"
+                    />
+                  </div>
                 </div>
                 <div style={styles.formGroup}>
                   <label>Product URL (optional)</label>

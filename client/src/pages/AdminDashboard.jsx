@@ -157,6 +157,14 @@ function ComponentsTab() {
     price: '',
     specifications: '',
     compatibility: '',
+    socket: '',
+    chipset: '',
+    formFactor: '',
+    ramType: '',
+    storageInterface: '',
+    powerRequirement: 0,
+    wattage: 0,
+    priority: 1,
     stockStatus: true,
   });
 
@@ -209,6 +217,14 @@ function ComponentsTab() {
         price: '',
         specifications: '',
         compatibility: '',
+        socket: '',
+        chipset: '',
+        formFactor: '',
+        ramType: '',
+        storageInterface: '',
+        powerRequirement: 0,
+        wattage: 0,
+        priority: 1,
         stockStatus: true,
       });
     } catch (error) {
@@ -224,6 +240,14 @@ function ComponentsTab() {
       price: component.price,
       specifications: component.specifications,
       compatibility: component.compatibility || '',
+      socket: component.socket || '',
+      chipset: component.chipset || '',
+      formFactor: component.formFactor || '',
+      ramType: component.ramType || '',
+      storageInterface: component.storageInterface || '',
+      powerRequirement: component.powerRequirement || 0,
+      wattage: component.wattage || 0,
+      priority: component.priority ?? 1,
       stockStatus: component.stockStatus,
     });
   };
@@ -312,6 +336,19 @@ function ComponentsTab() {
               />
             </div>
             <div style={styles.formGroup}>
+              <label>Priority</label>
+              <input
+                type="number"
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+                min="1"
+                step="1"
+                style={styles.input}
+                placeholder="1"
+              />
+            </div>
+            <div style={styles.formGroup}>
               <label>Stock Status</label>
               <input
                 type="checkbox"
@@ -333,14 +370,96 @@ function ComponentsTab() {
             />
           </div>
           <div style={styles.formGroup}>
-            <label>Compatibility</label>
+            <label>Compatibility (Legacy)</label>
             <input
               type="text"
               name="compatibility"
               value={formData.compatibility}
               onChange={handleInputChange}
               style={styles.input}
+              placeholder="Legacy compatibility string"
             />
+          </div>
+          <div style={styles.formGrid}>
+            <div style={styles.formGroup}>
+              <label>Socket (CPU/Motherboard)</label>
+              <input
+                type="text"
+                name="socket"
+                value={formData.socket || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="e.g., LGA1700, AM4, AM5"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Chipset (Motherboard)</label>
+              <input
+                type="text"
+                name="chipset"
+                value={formData.chipset || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="e.g., Z690, B550, X670"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Form Factor (Motherboard/Case)</label>
+              <input
+                type="text"
+                name="formFactor"
+                value={formData.formFactor || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="e.g., ATX, mATX, ITX"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>RAM Type (Motherboard/RAM)</label>
+              <input
+                type="text"
+                name="ramType"
+                value={formData.ramType || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="e.g., DDR4, DDR5"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Storage Interface (Storage)</label>
+              <input
+                type="text"
+                name="storageInterface"
+                value={formData.storageInterface || ''}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="e.g., SATA, NVMe M.2"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Power Requirement (W) (CPU/GPU)</label>
+              <input
+                type="number"
+                name="powerRequirement"
+                value={formData.powerRequirement || ''}
+                onChange={handleInputChange}
+                min="0"
+                style={styles.input}
+                placeholder="e.g., 150, 200"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Wattage (W) (PSU)</label>
+              <input
+                type="number"
+                name="wattage"
+                value={formData.wattage || ''}
+                onChange={handleInputChange}
+                min="0"
+                style={styles.input}
+                placeholder="e.g., 650, 750"
+              />
+            </div>
           </div>
           <button type="submit" style={styles.submitButton}>
             Add Component
@@ -355,6 +474,7 @@ function ComponentsTab() {
               <th>Name</th>
               <th>Category</th>
               <th>Price</th>
+              <th>Priority</th>
               <th>Stock</th>
               <th>Actions</th>
             </tr>
@@ -402,6 +522,17 @@ function ComponentsTab() {
                     </td>
                     <td>
                       <input
+                        type="number"
+                        name="priority"
+                        value={formData.priority}
+                        onChange={handleInputChange}
+                        min="1"
+                        step="1"
+                        style={styles.inlineInput}
+                      />
+                    </td>
+                    <td>
+                      <input
                         type="checkbox"
                         name="stockStatus"
                         checked={formData.stockStatus}
@@ -428,6 +559,7 @@ function ComponentsTab() {
                     <td>{component.name}</td>
                     <td>{component.category}</td>
                     <td>${component.price.toFixed(2)}</td>
+                    <td>{component.priority ?? 1}</td>
                     <td>
                       {component.stockStatus ? (
                         <span style={styles.inStock}>In Stock</span>
@@ -819,6 +951,7 @@ function CategoriesTab() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    priority: 1,
     isActive: true,
   });
 
@@ -853,6 +986,7 @@ function CategoriesTab() {
       setFormData({
         name: '',
         description: '',
+        priority: 1,
         isActive: true,
       });
     } catch (error) {
@@ -865,6 +999,7 @@ function CategoriesTab() {
     setFormData({
       name: category.name,
       description: category.description || '',
+      priority: category.priority ?? 1,
       isActive: category.isActive,
     });
   };
@@ -941,6 +1076,20 @@ function CategoriesTab() {
               />
             </div>
             <div style={styles.formGroup}>
+              <label>Priority (for budget allocation) *</label>
+              <input
+                type="number"
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+                required
+                min="1"
+                style={styles.input}
+                placeholder="1"
+              />
+              <small style={styles.helpText}>Higher priority = larger budget share</small>
+            </div>
+            <div style={styles.formGroup}>
               <label>
                 <input
                   type="checkbox"
@@ -964,6 +1113,7 @@ function CategoriesTab() {
             <tr>
               <th>Name</th>
               <th>Description</th>
+              <th>Priority</th>
               <th>Status</th>
               <th>Created</th>
               <th>Actions</th>
@@ -991,6 +1141,17 @@ function CategoriesTab() {
                         value={formData.description}
                         onChange={handleInputChange}
                         style={styles.inlineInput}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        name="priority"
+                        value={formData.priority}
+                        onChange={handleInputChange}
+                        min="1"
+                        style={styles.inlineInput}
+                        required
                       />
                     </td>
                     <td>
@@ -1024,6 +1185,7 @@ function CategoriesTab() {
                   <>
                     <td>{category.name}</td>
                     <td>{category.description || '-'}</td>
+                    <td>{category.priority ?? 1}</td>
                     <td>
                       <button
                         onClick={() => handleToggleActive(category._id, category.isActive)}
