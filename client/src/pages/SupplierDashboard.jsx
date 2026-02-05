@@ -11,6 +11,8 @@ function SupplierDashboard() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all', 'mine', or category
+  const [selectedCategory, setSelectedCategory] = useState(null); // For sidebar filter
+  const [searchTerm, setSearchTerm] = useState('');
   const [editing, setEditing] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,8 +34,24 @@ function SupplierDashboard() {
   });
 
   useEffect(() => {
-    fetchComponents();
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    // Update filter when selectedCategory changes
+    if (selectedCategory === 'all') {
+      setFilter('all');
+    } else if (selectedCategory === 'mine') {
+      setFilter('mine');
+    } else if (selectedCategory) {
+      setFilter(selectedCategory);
+    } else {
+      setFilter('all');
+    }
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    fetchComponents();
   }, [filter]);
 
   const fetchCategories = async () => {
@@ -175,11 +193,22 @@ function SupplierDashboard() {
     navigate('/');
   };
 
-    const myComponents = components.filter(
-      (c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)
-    );
+  const myComponents = components.filter(
+    (c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)
+  );
   const inStockCount = myComponents.filter((c) => c.stockStatus).length;
   const outOfStockCount = myComponents.filter((c) => !c.stockStatus).length;
+
+  // Filter components by search term
+  const filteredComponents = components.filter((component) => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      component.name.toLowerCase().includes(search) ||
+      component.category.toLowerCase().includes(search) ||
+      (component.specifications && component.specifications.toLowerCase().includes(search))
+    );
+  });
 
 
 
@@ -245,32 +274,92 @@ function SupplierDashboard() {
 
         <div style={styles.tabContent}>
           {activeTab === 'inventory' && (
-            <div>
-              <div style={styles.filterGroup}>
-                <label style={styles.label}>Filter:</label>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
-                  style={styles.select}
-                >
-                  <option value="all">All Components</option>
-                  <option value="mine">My Components Only</option>
-                  <option disabled>--- Categories ---</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id || cat.name} value={cat.name}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => fetchComponents()}
-                  style={styles.refreshButton}
-                >
-                  Refresh
-                </button>
+            <div style={styles.inventoryLayout}>
+              {/* Left Sidebar - Category Filter List */}
+              <div style={styles.filterSidebar}>
+                <h3 style={styles.sidebarTitle}>Filters</h3>
+                
+                {/* Search Box */}
+                <div style={styles.searchBox}>
+                  <input
+                    type="text"
+                    placeholder="Search components..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={styles.searchInput}
+                  />
+                </div>
+
+                <ul style={styles.categoryList}>
+                  <li
+                    style={{
+                      ...styles.categoryListItem,
+                      ...(selectedCategory === 'all' || selectedCategory === null ? styles.activeCategoryItem : {}),
+                    }}
+                    onClick={() => setSelectedCategory('all')}
+                  >
+                    <div style={styles.categoryListItemContent}>
+                      <span style={styles.categoryName}>All Components</span>
+                      <span style={(selectedCategory === 'all' || selectedCategory === null) ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                        {components.length}
+                      </span>
+                    </div>
+                  </li>
+                  <li
+                    style={{
+                      ...styles.categoryListItem,
+                      ...(selectedCategory === 'mine' ? styles.activeCategoryItem : {}),
+                    }}
+                    onClick={() => setSelectedCategory('mine')}
+                  >
+                    <div style={styles.categoryListItemContent}>
+                      <span style={styles.categoryName}>My Components</span>
+                      <span style={selectedCategory === 'mine' ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                        {components.filter((c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)).length}
+                      </span>
+                    </div>
+                  </li>
+                  <li style={styles.categoryListDivider}>
+                    <span style={styles.dividerText}>Categories</span>
+                  </li>
+                  {categories.map((category) => {
+                    const count = components.filter((c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()).length;
+                    return (
+                      <li
+                        key={category._id}
+                        style={{
+                          ...styles.categoryListItem,
+                          ...(selectedCategory === category.name ? styles.activeCategoryItem : {}),
+                        }}
+                        onClick={() => setSelectedCategory(category.name)}
+                      >
+                        <div style={styles.categoryListItemContent}>
+                          <span style={styles.categoryName}>{category.name}</span>
+                          <span style={selectedCategory === category.name ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                            {count}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Filter Info */}
+                <div style={styles.filterInfo}>
+                  <p style={styles.filterInfoText}>
+                    Showing {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''}
+                  </p>
+                  <button
+                    onClick={() => fetchComponents()}
+                    style={styles.refreshButtonSmall}
+                  >
+                    ↻ Refresh
+                  </button>
+                </div>
               </div>
 
-              <div style={styles.tableContainer}>
+              {/* Right Side - Components Table */}
+              <div style={styles.tableWrapper}>
                 <table style={styles.table}>
                   <thead>
                     <tr>
@@ -284,7 +373,14 @@ function SupplierDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {components.map((component) => {
+                    {filteredComponents.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={styles.noResultsCell}>
+                          {searchTerm ? 'No components match your search.' : 'No components found.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredComponents.map((component) => {
                       // This is no longer needed since suppliers manage all inventory
                       // const isMine = component.supplierID && (component.supplierID._id === user?.id || component.supplierID._id?.toString() === user?.id);
 
@@ -468,12 +564,9 @@ function SupplierDashboard() {
                           </td>
                         </tr>
                       );
-                    })}
+                    }))}
                   </tbody>
                 </table>
-                {components.length === 0 && (
-                  <p style={styles.emptyMessage}>No components found.</p>
-                )}
               </div>
             </div>
           )}
@@ -900,6 +993,132 @@ const styles = {
     textAlign: 'center',
     padding: '2rem',
     color: '#666',
+  },
+  inventoryLayout: {
+    display: 'flex',
+    gap: '2rem',
+    alignItems: 'flex-start',
+  },
+  filterSidebar: {
+    width: '280px',
+    minWidth: '280px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    padding: '1.5rem',
+    border: '1px solid #dee2e6',
+    position: 'sticky',
+    top: '1rem',
+    maxHeight: 'calc(100vh - 2rem)',
+    overflowY: 'auto',
+  },
+  sidebarTitle: {
+    margin: '0 0 1rem 0',
+    fontSize: '1.1rem',
+    color: '#333',
+    borderBottom: '2px solid #007bff',
+    paddingBottom: '0.5rem',
+  },
+  searchBox: {
+    marginBottom: '1rem',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '0.75rem',
+    fontSize: '0.9rem',
+    borderRadius: '6px',
+    border: '1px solid #dee2e6',
+    boxSizing: 'border-box',
+  },
+  categoryList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+  },
+  categoryListItem: {
+    padding: '0.75rem 1rem',
+    marginBottom: '0.5rem',
+    backgroundColor: 'white',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    border: '1px solid #dee2e6',
+    transition: 'all 0.2s',
+  },
+  activeCategoryItem: {
+    backgroundColor: '#007bff',
+    color: 'white',
+    borderColor: '#007bff',
+    fontWeight: 'bold',
+  },
+  categoryListItemContent: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '0.5rem',
+  },
+  categoryName: {
+    flex: 1,
+    fontWeight: '500',
+  },
+  countBadge: {
+    fontSize: '0.75rem',
+    color: '#007bff',
+    backgroundColor: '#e7f3ff',
+    padding: '0.2rem 0.5rem',
+    borderRadius: '12px',
+    fontWeight: 'bold',
+  },
+  // Override for active category items
+  activeCategoryItemCountBadge: {
+    fontSize: '0.75rem',
+    color: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    padding: '0.2rem 0.5rem',
+    borderRadius: '12px',
+    fontWeight: 'bold',
+  },
+  categoryListDivider: {
+    padding: '0.5rem 1rem',
+    marginBottom: '0.5rem',
+    borderTop: '1px solid #dee2e6',
+    marginTop: '0.5rem',
+  },
+  dividerText: {
+    fontSize: '0.75rem',
+    color: '#666',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  filterInfo: {
+    marginTop: '1.5rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #dee2e6',
+  },
+  filterInfoText: {
+    fontSize: '0.85rem',
+    color: '#666',
+    margin: '0 0 0.5rem 0',
+  },
+  refreshButtonSmall: {
+    width: '100%',
+    padding: '0.5rem',
+    backgroundColor: '#007bff',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '0.85rem',
+  },
+  tableWrapper: {
+    flex: 1,
+    overflowX: 'auto',
+  },
+  noResultsCell: {
+    textAlign: 'center',
+    padding: '2rem',
+    color: '#999',
+    fontStyle: 'italic',
   },
   imageContainer: {
     position: 'relative',

@@ -63,17 +63,39 @@ function UserDashboard() {
 // Components List Component
 function ComponentsList() {
   const [components, setComponents] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   useEffect(() => {
     fetchComponents();
-  }, [filter]);
+  }, [selectedCategory]);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [componentsRes, categoriesRes] = await Promise.all([
+        api.get('/components'),
+        api.get('/categories'),
+      ]);
+      setComponents(componentsRes.data.data);
+      setCategories(categoriesRes.data.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchComponents = async () => {
     try {
       setLoading(true);
-      const url = filter ? `/components?category=${filter}` : '/components';
+      const url = selectedCategory ? `/components?category=${selectedCategory}` : '/components';
       const res = await api.get(url);
       setComponents(res.data.data);
     } catch (error) {
@@ -83,53 +105,133 @@ function ComponentsList() {
     }
   };
 
-  const categories = ['', 'CPU', 'GPU', 'RAM', 'Storage', 'PSU', 'Motherboard', 'Case'];
+  const activeCategories = categories.filter((cat) => cat.isActive !== false);
 
-  if (loading) {
+  // Filter components by search term
+  const filteredComponents = components.filter((component) => {
+    if (!searchTerm) return true;
+    const search = searchTerm.toLowerCase();
+    return (
+      component.name.toLowerCase().includes(search) ||
+      component.category.toLowerCase().includes(search) ||
+      component.specifications.toLowerCase().includes(search)
+    );
+  });
+
+  // Count components per category
+  const getCategoryCount = (categoryName) => {
+    if (!categoryName) return components.length;
+    return components.filter((c) => (c.category || '').toUpperCase() === categoryName.toUpperCase()).length;
+  };
+
+  if (loading && components.length === 0) {
     return <div style={styles.loading}>Loading components...</div>;
   }
 
   return (
     <div>
       <h2>Browse Components</h2>
-      <div style={styles.filterGroup}>
-        <label style={styles.label}>Filter by Category:</label>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          style={styles.select}
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat || 'All Categories'}
-            </option>
-          ))}
-        </select>
-      </div>
+      
+      <div style={styles.browseLayout}>
+        {/* Left Sidebar - Category Filter List */}
+        <div style={styles.filterSidebar}>
+          <h3 style={styles.sidebarTitle}>Categories</h3>
+          
+          {/* Search Box */}
+          <div style={styles.searchBox}>
+            <input
+              type="text"
+              placeholder="Search components..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={styles.searchInput}
+            />
+          </div>
 
-      <div style={styles.componentsGrid}>
-        {components.length === 0 ? (
-          <p>No components found.</p>
-        ) : (
-          components.map((component) => (
-            <div key={component._id} style={styles.componentCard}>
-              <h3 style={styles.componentName}>{component.name}</h3>
-              <p style={styles.componentCategory}>{component.category}</p>
-              <p style={styles.componentPrice}>${component.price.toFixed(2)}</p>
-              <p style={styles.componentSpecs}>{component.specifications}</p>
-              {component.compatibility && (
-                <p style={styles.compatibility}>Compatibility: {component.compatibility}</p>
+          <ul style={styles.categoryList}>
+            <li
+              style={{
+                ...styles.categoryListItem,
+                ...(selectedCategory === null ? styles.activeCategoryItem : {}),
+              }}
+              onClick={() => setSelectedCategory(null)}
+            >
+              <div style={styles.categoryListItemContent}>
+                <span style={styles.categoryName}>All Categories</span>
+                <span style={styles.countBadge}>{components.length}</span>
+              </div>
+            </li>
+            {activeCategories.map((category) => {
+              const count = getCategoryCount(category.name);
+              return (
+                <li
+                  key={category._id}
+                  style={{
+                    ...styles.categoryListItem,
+                    ...(selectedCategory === category.name ? styles.activeCategoryItem : {}),
+                  }}
+                  onClick={() => setSelectedCategory(category.name)}
+                >
+                  <div style={styles.categoryListItemContent}>
+                    <span style={styles.categoryName}>{category.name}</span>
+                    <span style={styles.countBadge}>{count}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Filter Info */}
+          <div style={styles.filterInfo}>
+            <p style={styles.filterInfoText}>
+              {selectedCategory ? `Showing ${filteredComponents.length} ${selectedCategory} components` : `Showing ${filteredComponents.length} components`}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Side - Components Grid */}
+        <div style={styles.componentsContainer}>
+          {loading ? (
+            <div style={styles.loading}>Loading components...</div>
+          ) : filteredComponents.length === 0 ? (
+            <div style={styles.noResults}>
+              <p>No components found.</p>
+              {searchTerm && (
+                <p style={styles.helpText}>Try adjusting your search term or select a different category.</p>
               )}
-              <p style={styles.stockStatus}>
-                {component.stockStatus ? (
-                  <span style={styles.inStock}>In Stock</span>
-                ) : (
-                  <span style={styles.outOfStock}>Out of Stock</span>
-                )}
-              </p>
             </div>
-          ))
-        )}
+          ) : (
+            <div style={styles.componentsGrid}>
+              {filteredComponents.map((component) => (
+                <div key={component._id} style={styles.componentCard}>
+                  <h3 style={styles.componentName}>{component.name}</h3>
+                  <p style={styles.componentCategory}>{component.category}</p>
+                  <p style={styles.componentPrice}>${component.price.toFixed(2)}</p>
+                  <p style={styles.componentSpecs}>{component.specifications}</p>
+                  {component.compatibility && (
+                    <p style={styles.compatibility}>Compatibility: {component.compatibility}</p>
+                  )}
+                  {component.socket && (
+                    <p style={styles.compatibilityDetail}>Socket: {component.socket}</p>
+                  )}
+                  {component.ramType && (
+                    <p style={styles.compatibilityDetail}>RAM Type: {component.ramType}</p>
+                  )}
+                  {component.formFactor && (
+                    <p style={styles.compatibilityDetail}>Form Factor: {component.formFactor}</p>
+                  )}
+                  <p style={styles.stockStatus}>
+                    {component.stockStatus ? (
+                      <span style={styles.inStock}>✓ In Stock</span>
+                    ) : (
+                      <span style={styles.outOfStock}>✗ Out of Stock</span>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -141,6 +243,7 @@ function BuildCreator() {
   const [categories, setCategories] = useState([]);
   const [selectedComponents, setSelectedComponents] = useState([]);
   const [totalBudget, setTotalBudget] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null); // For filtering
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -337,133 +440,278 @@ function BuildCreator() {
       )}
 
       <div style={styles.buildCreator}>
-        <div style={styles.selectedSection}>
-          <h3>Selected Components ({selectedComponents.length})</h3>
-          {selectedComponents.length === 0 ? (
-            <p>No components selected. {totalBudget ? 'Select components from the list below.' : 'Enter a budget to start.'}</p>
-          ) : (
-            <div>
-              {activeCategories.map((cat) => {
-                const comp = selectedComponents.find((c) => (c.category || '').toUpperCase() === (cat.name || '').toUpperCase());
-                const alloc = budgetAlloc?.allocations.find((a) => a.categoryName === cat.name);
-                return comp ? (
-                  <div key={cat._id} style={styles.selectedItem}>
-                    <div>
-                      <strong>{cat.name}:</strong> {comp.name}
-                      <br />
-                      <span style={styles.price}>${comp.price.toFixed(2)}</span>
+        {/* Left Sidebar - Category Filter List */}
+        <div style={styles.filterSidebar}>
+          <h3 style={styles.sidebarTitle}>Categories</h3>
+          <ul style={styles.categoryList}>
+            <li
+              style={{
+                ...styles.categoryListItem,
+                ...(selectedCategory === null ? styles.activeCategoryItem : {}),
+              }}
+              onClick={() => setSelectedCategory(null)}
+            >
+              <span>All Categories</span>
+            </li>
+            {activeCategories.map((category) => {
+              const selected = selectedComponents.find(
+                (c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()
+              );
+              const alloc = budgetAlloc?.allocations.find((a) => a.categoryName === category.name);
+              const filteredComps = getFilteredComponents(category.name);
+              
+              return (
+                <li
+                  key={category._id}
+                  style={{
+                    ...styles.categoryListItem,
+                    ...(selectedCategory === category.name ? styles.activeCategoryItem : {}),
+                    ...(selected ? styles.hasSelection : {}),
+                  }}
+                  onClick={() => setSelectedCategory(category.name)}
+                >
+                  <div style={styles.categoryListItemContent}>
+                    <span style={styles.categoryName}>{category.name}</span>
+                    {selected && (
+                      <span style={selectedCategory === category.name ? styles.activeCategoryItemSelectedBadge : styles.selectedBadge}>
+                        ✓
+                      </span>
+                    )}
+                    {alloc && (
+                      <span style={styles.budgetBadgeSmall}>
+                        ${alloc.minBudget.toFixed(0)}-${alloc.maxBudget.toFixed(0)}
+                      </span>
+                    )}
+                    <span style={styles.countBadge}>{filteredComps.length}</span>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Selected Components Summary */}
+          <div style={styles.selectedSummary}>
+            <h4>Selected ({selectedComponents.length})</h4>
+            {selectedComponents.length > 0 ? (
+              <div style={styles.selectedSummaryList}>
+                {selectedComponents.map((comp) => (
+                  <div key={comp._id} style={styles.selectedSummaryItem}>
+                    <span style={styles.selectedSummaryName}>{comp.name}</span>
+                    <span style={styles.selectedSummaryPrice}>${comp.price.toFixed(2)}</span>
+                  </div>
+                ))}
+                <div style={styles.selectedSummaryTotal}>
+                  <strong>Total: ${totalPrice.toFixed(2)}</strong>
+                </div>
+              </div>
+            ) : (
+              <p style={styles.noSelectionText}>No components selected</p>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side - Main Content */}
+        <div style={styles.mainContent}>
+          <div style={styles.selectedSection}>
+            <h3>Selected Components ({selectedComponents.length})</h3>
+            {selectedComponents.length === 0 ? (
+              <p>No components selected. {totalBudget ? 'Select components from the list below.' : 'Enter a budget to start.'}</p>
+            ) : (
+              <div>
+                {activeCategories.map((cat) => {
+                  const comp = selectedComponents.find((c) => (c.category || '').toUpperCase() === (cat.name || '').toUpperCase());
+                  const alloc = budgetAlloc?.allocations.find((a) => a.categoryName === cat.name);
+                  return comp ? (
+                    <div key={cat._id} style={styles.selectedItem}>
+                      <div>
+                        <strong>{cat.name}:</strong> {comp.name}
+                        <br />
+                        <span style={styles.price}>${comp.price.toFixed(2)}</span>
+                        {alloc && (
+                          <span style={styles.budgetRange}>
+                            (Budget: ${alloc.minBudget.toFixed(2)} - ${alloc.maxBudget.toFixed(2)})
+                          </span>
+                        )}
+                      </div>
+                      <button onClick={() => toggleComponent(comp)} style={styles.removeBtn}>
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div key={cat._id} style={styles.unselectedItem}>
+                      <strong>{cat.name}:</strong> Not selected
                       {alloc && (
-                        <span style={styles.budgetRange}>
-                          (Budget: ${alloc.minBudget.toFixed(2)} - ${alloc.maxBudget.toFixed(2)})
-                        </span>
+                        <div style={styles.budgetRange}>
+                          Budget: ${alloc.minBudget.toFixed(2)} - ${alloc.maxBudget.toFixed(2)}
+                        </div>
                       )}
                     </div>
-                    <button onClick={() => toggleComponent(comp)} style={styles.removeBtn}>
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div key={cat._id} style={styles.unselectedItem}>
-                    <strong>{cat.name}:</strong> Not selected
-                    {alloc && (
-                      <div style={styles.budgetRange}>
-                        Budget: ${alloc.minBudget.toFixed(2)} - ${alloc.maxBudget.toFixed(2)}
-                      </div>
+                  );
+                })}
+                <div style={styles.totalPrice}>
+                  <strong>Total Price: ${totalPrice.toFixed(2)}</strong>
+                  {totalBudget && (
+                    <div>
+                      <span style={totalPrice > Number(totalBudget) ? styles.overBudget : styles.underBudget}>
+                        {totalPrice > Number(totalBudget) ? 'Over budget' : 'Under budget'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={createBuild}
+                  disabled={saving || (totalBudget && totalPrice > Number(totalBudget))}
+                  style={styles.createButton}
+                >
+                  {saving ? 'Saving...' : 'Save Build'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div style={styles.componentsSection}>
+            <h3>
+              {selectedCategory ? `${selectedCategory} Components` : 'Available Components'}
+            </h3>
+            {!totalBudget && (
+              <p style={styles.helpText}>Enter a budget above to see filtered components based on category priorities.</p>
+            )}
+            {selectedCategory ? (
+              // Show components for selected category
+              (() => {
+                const filteredComps = getFilteredComponents(selectedCategory);
+                const selected = selectedComponents.find(
+                  (c) => (c.category || '').toUpperCase() === (selectedCategory || '').toUpperCase()
+                );
+                const alloc = budgetAlloc?.allocations.find((a) => a.categoryName === selectedCategory);
+
+                return (
+                  <div style={styles.categoryGroup}>
+                    <h4>
+                      {selectedCategory}
+                      {alloc && (
+                        <span style={styles.budgetBadge}>
+                          ${alloc.minBudget.toFixed(0)} - ${alloc.maxBudget.toFixed(0)}
+                        </span>
+                      )}
+                    </h4>
+                    {filteredComps.length === 0 ? (
+                      <p style={styles.noComponents}>
+                        {totalBudget ? 'No compatible components within budget range' : 'No components available'}
+                      </p>
+                    ) : (
+                      filteredComps.map((component) => {
+                        const testBuild = [...selectedComponents];
+                        const existingInCategory = testBuild.findIndex(
+                          (s) => (s.category || '').toUpperCase() === (selectedCategory || '').toUpperCase()
+                        );
+                        if (existingInCategory >= 0) {
+                          testBuild[existingInCategory] = component;
+                        } else {
+                          testBuild.push(component);
+                        }
+                        const compatCheck = checkCompatibility(testBuild);
+                        const isSelected = selected?._id === component._id;
+
+                        return (
+                          <div
+                            key={component._id}
+                            style={{
+                              ...styles.componentOption,
+                              ...(isSelected ? styles.selectedOption : {}),
+                              ...(!compatCheck.isCompatible ? styles.incompatibleOption : {}),
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name={selectedCategory}
+                              checked={isSelected}
+                              onChange={() => toggleComponent(component)}
+                              disabled={!compatCheck.isCompatible && !isSelected}
+                            />
+                            <div style={styles.optionDetails}>
+                              <strong>{component.name}</strong> - ${component.price.toFixed(2)}
+                              <p style={styles.smallText}>{component.specifications}</p>
+                              {!compatCheck.isCompatible && !isSelected && (
+                                <span style={styles.incompatibleBadge}>Incompatible</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
                     )}
                   </div>
                 );
-              })}
-              <div style={styles.totalPrice}>
-                <strong>Total Price: ${totalPrice.toFixed(2)}</strong>
-                {totalBudget && (
-                  <div>
-                    <span style={totalPrice > Number(totalBudget) ? styles.overBudget : styles.underBudget}>
-                      {totalPrice > Number(totalBudget) ? 'Over budget' : 'Under budget'}
-                    </span>
+              })()
+            ) : (
+              // Show all categories
+              activeCategories.map((category) => {
+                const filteredComps = getFilteredComponents(category.name);
+                const selected = selectedComponents.find(
+                  (c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()
+                );
+                const alloc = budgetAlloc?.allocations.find((a) => a.categoryName === category.name);
+
+                return (
+                  <div key={category._id} style={styles.categoryGroup}>
+                    <h4>
+                      {category.name}
+                      {alloc && (
+                        <span style={styles.budgetBadge}>
+                          ${alloc.minBudget.toFixed(0)} - ${alloc.maxBudget.toFixed(0)}
+                        </span>
+                      )}
+                    </h4>
+                    {filteredComps.length === 0 ? (
+                      <p style={styles.noComponents}>
+                        {totalBudget ? 'No compatible components within budget range' : 'No components available'}
+                      </p>
+                    ) : (
+                      filteredComps.map((component) => {
+                        const testBuild = [...selectedComponents];
+                        const existingInCategory = testBuild.findIndex(
+                          (s) => (s.category || '').toUpperCase() === (category.name || '').toUpperCase()
+                        );
+                        if (existingInCategory >= 0) {
+                          testBuild[existingInCategory] = component;
+                        } else {
+                          testBuild.push(component);
+                        }
+                        const compatCheck = checkCompatibility(testBuild);
+                        const isSelected = selected?._id === component._id;
+
+                        return (
+                          <div
+                            key={component._id}
+                            style={{
+                              ...styles.componentOption,
+                              ...(isSelected ? styles.selectedOption : {}),
+                              ...(!compatCheck.isCompatible ? styles.incompatibleOption : {}),
+                            }}
+                          >
+                            <input
+                              type="radio"
+                              name={category.name}
+                              checked={isSelected}
+                              onChange={() => toggleComponent(component)}
+                              disabled={!compatCheck.isCompatible && !isSelected}
+                            />
+                            <div style={styles.optionDetails}>
+                              <strong>{component.name}</strong> - ${component.price.toFixed(2)}
+                              <p style={styles.smallText}>{component.specifications}</p>
+                              {!compatCheck.isCompatible && !isSelected && (
+                                <span style={styles.incompatibleBadge}>Incompatible</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                )}
-              </div>
-              <button
-                onClick={createBuild}
-                disabled={saving || (totalBudget && totalPrice > Number(totalBudget))}
-                style={styles.createButton}
-              >
-                {saving ? 'Saving...' : 'Save Build'}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div style={styles.componentsSection}>
-          <h3>Available Components</h3>
-          {!totalBudget && (
-            <p style={styles.helpText}>Enter a budget above to see filtered components based on category priorities.</p>
-          )}
-          {activeCategories.map((category) => {
-            const filteredComps = getFilteredComponents(category.name);
-            const selected = selectedComponents.find(
-              (c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()
-            );
-            const alloc = budgetAlloc?.allocations.find((a) => a.categoryName === category.name);
-
-            return (
-              <div key={category._id} style={styles.categoryGroup}>
-                <h4>
-                  {category.name}
-                  {alloc && (
-                    <span style={styles.budgetBadge}>
-                      ${alloc.minBudget.toFixed(0)} - ${alloc.maxBudget.toFixed(0)}
-                    </span>
-                  )}
-                </h4>
-                {filteredComps.length === 0 ? (
-                  <p style={styles.noComponents}>
-                    {totalBudget ? 'No compatible components within budget range' : 'No components available'}
-                  </p>
-                ) : (
-                  filteredComps.map((component) => {
-                    const testBuild = [...selectedComponents];
-                    const existingInCategory = testBuild.findIndex(
-                      (s) => (s.category || '').toUpperCase() === (category.name || '').toUpperCase()
-                    );
-                    if (existingInCategory >= 0) {
-                      testBuild[existingInCategory] = component;
-                    } else {
-                      testBuild.push(component);
-                    }
-                    const compatCheck = checkCompatibility(testBuild);
-                    const isSelected = selected?._id === component._id;
-
-                    return (
-                      <div
-                        key={component._id}
-                        style={{
-                          ...styles.componentOption,
-                          ...(isSelected ? styles.selectedOption : {}),
-                          ...(!compatCheck.isCompatible ? styles.incompatibleOption : {}),
-                        }}
-                      >
-                        <input
-                          type="radio"
-                          name={category.name}
-                          checked={isSelected}
-                          onChange={() => toggleComponent(component)}
-                          disabled={!compatCheck.isCompatible && !isSelected}
-                        />
-                        <div style={styles.optionDetails}>
-                          <strong>{component.name}</strong> - ${component.price.toFixed(2)}
-                          <p style={styles.smallText}>{component.specifications}</p>
-                          {!compatCheck.isCompatible && !isSelected && (
-                            <span style={styles.incompatibleBadge}>Incompatible</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            );
-          })}
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -733,8 +981,135 @@ const styles = {
     fontWeight: '500',
   },
   buildCreator: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 2fr',
+    display: 'flex',
+    gap: '2rem',
+    alignItems: 'flex-start',
+  },
+  filterSidebar: {
+    width: '280px',
+    minWidth: '280px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    padding: '1.5rem',
+    border: '1px solid #dee2e6',
+    position: 'sticky',
+    top: '1rem',
+    maxHeight: 'calc(100vh - 2rem)',
+    overflowY: 'auto',
+  },
+  sidebarTitle: {
+    margin: '0 0 1rem 0',
+    fontSize: '1.1rem',
+    color: '#333',
+    borderBottom: '2px solid #007bff',
+    paddingBottom: '0.5rem',
+  },
+  categoryList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+  },
+  categoryListItem: {
+    padding: '0.75rem 1rem',
+    marginBottom: '0.5rem',
+    backgroundColor: 'white',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    border: '1px solid #dee2e6',
+    transition: 'all 0.2s',
+  },
+  activeCategoryItem: {
+    backgroundColor: '#007bff',
+    color: 'white',
+    borderColor: '#007bff',
+    fontWeight: 'bold',
+  },
+  hasSelection: {
+    borderLeft: '4px solid #28a745',
+  },
+  categoryListItemContent: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '0.5rem',
+  },
+  categoryName: {
+    flex: 1,
+    fontWeight: '500',
+  },
+  selectedBadge: {
+    color: '#28a745',
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+  },
+  budgetBadgeSmall: {
+    fontSize: '0.75rem',
+    color: '#666',
+    backgroundColor: '#e9ecef',
+    padding: '0.2rem 0.4rem',
+    borderRadius: '4px',
+  },
+  countBadge: {
+    fontSize: '0.75rem',
+    color: '#007bff',
+    backgroundColor: '#e7f3ff',
+    padding: '0.2rem 0.5rem',
+    borderRadius: '12px',
+    fontWeight: 'bold',
+  },
+  // Override styles for active category items
+  activeCategoryItemSelectedBadge: {
+    color: '#fff',
+    backgroundColor: '#28a745',
+    padding: '0.1rem 0.3rem',
+    borderRadius: '4px',
+  },
+  selectedSummary: {
+    marginTop: '2rem',
+    paddingTop: '1.5rem',
+    borderTop: '2px solid #dee2e6',
+  },
+  selectedSummaryList: {
+    maxHeight: '300px',
+    overflowY: 'auto',
+  },
+  selectedSummaryItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '0.5rem',
+    marginBottom: '0.25rem',
+    backgroundColor: 'white',
+    borderRadius: '4px',
+    fontSize: '0.85rem',
+  },
+  selectedSummaryName: {
+    flex: 1,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  selectedSummaryPrice: {
+    color: '#28a745',
+    fontWeight: 'bold',
+    marginLeft: '0.5rem',
+  },
+  selectedSummaryTotal: {
+    marginTop: '0.5rem',
+    paddingTop: '0.5rem',
+    borderTop: '1px solid #dee2e6',
+    textAlign: 'right',
+    color: '#333',
+  },
+  noSelectionText: {
+    color: '#999',
+    fontStyle: 'italic',
+    fontSize: '0.9rem',
+  },
+  mainContent: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
     gap: '2rem',
   },
   selectedSection: {
@@ -972,6 +1347,45 @@ const styles = {
     color: '#999',
     fontStyle: 'italic',
     padding: '1rem',
+  },
+  browseLayout: {
+    display: 'flex',
+    gap: '2rem',
+    alignItems: 'flex-start',
+  },
+  componentsContainer: {
+    flex: 1,
+  },
+  searchBox: {
+    marginBottom: '1rem',
+  },
+  searchInput: {
+    width: '100%',
+    padding: '0.75rem',
+    fontSize: '0.9rem',
+    borderRadius: '6px',
+    border: '1px solid #dee2e6',
+    boxSizing: 'border-box',
+  },
+  filterInfo: {
+    marginTop: '1.5rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid #dee2e6',
+  },
+  filterInfoText: {
+    fontSize: '0.85rem',
+    color: '#666',
+    margin: 0,
+  },
+  noResults: {
+    textAlign: 'center',
+    padding: '3rem',
+    color: '#999',
+  },
+  compatibilityDetail: {
+    fontSize: '0.85rem',
+    color: '#666',
+    margin: '0.25rem 0',
   },
 };
 
