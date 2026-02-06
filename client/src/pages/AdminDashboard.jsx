@@ -1298,6 +1298,8 @@ function BuildsTab() {
   const [selectedBuild, setSelectedBuild] = useState(null);
   const [assemblers, setAssemblers] = useState([]);
   const [assignMap, setAssignMap] = useState({});
+  const [selectedBuildIds, setSelectedBuildIds] = useState([]);
+  const [deleteMode, setDeleteMode] = useState(false);
 
   useEffect(() => {
     fetchBuilds();
@@ -1326,6 +1328,40 @@ function BuildsTab() {
       console.error('Error fetching builds:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleSelectBuild = (buildId) => {
+    setSelectedBuildIds((prev) => {
+      if (prev.includes(buildId)) return prev.filter((id) => id !== buildId);
+      return [...prev, buildId];
+    });
+  };
+
+  const selectAllBuilds = (checked) => {
+    if (checked) {
+      setSelectedBuildIds(builds.map((b) => b._id));
+    } else {
+      setSelectedBuildIds([]);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedBuildIds.length === 0) {
+      alert('No builds selected to delete.');
+      return;
+    }
+    if (!window.confirm(`Delete ${selectedBuildIds.length} selected build(s)? This cannot be undone.`)) return;
+
+    try {
+      await Promise.all(selectedBuildIds.map((id) => api.delete(`/builds/${id}`)));
+      setBuilds((prev) => prev.filter((b) => !selectedBuildIds.includes(b._id)));
+      if (selectedBuild && selectedBuildIds.includes(selectedBuild._id)) setSelectedBuild(null);
+      setSelectedBuildIds([]);
+      alert('Selected builds deleted.');
+    } catch (error) {
+      console.error('Error deleting selected builds:', error);
+      alert(error.response?.data?.message || 'Error deleting selected builds');
     }
   };
 
@@ -1382,10 +1418,49 @@ function BuildsTab() {
         </div>
       )}
 
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div>
+          {!deleteMode ? (
+            <button
+              onClick={() => setDeleteMode(true)}
+              style={{ ...styles.deleteButton, padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
+            >
+              Delete
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleDeleteSelected}
+                style={{ ...styles.deleteButton, padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
+                disabled={selectedBuildIds.length === 0}
+              >
+                Confirm Delete
+              </button>
+              <button
+                onClick={() => { setDeleteMode(false); setSelectedBuildIds([]); }}
+                style={{ ...styles.cancelButton, padding: '0.4rem 0.8rem' }}
+              >
+                Cancel
+              </button>
+              <span style={{ color: '#666', marginLeft: '0.5rem' }}>{selectedBuildIds.length} selected</span>
+            </>
+          )}
+        </div>
+      </div>
+
       <div style={styles.tableContainer}>
         <table style={styles.table}>
           <thead>
             <tr>
+              {deleteMode && (
+                <th style={{ width: '40px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedBuildIds.length === builds.length && builds.length > 0}
+                    onChange={(e) => selectAllBuilds(e.target.checked)}
+                  />
+                </th>
+              )}
               <th>User</th>
               <th>Components</th>
               <th>Price</th>
@@ -1398,6 +1473,15 @@ function BuildsTab() {
           <tbody>
             {builds.map((build) => (
               <tr key={build._id}>
+                {deleteMode && (
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedBuildIds.includes(build._id)}
+                      onChange={() => toggleSelectBuild(build._id)}
+                    />
+                  </td>
+                )}
                 <td>{build.userID?.name || 'N/A'}</td>
                 <td>{build.components.length}</td>
                 <td>${build.totalPrice.toFixed(2)}</td>
