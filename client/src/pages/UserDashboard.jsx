@@ -205,19 +205,19 @@ function ComponentsList() {
               <table style={styles.table}>
                 <thead>
                   <tr>
-                    <th>Image</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Priority</th>
-                    <th>Stock</th>
-                    <th>Details</th>
+                    <th style={styles.tableHeaderCell}>Image</th>
+                    <th style={styles.tableHeaderCell}>Name</th>
+                    <th style={styles.tableHeaderCell}>Category</th>
+                    <th style={styles.tableHeaderCell}>Price</th>
+                    <th style={styles.tableHeaderCell}>Priority</th>
+                    <th style={styles.tableHeaderCell}>Stock</th>
+                    <th style={styles.tableHeaderCell}>Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredComponents.map((component) => (
                     <tr key={component._id}>
-                      <td>
+                      <td style={styles.tableCell}>
                         {component.url ? (
                           <img
                             src={component.url}
@@ -229,12 +229,12 @@ function ComponentsList() {
                           <div style={styles.noImage}>No Image</div>
                         )}
                       </td>
-                      <td>{component.name}</td>
-                      <td>{component.category}</td>
-                      <td>${Number(component.price || 0).toFixed(2)}</td>
-                      <td>{component.priority ?? 1}</td>
-                      <td>{component.stockStatus ? <span style={styles.inStock}>In Stock</span> : <span style={styles.outOfStock}>Out of Stock</span>}</td>
-                      <td>
+                      <td style={styles.tableCell}>{component.name}</td>
+                      <td style={styles.tableCell}>{component.category}</td>
+                      <td style={styles.tableCell}>${Number(component.price || 0).toFixed(2)}</td>
+                      <td style={styles.tableCell}>{component.priority ?? 1}</td>
+                      <td style={styles.tableCell}>{component.stockStatus ? <span style={styles.inStock}>In Stock</span> : <span style={styles.outOfStock}>Out of Stock</span>}</td>
+                      <td style={styles.tableCell}>
                         <button
                           onClick={() => alert(`${component.name}\n\n${component.specifications || 'No specifications'}\n\nSocket: ${component.socket || 'N/A'}`)}
                           style={styles.viewButton}
@@ -621,13 +621,13 @@ function BuildCreator() {
                         <table style={styles.table}>
                           <thead>
                             <tr>
-                              <th></th>
-                              <th>Image</th>
-                              <th>Name</th>
-                              <th>Price</th>
-                              <th>Specs</th>
-                              <th>Compatibility</th>
-                              <th></th>
+                              <th style={styles.tableHeaderCell}></th>
+                              <th style={styles.tableHeaderCell}>Image</th>
+                              <th style={styles.tableHeaderCell}>Name</th>
+                              <th style={styles.tableHeaderCell}>Price</th>
+                              <th style={styles.tableHeaderCell}>Specs</th>
+                              <th style={styles.tableHeaderCell}>Compatibility</th>
+                              <th style={styles.tableHeaderCell}></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -646,7 +646,7 @@ function BuildCreator() {
 
                               return (
                                 <tr key={component._id} style={isSelected ? styles.selectedRow : {}}>
-                                  <td>
+                                  <td style={styles.tableCell}>
                                     <input
                                       type="radio"
                                       name={selectedCategory}
@@ -655,24 +655,24 @@ function BuildCreator() {
                                       disabled={!compatCheck.isCompatible && !isSelected}
                                     />
                                   </td>
-                                  <td>
+                                  <td style={styles.tableCell}>
                                     {component.url ? (
                                       <img src={component.url} alt={component.name} style={styles.componentImage} onError={(e)=>{e.target.style.display='none'}}/>
                                     ) : (
                                       <div style={styles.noImage}>No Image</div>
                                     )}
                                   </td>
-                                  <td>{component.name}</td>
-                                  <td>${Number(component.price || 0).toFixed(2)}</td>
-                                  <td style={styles.smallText}>{component.specifications}</td>
-                                  <td>
+                                  <td style={styles.tableCell}>{component.name}</td>
+                                  <td style={styles.tableCell}>${Number(component.price || 0).toFixed(2)}</td>
+                                  <td style={{...styles.tableCell, ...styles.smallText}}>{component.specifications}</td>
+                                  <td style={styles.tableCell}>
                                     {!compatCheck.isCompatible && !isSelected ? (
                                       <span style={styles.incompatibleBadge}>Incompatible</span>
                                     ) : (
                                       <span style={styles.inStock}>{compatCheck.isCompatible ? 'Compatible' : 'Selected'}</span>
                                     )}
                                   </td>
-                                  <td>
+                                  <td style={styles.tableCell}>
                                     <button onClick={() => toggleComponent(component)} style={styles.viewButton}>
                                       {isSelected ? 'Remove' : 'Select'}
                                     </button>
@@ -715,13 +715,13 @@ function BuildCreator() {
                         <table style={styles.table}>
                           <thead>
                             <tr>
-                              <th></th>
-                              <th>Image</th>
-                              <th>Name</th>
-                              <th>Price</th>
-                              <th>Specs</th>
-                              <th>Compatibility</th>
-                              <th></th>
+                              <th style={styles.tableHeaderCell}></th>
+                              <th style={styles.tableHeaderCell}>Image</th>
+                              <th style={styles.tableHeaderCell}>Name</th>
+                              <th style={styles.tableHeaderCell}>Price</th>
+                              <th style={styles.tableHeaderCell}>Specs</th>
+                              <th style={styles.tableHeaderCell}>Compatibility</th>
+                              <th style={styles.tableHeaderCell}></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -740,7 +740,7 @@ function BuildCreator() {
 
                               return (
                                 <tr key={component._id} style={isSelected ? styles.selectedRow : {}}>
-                                  <td>
+                                  <td style={styles.tableCell}>
                                     <input
                                       type="radio"
                                       name={category.name}
@@ -749,24 +749,24 @@ function BuildCreator() {
                                       disabled={!compatCheck.isCompatible && !isSelected}
                                     />
                                   </td>
-                                  <td>
+                                  <td style={styles.tableCell}>
                                     {component.url ? (
                                       <img src={component.url} alt={component.name} style={styles.componentImage} onError={(e)=>{e.target.style.display='none'}}/>
                                     ) : (
                                       <div style={styles.noImage}>No Image</div>
                                     )}
                                   </td>
-                                  <td>{component.name}</td>
-                                  <td>${Number(component.price || 0).toFixed(2)}</td>
-                                  <td style={styles.smallText}>{component.specifications}</td>
-                                  <td>
+                                  <td style={styles.tableCell}>{component.name}</td>
+                                  <td style={styles.tableCell}>${Number(component.price || 0).toFixed(2)}</td>
+                                  <td style={{...styles.tableCell, ...styles.smallText}}>{component.specifications}</td>
+                                  <td style={styles.tableCell}>
                                     {!compatCheck.isCompatible && !isSelected ? (
                                       <span style={styles.incompatibleBadge}>Incompatible</span>
                                     ) : (
                                       <span style={styles.inStock}>{compatCheck.isCompatible ? 'Compatible' : 'Selected'}</span>
                                     )}
                                   </td>
-                                  <td>
+                                  <td style={styles.tableCell}>
                                     <button onClick={() => toggleComponent(component)} style={styles.viewButton}>
                                       {isSelected ? 'Remove' : 'Select'}
                                     </button>
@@ -1252,6 +1252,17 @@ const styles = {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '0.5rem',
+  },
+  tableHeaderCell: {
+    border: '1px solid #e6e6e6',
+    padding: '0.6rem',
+    backgroundColor: '#fafafa',
+    textAlign: 'left',
+  },
+  tableCell: {
+    border: '1px solid #e6e6e6',
+    padding: '0.6rem',
+    verticalAlign: 'middle',
   },
   componentImage: {
     width: '60px',
