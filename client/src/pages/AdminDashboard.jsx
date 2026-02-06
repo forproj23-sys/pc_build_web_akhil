@@ -481,20 +481,20 @@ function ComponentsTab() {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Priority</th>
-              <th>Stock</th>
-              <th>Actions</th>
+              <th style={styles.tableHeaderCell}>Image</th>
+              <th style={styles.tableHeaderCell}>Name</th>
+              <th style={styles.tableHeaderCell}>Category</th>
+              <th style={styles.tableHeaderCell}>Price</th>
+              <th style={styles.tableHeaderCell}>Priority</th>
+              <th style={styles.tableHeaderCell}>Stock</th>
+              <th style={styles.tableHeaderCell}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {components.map((component) => {
               return editing === component._id ? (
                 <tr key={component._id}>
-                  <td>
+                  <td style={styles.tableCell}>
                     {component.url ? (
                       <div style={styles.imageContainer}>
                         <img
@@ -515,7 +515,7 @@ function ComponentsTab() {
                       <div style={styles.noImage}>No Image</div>
                     )}
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <input
                       type="text"
                       name="name"
@@ -524,7 +524,7 @@ function ComponentsTab() {
                       style={styles.inlineInput}
                     />
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <select
                       name="category"
                       value={formData.category}
@@ -542,7 +542,7 @@ function ComponentsTab() {
                       )}
                     </select>
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <input
                       type="number"
                       name="price"
@@ -552,7 +552,7 @@ function ComponentsTab() {
                       style={styles.inlineInput}
                     />
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <input
                       type="number"
                       name="priority"
@@ -563,7 +563,7 @@ function ComponentsTab() {
                       style={styles.inlineInput}
                     />
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <input
                       type="checkbox"
                       name="stockStatus"
@@ -571,7 +571,7 @@ function ComponentsTab() {
                       onChange={handleInputChange}
                     />
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <button onClick={() => handleUpdate(component._id)} style={styles.saveButton}>
                       Save
                     </button>
@@ -582,7 +582,7 @@ function ComponentsTab() {
                 </tr>
               ) : (
                 <tr key={component._id}>
-                  <td>
+                  <td style={styles.tableCell}>
                     {component.url ? (
                       <img
                         src={component.url}
@@ -596,9 +596,9 @@ function ComponentsTab() {
                       <div style={styles.noImage}>No Image</div>
                     )}
                   </td>
-                  <td>{component.name}</td>
-                  <td>{component.category}</td>
-                  <td>
+                  <td style={styles.tableCell}>{component.name}</td>
+                  <td style={styles.tableCell}>{component.category}</td>
+                  <td style={styles.tableCell}>
                     <input
                       type="number"
                       value={component.price}
@@ -612,7 +612,7 @@ function ComponentsTab() {
                       step="0.01"
                     />
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <input
                       type="number"
                       value={component.priority ?? 1}
@@ -627,7 +627,7 @@ function ComponentsTab() {
                       min="1"
                     />
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <label style={styles.checkboxLabel}>
                       <input
                         type="checkbox"
@@ -643,7 +643,7 @@ function ComponentsTab() {
                       )}
                     </label>
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     <button onClick={() => handleEdit(component)} style={styles.editButton}>
                       Edit
                     </button>
@@ -867,30 +867,30 @@ function UsersTab() {
             Pending Approval ({pendingUsers.length})
           </h3>
           <div style={styles.tableContainer}>
-            <table style={styles.table}>
+          <table style={styles.table}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
+                  <th style={styles.tableHeaderCell}>Name</th>
+                  <th style={styles.tableHeaderCell}>Email</th>
+                  <th style={styles.tableHeaderCell}>Role</th>
+                  <th style={styles.tableHeaderCell}>Status</th>
+                  <th style={styles.tableHeaderCell}>Created</th>
+                  <th style={styles.tableHeaderCell}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {pendingUsers.map((user) => (
                   <tr key={user._id}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
+                    <td style={styles.tableCell}>{user.name}</td>
+                    <td style={styles.tableCell}>{user.email}</td>
+                    <td style={styles.tableCell}>
                       <span style={styles.roleBadge}>{user.role}</span>
                     </td>
-                    <td>
+                    <td style={styles.tableCell}>
                       <span style={styles.pendingBadge}>Pending</span>
                     </td>
-                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td>
+                    <td style={styles.tableCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td style={styles.tableCell}>
                       <button
                         onClick={() => handleApprove(user._id)}
                         style={styles.approveButton}
@@ -926,20 +926,20 @@ function UsersTab() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th style={styles.tableHeaderCell}>Name</th>
+                <th style={styles.tableHeaderCell}>Email</th>
+                <th style={styles.tableHeaderCell}>Role</th>
+                <th style={styles.tableHeaderCell}>Status</th>
+                <th style={styles.tableHeaderCell}>Created</th>
+                <th style={styles.tableHeaderCell}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
+                  <td style={styles.tableCell}>{user.name}</td>
+                  <td style={styles.tableCell}>{user.email}</td>
+                  <td style={styles.tableCell}>
                     {editingRole === user._id ? (
                       <select
                         value={user.role}
@@ -956,15 +956,15 @@ function UsersTab() {
                       <span style={styles.roleBadge}>{user.role}</span>
                     )}
                   </td>
-                  <td>
+                  <td style={styles.tableCell}>
                     {user.approved === false ? (
                       <span style={styles.pendingBadge}>Pending</span>
                     ) : (
                       <span style={styles.approvedBadge}>Approved</span>
                     )}
                   </td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td>
+                  <td style={styles.tableCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
+                  <td style={styles.tableCell}>
                     {user.approved === false && (
                       <button
                         onClick={() => handleApprove(user._id)}
@@ -1695,6 +1695,17 @@ const styles = {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '1rem',
+  },
+  tableHeaderCell: {
+    border: '1px solid #e6e6e6',
+    padding: '0.6rem',
+    backgroundColor: '#fafafa',
+    textAlign: 'left',
+  },
+  tableCell: {
+    border: '1px solid #e6e6e6',
+    padding: '0.6rem',
+    verticalAlign: 'middle',
   },
   'table th': {
     backgroundColor: '#f8f9fa',
