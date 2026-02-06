@@ -249,6 +249,7 @@ function ComponentsTab() {
       wattage: component.wattage || 0,
       priority: component.priority ?? 1,
       stockStatus: component.stockStatus,
+      url: component.url || '',
     });
   };
 
@@ -271,6 +272,15 @@ function ComponentsTab() {
       setComponents(components.filter((c) => c._id !== id));
     } catch (error) {
       alert(error.response?.data?.message || 'Error deleting component');
+    }
+  };
+
+  const handleQuickUpdate = async (id, field, value) => {
+    try {
+      const res = await api.put(`/components/${id}`, { [field]: value });
+      setComponents(components.map((c) => (c._id === id ? res.data.data : c)));
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error updating component');
     }
   };
 
@@ -471,6 +481,7 @@ function ComponentsTab() {
         <table style={styles.table}>
           <thead>
             <tr>
+              <th>Image</th>
               <th>Name</th>
               <th>Category</th>
               <th>Price</th>
@@ -480,111 +491,169 @@ function ComponentsTab() {
             </tr>
           </thead>
           <tbody>
-            {components.map((component) => (
-              <tr key={component._id}>
-                {editing === component._id ? (
-                  <>
-                    <td>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        style={styles.inlineInput}
+            {components.map((component) => {
+              return editing === component._id ? (
+                <tr key={component._id}>
+                  <td>
+                    {component.url ? (
+                      <div style={styles.imageContainer}>
+                        <img
+                          key={component.url}
+                          src={component.url}
+                          alt={component.name}
+                          style={styles.componentImage}
+                          onError={(e) => {
+                            console.error('Image failed to load:', component.url);
+                            e.target.style.display = 'none';
+                            const errorDiv = e.target.nextSibling;
+                            if (errorDiv) errorDiv.style.display = 'flex';
+                          }}
+                        />
+                        <div style={{ ...styles.noImage, display: 'none' }}>Failed to load</div>
+                      </div>
+                    ) : (
+                      <div style={styles.noImage}>No Image</div>
+                    )}
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      style={styles.inlineInput}
+                    />
+                  </td>
+                  <td>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      style={styles.inlineInput}
+                    >
+                      {categories.length === 0 ? (
+                        <option value="">No categories available</option>
+                      ) : (
+                        categories.map((cat) => (
+                          <option key={cat._id || cat.name} value={cat.name}>
+                            {cat.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      step="0.01"
+                      style={styles.inlineInput}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleInputChange}
+                      min="1"
+                      step="1"
+                      style={styles.inlineInput}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="stockStatus"
+                      checked={formData.stockStatus}
+                      onChange={handleInputChange}
+                    />
+                  </td>
+                  <td>
+                    <button onClick={() => handleUpdate(component._id)} style={styles.saveButton}>
+                      Save
+                    </button>
+                    <button onClick={() => setEditing(null)} style={styles.cancelButton}>
+                      Cancel
+                    </button>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={component._id}>
+                  <td>
+                    {component.url ? (
+                      <img
+                        src={component.url}
+                        alt={component.name}
+                        style={styles.componentImage}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
                       />
-                    </td>
-                    <td>
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        style={styles.inlineInput}
-                      >
-                        {categories.length === 0 ? (
-                          <option value="">No categories available</option>
-                        ) : (
-                          categories.map((cat) => (
-                            <option key={cat._id || cat.name} value={cat.name}>
-                              {cat.name}
-                            </option>
-                          ))
-                        )}
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        style={styles.inlineInput}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleInputChange}
-                        min="1"
-                        step="1"
-                        style={styles.inlineInput}
-                      />
-                    </td>
-                    <td>
+                    ) : (
+                      <div style={styles.noImage}>No Image</div>
+                    )}
+                  </td>
+                  <td>{component.name}</td>
+                  <td>{component.category}</td>
+                  <td>
+                    <input
+                      type="number"
+                      value={component.price}
+                      onChange={(e) =>
+                        handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                      }
+                      onBlur={(e) =>
+                        handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                      }
+                      style={styles.priceInput}
+                      step="0.01"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      value={component.priority ?? 1}
+                      onChange={(e) =>
+                        handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                      }
+                      onBlur={(e) =>
+                        handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                      }
+                      style={styles.priceInput}
+                      step="1"
+                      min="1"
+                    />
+                  </td>
+                  <td>
+                    <label style={styles.checkboxLabel}>
                       <input
                         type="checkbox"
-                        name="stockStatus"
-                        checked={formData.stockStatus}
-                        onChange={handleInputChange}
+                        checked={component.stockStatus}
+                        onChange={(e) =>
+                          handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
+                        }
                       />
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => handleUpdate(component._id)}
-                        style={styles.saveButton}
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditing(null)}
-                        style={styles.cancelButton}
-                      >
-                        Cancel
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td>{component.name}</td>
-                    <td>{component.category}</td>
-                    <td>${component.price.toFixed(2)}</td>
-                    <td>{component.priority ?? 1}</td>
-                    <td>
                       {component.stockStatus ? (
                         <span style={styles.inStock}>In Stock</span>
                       ) : (
                         <span style={styles.outOfStock}>Out of Stock</span>
                       )}
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => handleEdit(component)}
-                        style={styles.editButton}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(component._id)}
-                        style={styles.deleteButton}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </>
-                )}
-              </tr>
-            ))}
+                    </label>
+                  </td>
+                  <td>
+                    <button onClick={() => handleEdit(component)} style={styles.editButton}>
+                      Edit
+                    </button>
+                    <button onClick={() => handleDelete(component._id)} style={styles.deleteButton}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1227,10 +1296,27 @@ function BuildsTab() {
   const [builds, setBuilds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBuild, setSelectedBuild] = useState(null);
+  const [assemblers, setAssemblers] = useState([]);
+  const [assignMap, setAssignMap] = useState({});
 
   useEffect(() => {
     fetchBuilds();
   }, []);
+
+  useEffect(() => {
+    fetchAssemblers();
+  }, []);
+
+  const fetchAssemblers = async () => {
+    try {
+      const res = await api.get('/users');
+      const users = res.data.data || [];
+      const availableAssemblers = users.filter(u => u.role === 'assembler' && (u.approved === undefined || u.approved === true));
+      setAssemblers(availableAssemblers);
+    } catch (error) {
+      console.error('Error fetching assemblers:', error);
+    }
+  };
 
   const fetchBuilds = async () => {
     try {
@@ -1240,6 +1326,30 @@ function BuildsTab() {
       console.error('Error fetching builds:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAssignChange = (buildId, assemblerId) => {
+    setAssignMap(prev => ({ ...prev, [buildId]: assemblerId }));
+  };
+
+  const handleAssign = async (buildId) => {
+    try {
+      const assemblerID = assignMap[buildId];
+      if (!assemblerID) {
+        alert('Please select an assembler to assign.');
+        return;
+      }
+      const res = await api.put(`/builds/${buildId}/assign`, { assemblerID });
+      const updated = res.data.data;
+      setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
+      if (selectedBuild && selectedBuild._id === buildId) {
+        setSelectedBuild(updated);
+      }
+      alert('Assembler assigned successfully.');
+    } catch (error) {
+      console.error('Error assigning assembler:', error);
+      alert(error.response?.data?.message || 'Error assigning assembler');
     }
   };
 
@@ -1305,7 +1415,25 @@ function BuildsTab() {
                     {build.assemblyStatus}
                   </span>
                 </td>
-                <td>{build.assemblerID?.name || 'Not assigned'}</td>
+                <td>
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <select
+                      value={assignMap[build._id] ?? (build.assemblerID?._id ?? '')}
+                      onChange={(e) => handleAssignChange(build._id, e.target.value)}
+                      style={styles.input}
+                    >
+                      <option value="">Not assigned</option>
+                      {assemblers.map(a => (
+                        <option key={a._id} value={a._id}>
+                          {a.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button onClick={() => handleAssign(build._id)} style={styles.submitButton}>
+                      Assign
+                    </button>
+                  </div>
+                </td>
                 <td>{new Date(build.createdAt).toLocaleDateString()}</td>
                 <td>
                   <button
@@ -1500,6 +1628,49 @@ const styles = {
     border: '1px solid #ddd',
     borderRadius: '4px',
     fontSize: '0.9rem',
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '60px',
+    height: '60px',
+  },
+  componentImage: {
+    width: '60px',
+    height: '60px',
+    objectFit: 'cover',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    display: 'block',
+  },
+  noImage: {
+    width: '60px',
+    height: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    fontSize: '0.75rem',
+    color: '#999',
+    textAlign: 'center',
+  },
+  imageError: {
+    fontSize: '0.75rem',
+    color: '#dc3545',
+  },
+  priceInput: {
+    padding: '0.25rem',
+    border: '1px solid #28a745',
+    borderRadius: '4px',
+    fontSize: '0.9rem',
+    width: '80px',
+  },
+  checkboxLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    cursor: 'pointer',
   },
   editButton: {
     padding: '0.25rem 0.75rem',
