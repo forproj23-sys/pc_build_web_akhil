@@ -201,34 +201,51 @@ function ComponentsList() {
               )}
             </div>
           ) : (
-            <div style={styles.componentsGrid}>
-              {filteredComponents.map((component) => (
-                <div key={component._id} style={styles.componentCard}>
-                  <h3 style={styles.componentName}>{component.name}</h3>
-                  <p style={styles.componentCategory}>{component.category}</p>
-                  <p style={styles.componentPrice}>${component.price.toFixed(2)}</p>
-                  <p style={styles.componentSpecs}>{component.specifications}</p>
-                  {component.compatibility && (
-                    <p style={styles.compatibility}>Compatibility: {component.compatibility}</p>
-                  )}
-                  {component.socket && (
-                    <p style={styles.compatibilityDetail}>Socket: {component.socket}</p>
-                  )}
-                  {component.ramType && (
-                    <p style={styles.compatibilityDetail}>RAM Type: {component.ramType}</p>
-                  )}
-                  {component.formFactor && (
-                    <p style={styles.compatibilityDetail}>Form Factor: {component.formFactor}</p>
-                  )}
-                  <p style={styles.stockStatus}>
-                    {component.stockStatus ? (
-                      <span style={styles.inStock}>✓ In Stock</span>
-                    ) : (
-                      <span style={styles.outOfStock}>✗ Out of Stock</span>
-                    )}
-                  </p>
-                </div>
-              ))}
+            <div style={styles.componentsTableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Priority</th>
+                    <th>Stock</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredComponents.map((component) => (
+                    <tr key={component._id}>
+                      <td>
+                        {component.url ? (
+                          <img
+                            src={component.url}
+                            alt={component.name}
+                            style={styles.componentImage}
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div style={styles.noImage}>No Image</div>
+                        )}
+                      </td>
+                      <td>{component.name}</td>
+                      <td>{component.category}</td>
+                      <td>${Number(component.price || 0).toFixed(2)}</td>
+                      <td>{component.priority ?? 1}</td>
+                      <td>{component.stockStatus ? <span style={styles.inStock}>In Stock</span> : <span style={styles.outOfStock}>Out of Stock</span>}</td>
+                      <td>
+                        <button
+                          onClick={() => alert(`${component.name}\n\n${component.specifications || 'No specifications'}\n\nSocket: ${component.socket || 'N/A'}`)}
+                          style={styles.viewButton}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -600,45 +617,72 @@ function BuildCreator() {
                         {totalBudget ? 'No compatible components within budget range' : 'No components available'}
                       </p>
                     ) : (
-                      filteredComps.map((component) => {
-                        const testBuild = [...selectedComponents];
-                        const existingInCategory = testBuild.findIndex(
-                          (s) => (s.category || '').toUpperCase() === (selectedCategory || '').toUpperCase()
-                        );
-                        if (existingInCategory >= 0) {
-                          testBuild[existingInCategory] = component;
-                        } else {
-                          testBuild.push(component);
-                        }
-                        const compatCheck = checkCompatibility(testBuild);
-                        const isSelected = selected?._id === component._id;
+                      <div style={styles.componentsTableWrapper}>
+                        <table style={styles.table}>
+                          <thead>
+                            <tr>
+                              <th></th>
+                              <th>Image</th>
+                              <th>Name</th>
+                              <th>Price</th>
+                              <th>Specs</th>
+                              <th>Compatibility</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredComps.map((component) => {
+                              const testBuild = [...selectedComponents];
+                              const existingInCategory = testBuild.findIndex(
+                                (s) => (s.category || '').toUpperCase() === (selectedCategory || '').toUpperCase()
+                              );
+                              if (existingInCategory >= 0) {
+                                testBuild[existingInCategory] = component;
+                              } else {
+                                testBuild.push(component);
+                              }
+                              const compatCheck = checkCompatibility(testBuild);
+                              const isSelected = selected?._id === component._id;
 
-                        return (
-                          <div
-                            key={component._id}
-                            style={{
-                              ...styles.componentOption,
-                              ...(isSelected ? styles.selectedOption : {}),
-                              ...(!compatCheck.isCompatible ? styles.incompatibleOption : {}),
-                            }}
-                          >
-                            <input
-                              type="radio"
-                              name={selectedCategory}
-                              checked={isSelected}
-                              onChange={() => toggleComponent(component)}
-                              disabled={!compatCheck.isCompatible && !isSelected}
-                            />
-                            <div style={styles.optionDetails}>
-                              <strong>{component.name}</strong> - ${component.price.toFixed(2)}
-                              <p style={styles.smallText}>{component.specifications}</p>
-                              {!compatCheck.isCompatible && !isSelected && (
-                                <span style={styles.incompatibleBadge}>Incompatible</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })
+                              return (
+                                <tr key={component._id} style={isSelected ? styles.selectedRow : {}}>
+                                  <td>
+                                    <input
+                                      type="radio"
+                                      name={selectedCategory}
+                                      checked={isSelected}
+                                      onChange={() => toggleComponent(component)}
+                                      disabled={!compatCheck.isCompatible && !isSelected}
+                                    />
+                                  </td>
+                                  <td>
+                                    {component.url ? (
+                                      <img src={component.url} alt={component.name} style={styles.componentImage} onError={(e)=>{e.target.style.display='none'}}/>
+                                    ) : (
+                                      <div style={styles.noImage}>No Image</div>
+                                    )}
+                                  </td>
+                                  <td>{component.name}</td>
+                                  <td>${Number(component.price || 0).toFixed(2)}</td>
+                                  <td style={styles.smallText}>{component.specifications}</td>
+                                  <td>
+                                    {!compatCheck.isCompatible && !isSelected ? (
+                                      <span style={styles.incompatibleBadge}>Incompatible</span>
+                                    ) : (
+                                      <span style={styles.inStock}>{compatCheck.isCompatible ? 'Compatible' : 'Selected'}</span>
+                                    )}
+                                  </td>
+                                  <td>
+                                    <button onClick={() => toggleComponent(component)} style={styles.viewButton}>
+                                      {isSelected ? 'Remove' : 'Select'}
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </div>
                 );
@@ -667,45 +711,72 @@ function BuildCreator() {
                         {totalBudget ? 'No compatible components within budget range' : 'No components available'}
                       </p>
                     ) : (
-                      filteredComps.map((component) => {
-                        const testBuild = [...selectedComponents];
-                        const existingInCategory = testBuild.findIndex(
-                          (s) => (s.category || '').toUpperCase() === (category.name || '').toUpperCase()
-                        );
-                        if (existingInCategory >= 0) {
-                          testBuild[existingInCategory] = component;
-                        } else {
-                          testBuild.push(component);
-                        }
-                        const compatCheck = checkCompatibility(testBuild);
-                        const isSelected = selected?._id === component._id;
+                      <div style={styles.componentsTableWrapper}>
+                        <table style={styles.table}>
+                          <thead>
+                            <tr>
+                              <th></th>
+                              <th>Image</th>
+                              <th>Name</th>
+                              <th>Price</th>
+                              <th>Specs</th>
+                              <th>Compatibility</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredComps.map((component) => {
+                              const testBuild = [...selectedComponents];
+                              const existingInCategory = testBuild.findIndex(
+                                (s) => (s.category || '').toUpperCase() === (category.name || '').toUpperCase()
+                              );
+                              if (existingInCategory >= 0) {
+                                testBuild[existingInCategory] = component;
+                              } else {
+                                testBuild.push(component);
+                              }
+                              const compatCheck = checkCompatibility(testBuild);
+                              const isSelected = selected?._id === component._id;
 
-                        return (
-                          <div
-                            key={component._id}
-                            style={{
-                              ...styles.componentOption,
-                              ...(isSelected ? styles.selectedOption : {}),
-                              ...(!compatCheck.isCompatible ? styles.incompatibleOption : {}),
-                            }}
-                          >
-                            <input
-                              type="radio"
-                              name={category.name}
-                              checked={isSelected}
-                              onChange={() => toggleComponent(component)}
-                              disabled={!compatCheck.isCompatible && !isSelected}
-                            />
-                            <div style={styles.optionDetails}>
-                              <strong>{component.name}</strong> - ${component.price.toFixed(2)}
-                              <p style={styles.smallText}>{component.specifications}</p>
-                              {!compatCheck.isCompatible && !isSelected && (
-                                <span style={styles.incompatibleBadge}>Incompatible</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })
+                              return (
+                                <tr key={component._id} style={isSelected ? styles.selectedRow : {}}>
+                                  <td>
+                                    <input
+                                      type="radio"
+                                      name={category.name}
+                                      checked={isSelected}
+                                      onChange={() => toggleComponent(component)}
+                                      disabled={!compatCheck.isCompatible && !isSelected}
+                                    />
+                                  </td>
+                                  <td>
+                                    {component.url ? (
+                                      <img src={component.url} alt={component.name} style={styles.componentImage} onError={(e)=>{e.target.style.display='none'}}/>
+                                    ) : (
+                                      <div style={styles.noImage}>No Image</div>
+                                    )}
+                                  </td>
+                                  <td>{component.name}</td>
+                                  <td>${Number(component.price || 0).toFixed(2)}</td>
+                                  <td style={styles.smallText}>{component.specifications}</td>
+                                  <td>
+                                    {!compatCheck.isCompatible && !isSelected ? (
+                                      <span style={styles.incompatibleBadge}>Incompatible</span>
+                                    ) : (
+                                      <span style={styles.inStock}>{compatCheck.isCompatible ? 'Compatible' : 'Selected'}</span>
+                                    )}
+                                  </td>
+                                  <td>
+                                    <button onClick={() => toggleComponent(component)} style={styles.viewButton}>
+                                      {isSelected ? 'Remove' : 'Select'}
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </div>
                 );
@@ -1172,6 +1243,39 @@ const styles = {
     border: '1px solid #ddd',
     borderRadius: '4px',
     cursor: 'pointer',
+  },
+  componentsTableWrapper: {
+    overflowX: 'auto',
+    marginTop: '1rem',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginTop: '0.5rem',
+  },
+  componentImage: {
+    width: '60px',
+    height: '60px',
+    objectFit: 'cover',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    display: 'block',
+  },
+  noImage: {
+    width: '60px',
+    height: '60px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '4px',
+    border: '1px solid #ddd',
+    fontSize: '0.75rem',
+    color: '#999',
+    textAlign: 'center',
+  },
+  selectedRow: {
+    backgroundColor: '#e7f3ff',
   },
   selectedOption: {
     border: '2px solid #007bff',
