@@ -1180,12 +1180,12 @@ function CategoriesTab() {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th style={styles.tableHeaderCell}>Name</th>
+              <th style={styles.tableHeaderCell}>Description</th>
+              <th style={styles.tableHeaderCell}>Priority</th>
+              <th style={styles.tableHeaderCell}>Status</th>
+              <th style={styles.tableHeaderCell}>Created</th>
+              <th style={styles.tableHeaderCell}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -1193,7 +1193,7 @@ function CategoriesTab() {
               <tr key={category._id}>
                 {editing === category._id ? (
                   <>
-                    <td>
+                    <td style={styles.tableCell}>
                       <input
                         type="text"
                         name="name"
@@ -1203,7 +1203,7 @@ function CategoriesTab() {
                         required
                       />
                     </td>
-                    <td>
+                    <td style={styles.tableCell}>
                       <input
                         type="text"
                         name="description"
@@ -1212,7 +1212,7 @@ function CategoriesTab() {
                         style={styles.inlineInput}
                       />
                     </td>
-                    <td>
+                    <td style={styles.tableCell}>
                       <input
                         type="number"
                         name="priority"
@@ -1223,7 +1223,7 @@ function CategoriesTab() {
                         required
                       />
                     </td>
-                    <td>
+                    <td style={styles.tableCell}>
                       <label style={styles.checkboxLabel}>
                         <input
                           type="checkbox"
@@ -1234,8 +1234,8 @@ function CategoriesTab() {
                         {formData.isActive ? 'Active' : 'Inactive'}
                       </label>
                     </td>
-                    <td>{new Date(category.createdAt).toLocaleDateString()}</td>
-                    <td>
+                    <td style={styles.tableCell}>{new Date(category.createdAt).toLocaleDateString()}</td>
+                    <td style={styles.tableCell}>
                       <button
                         onClick={() => handleUpdate(category._id)}
                         style={styles.saveButton}
@@ -1252,10 +1252,10 @@ function CategoriesTab() {
                   </>
                 ) : (
                   <>
-                    <td>{category.name}</td>
-                    <td>{category.description || '-'}</td>
-                    <td>{category.priority ?? 1}</td>
-                    <td>
+                    <td style={styles.tableCell}>{category.name}</td>
+                    <td style={styles.tableCell}>{category.description || '-'}</td>
+                    <td style={styles.tableCell}>{category.priority ?? 1}</td>
+                    <td style={styles.tableCell}>
                       <button
                         onClick={() => handleToggleActive(category._id, category.isActive)}
                         style={category.isActive ? styles.activeButton : styles.inactiveButton}
@@ -1263,8 +1263,8 @@ function CategoriesTab() {
                         {category.isActive ? 'Active' : 'Inactive'}
                       </button>
                     </td>
-                    <td>{new Date(category.createdAt).toLocaleDateString()}</td>
-                    <td>
+                    <td style={styles.tableCell}>{new Date(category.createdAt).toLocaleDateString()}</td>
+                    <td style={styles.tableCell}>
                       <button
                         onClick={() => handleEdit(category)}
                         style={styles.editButton}
@@ -1453,7 +1453,7 @@ function BuildsTab() {
           <thead>
             <tr>
               {deleteMode && (
-                <th style={{ width: '40px' }}>
+                <th style={{ ...styles.tableHeaderCell, width: '40px' }}>
                   <input
                     type="checkbox"
                     checked={selectedBuildIds.length === builds.length && builds.length > 0}
@@ -1461,20 +1461,20 @@ function BuildsTab() {
                   />
                 </th>
               )}
-              <th>User</th>
-              <th>Components</th>
-              <th>Price</th>
-              <th>Status</th>
-              <th>Assembler</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th style={styles.tableHeaderCell}>User</th>
+              <th style={styles.tableHeaderCell}>Components</th>
+              <th style={styles.tableHeaderCell}>Price</th>
+              <th style={styles.tableHeaderCell}>Status</th>
+              <th style={styles.tableHeaderCell}>Assembler</th>
+              <th style={styles.tableHeaderCell}>Created</th>
+              <th style={styles.tableHeaderCell}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {builds.map((build) => (
               <tr key={build._id}>
                 {deleteMode && (
-                  <td>
+                  <td style={styles.tableCell}>
                     <input
                       type="checkbox"
                       checked={selectedBuildIds.includes(build._id)}
@@ -1482,10 +1482,10 @@ function BuildsTab() {
                     />
                   </td>
                 )}
-                <td>{build.userID?.name || 'N/A'}</td>
-                <td>{build.components.length}</td>
-                <td>${build.totalPrice.toFixed(2)}</td>
-                <td>
+                <td style={styles.tableCell}>{build.userID?.name || 'N/A'}</td>
+                <td style={styles.tableCell}>{build.components.length}</td>
+                <td style={styles.tableCell}>${build.totalPrice.toFixed(2)}</td>
+                <td style={styles.tableCell}>
                   <span
                     style={{
                       ...styles.statusBadge,
@@ -1499,7 +1499,7 @@ function BuildsTab() {
                     {build.assemblyStatus}
                   </span>
                 </td>
-                <td>
+                <td style={styles.tableCell}>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <select
                       value={assignMap[build._id] ?? (build.assemblerID?._id ?? '')}
@@ -1518,8 +1518,8 @@ function BuildsTab() {
                     </button>
                   </div>
                 </td>
-                <td>{new Date(build.createdAt).toLocaleDateString()}</td>
-                <td>
+                <td style={styles.tableCell}>{new Date(build.createdAt).toLocaleDateString()}</td>
+                <td style={styles.tableCell}>
                   <button
                     onClick={() => setSelectedBuild(build)}
                     style={styles.viewButton}
