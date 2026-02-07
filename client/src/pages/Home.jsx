@@ -1,32 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import TopNav from '../components/TopNav';
 
 function Home() {
   const { user, logout } = useAuth();
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.nav}>
-        <h1 style={styles.logo}>PC Build Configurator</h1>
-        {user ? (
-          <div style={styles.navLinks}>
-            <span style={styles.userInfo}>Welcome, {user.name} ({user.role})</span>
-            <button onClick={logout} style={styles.button}>
-              Logout
-            </button>
-          </div>
-        ) : (
-          <div style={styles.navLinks}>
-            <Link to="/login" style={styles.link}>
-              Login
-            </Link>
-            <Link to="/register" style={styles.link}>
-              Register
-            </Link>
-          </div>
-        )}
-      </nav>
-      <div style={styles.content}>
+    <div style={styles.container} className="app-container">
+      <TopNav />
+      <div style={styles.content} className="app-content">
         <h2 style={styles.title}>Welcome to PC Build Configuration System</h2>
         <p style={styles.description}>
           Build your custom PC with compatibility checking. Connect with assemblers and suppliers.

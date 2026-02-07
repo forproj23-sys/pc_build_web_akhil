@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import TopNav from '../components/TopNav';
 
 function SupplierDashboard() {
   const { user, logout } = useAuth();
@@ -221,19 +222,9 @@ function SupplierDashboard() {
   }
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.nav}>
-        <h1 style={styles.logo}>Supplier Dashboard</h1>
-        <div style={styles.navLinks}>
-          <span style={styles.userInfo}>Welcome, {user?.name} (Supplier)</span>
-          <Link to="/" style={styles.link}>Home</Link>
-          <button onClick={handleLogout} style={styles.button}>
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      <div style={styles.content}>
+    <div style={styles.container} className="app-container">
+      <TopNav />
+      <div style={styles.content} className="app-content">
         <h2>Component Inventory Management</h2>
 
         {/* Statistics */}
@@ -274,307 +265,16 @@ function SupplierDashboard() {
 
         <div style={styles.tabContent}>
           {activeTab === 'inventory' && (
-            <div style={styles.inventoryLayout}>
-              {/* Left Sidebar - Category Filter List */}
-              <div style={styles.filterSidebar}>
-                <h3 style={styles.sidebarTitle}>Filters</h3>
-                
-                {/* Search Box */}
-                <div style={styles.searchBox}>
-                  <input
-                    type="text"
-                    placeholder="Search components..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={styles.searchInput}
-                  />
-                </div>
-
-                <ul style={styles.categoryList}>
-                  <li
-                    style={{
-                      ...styles.categoryListItem,
-                      ...(selectedCategory === 'all' || selectedCategory === null ? styles.activeCategoryItem : {}),
-                    }}
-                    onClick={() => setSelectedCategory('all')}
-                  >
-                    <div style={styles.categoryListItemContent}>
-                      <span style={styles.categoryName}>All Components</span>
-                      <span style={(selectedCategory === 'all' || selectedCategory === null) ? styles.activeCategoryItemCountBadge : styles.countBadge}>
-                        {components.length}
-                      </span>
-                    </div>
-                  </li>
-                  <li
-                    style={{
-                      ...styles.categoryListItem,
-                      ...(selectedCategory === 'mine' ? styles.activeCategoryItem : {}),
-                    }}
-                    onClick={() => setSelectedCategory('mine')}
-                  >
-                    <div style={styles.categoryListItemContent}>
-                      <span style={styles.categoryName}>My Components</span>
-                      <span style={selectedCategory === 'mine' ? styles.activeCategoryItemCountBadge : styles.countBadge}>
-                        {components.filter((c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)).length}
-                      </span>
-                    </div>
-                  </li>
-                  <li style={styles.categoryListDivider}>
-                    <span style={styles.dividerText}>Categories</span>
-                  </li>
-                  {categories.map((category) => {
-                    const count = components.filter((c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()).length;
-                    return (
-                      <li
-                        key={category._id}
-                        style={{
-                          ...styles.categoryListItem,
-                          ...(selectedCategory === category.name ? styles.activeCategoryItem : {}),
-                        }}
-                        onClick={() => setSelectedCategory(category.name)}
-                      >
-                        <div style={styles.categoryListItemContent}>
-                          <span style={styles.categoryName}>{category.name}</span>
-                          <span style={selectedCategory === category.name ? styles.activeCategoryItemCountBadge : styles.countBadge}>
-                            {count}
-                          </span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-
-                {/* Filter Info */}
-                <div style={styles.filterInfo}>
-                  <p style={styles.filterInfoText}>
-                    Showing {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''}
-                  </p>
-                  <button
-                    onClick={() => fetchComponents()}
-                    style={styles.refreshButtonSmall}
-                  >
-                    ↻ Refresh
-                  </button>
-                </div>
-              </div>
-
-              {/* Right Side - Components Table */}
-              <div style={styles.tableWrapper}>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>Image</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Price</th>
-                      <th>Priority</th>
-                      <th>Stock</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredComponents.length === 0 ? (
-                      <tr>
-                        <td colSpan="7" style={styles.noResultsCell}>
-                          {searchTerm ? 'No components match your search.' : 'No components found.'}
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredComponents.map((component) => {
-                      // This is no longer needed since suppliers manage all inventory
-                      // const isMine = component.supplierID && (component.supplierID._id === user?.id || component.supplierID._id?.toString() === user?.id);
-
-                      return editing === component._id ? (
-                        <tr key={component._id}>
-                          <td>
-                            {component.url ? (
-                              <div style={styles.imageContainer}>
-                                <img
-                                  key={component.url}
-                                  src={component.url}
-                                  alt={component.name}
-                                  style={styles.componentImage}
-                                  onError={(e) => {
-                                    console.error('Image failed to load:', component.url);
-                                    e.target.style.display = 'none';
-                                    const errorDiv = e.target.nextSibling;
-                                    if (errorDiv) {
-                                      errorDiv.style.display = 'flex';
-                                    }
-                                  }}
-                                  onLoad={() => {
-                                    console.log('Image loaded successfully:', component.url);
-                                  }}
-                                />
-                                <div style={{ ...styles.noImage, display: 'none' }}>
-                                  Failed to load
-                                </div>
-                              </div>
-                            ) : (
-                              <div style={styles.noImage}>No Image</div>
-                            )}
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              name="name"
-                              value={formData.name}
-                              onChange={handleInputChange}
-                              style={styles.inlineInput}
-                            />
-                          </td>
-                          <td>
-                            <select
-                              name="category"
-                              value={formData.category}
-                              onChange={handleInputChange}
-                              style={styles.inlineInput}
-                            >
-                              {categories.length === 0 ? (
-                                <option value="">No categories available</option>
-                              ) : (
-                                categories.map((cat) => (
-                                  <option key={cat._id || cat.name} value={cat.name}>
-                                    {cat.name}
-                                  </option>
-                                ))
-                              )}
-                            </select>
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              name="price"
-                              value={formData.price}
-                              onChange={handleInputChange}
-                              step="0.01"
-                              style={styles.inlineInput}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              name="priority"
-                              value={formData.priority}
-                              onChange={handleInputChange}
-                              min="1"
-                              step="1"
-                              style={styles.inlineInput}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="checkbox"
-                              name="stockStatus"
-                              checked={formData.stockStatus}
-                              onChange={handleInputChange}
-                            />
-                          </td>
-                          <td>
-                            <button
-                              onClick={() => handleUpdate(component._id)}
-                              style={styles.saveButton}
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => setEditing(null)}
-                              style={styles.cancelButton}
-                            >
-                              Cancel
-                            </button>
-                          </td>
-                        </tr>
-                      ) : (
-                        <tr key={component._id}>
-                          <td>
-                            {component.url ? (
-                              <img
-                                src={component.url}
-                                alt={component.name}
-                                style={styles.componentImage}
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div style={styles.noImage}>No Image</div>
-                            )}
-                          </td>
-                          <td>{component.name}</td>
-                          <td>{component.category}</td>
-                          <td>
-                            <input
-                              type="number"
-                              value={component.price}
-                              onChange={(e) =>
-                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                              }
-                              onBlur={(e) =>
-                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                              }
-                              style={styles.priceInput}
-                              step="0.01"
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="number"
-                              value={component.priority ?? 1}
-                              onChange={(e) =>
-                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
-                              }
-                              onBlur={(e) =>
-                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
-                              }
-                              style={styles.priceInput}
-                              step="1"
-                              min="1"
-                            />
-                          </td>
-                          <td>
-                            <label style={styles.checkboxLabel}>
-                              <input
-                                type="checkbox"
-                                checked={component.stockStatus}
-                                onChange={(e) =>
-                                  handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
-                                }
-                              />
-                              {component.stockStatus ? (
-                                <span style={styles.inStock}>In Stock</span>
-                              ) : (
-                                <span style={styles.outOfStock}>Out</span>
-                              )}
-                            </label>
-                          </td>
-                          <td>
-                            <button
-                              onClick={() => handleEdit(component)}
-                              style={styles.editButton}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(component._id)}
-                              style={styles.deleteButton}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    }))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'add' && (
-            <div>
-              <h3>Add New Component</h3>
-              <form onSubmit={handleAdd} style={styles.form}>
+            <>
+            {editing && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleUpdate(editing);
+                }}
+                style={styles.form}
+              >
+                <h3>Edit Component</h3>
                 <div style={styles.formGrid}>
                   <div style={styles.formGroup}>
                     <label>Component Name *</label>
@@ -763,10 +463,415 @@ function SupplierDashboard() {
                     placeholder="https://example.com/product"
                   />
                 </div>
-                <button type="submit" style={styles.submitButton}>
+                <div style={{ marginTop: '0.75rem' }}>
+                  <button type="submit" style={styles.submitButton}>
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing(null)}
+                    style={styles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+            <div style={styles.inventoryLayout}>
+              {/* Left Sidebar - Category Filter List */}
+              <div style={styles.filterSidebar}>
+                <h3 style={styles.sidebarTitle}>Filters</h3>
+                
+                {/* Search Box */}
+                <div style={styles.searchBox}>
+                  <input
+                    type="text"
+                    placeholder="Search components..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={styles.searchInput}
+                  />
+                </div>
+
+                <ul style={styles.categoryList}>
+                  <li
+                    style={{
+                      ...styles.categoryListItem,
+                      ...(selectedCategory === 'all' || selectedCategory === null ? styles.activeCategoryItem : {}),
+                    }}
+                    onClick={() => setSelectedCategory('all')}
+                  >
+                    <div style={styles.categoryListItemContent}>
+                      <span style={styles.categoryName}>All Components</span>
+                      <span style={(selectedCategory === 'all' || selectedCategory === null) ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                        {components.length}
+                      </span>
+                    </div>
+                  </li>
+                  <li
+                    style={{
+                      ...styles.categoryListItem,
+                      ...(selectedCategory === 'mine' ? styles.activeCategoryItem : {}),
+                    }}
+                    onClick={() => setSelectedCategory('mine')}
+                  >
+                    <div style={styles.categoryListItemContent}>
+                      <span style={styles.categoryName}>My Components</span>
+                      <span style={selectedCategory === 'mine' ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                        {components.filter((c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)).length}
+                      </span>
+                    </div>
+                  </li>
+                  <li style={styles.categoryListDivider}>
+                    <span style={styles.dividerText}>Categories</span>
+                  </li>
+                  {categories.map((category) => {
+                    const count = components.filter((c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()).length;
+                    return (
+                      <li
+                        key={category._id}
+                        style={{
+                          ...styles.categoryListItem,
+                          ...(selectedCategory === category.name ? styles.activeCategoryItem : {}),
+                        }}
+                        onClick={() => setSelectedCategory(category.name)}
+                      >
+                        <div style={styles.categoryListItemContent}>
+                          <span style={styles.categoryName}>{category.name}</span>
+                          <span style={selectedCategory === category.name ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                            {count}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Filter Info */}
+                <div style={styles.filterInfo}>
+                  <p style={styles.filterInfoText}>
+                    Showing {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''}
+                  </p>
+                  <button
+                    onClick={() => fetchComponents()}
+                    style={styles.refreshButtonSmall}
+                  >
+                    ↻ Refresh
+                  </button>
+                </div>
+              </div>
+
+              {/* Right Side - Components Table */}
+              <div style={styles.tableWrapper} className="table-responsive">
+                <table className="table table-bordered table-hover align-middle" style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Image</th>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Priority</th>
+                      <th>Stock</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredComponents.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={styles.noResultsCell}>
+                          {searchTerm ? 'No components match your search.' : 'No components found.'}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredComponents.map((component) => (
+                        <tr key={component._id}>
+                          <td>
+                            {component.url ? (
+                              <img
+                                src={component.url}
+                                alt={component.name}
+                                style={styles.componentImage}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <div style={styles.noImage}>No Image</div>
+                            )}
+                          </td>
+                          <td>{component.name}</td>
+                          <td>{component.category}</td>
+                          <td>
+                            <input
+                              type="number"
+                              value={component.price}
+                              onChange={(e) =>
+                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                              }
+                              onBlur={(e) =>
+                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                              }
+                              style={styles.priceInput}
+                              step="0.01"
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              value={component.priority ?? 1}
+                              onChange={(e) =>
+                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                              }
+                              onBlur={(e) =>
+                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                              }
+                              style={styles.priceInput}
+                              step="1"
+                              min="1"
+                            />
+                          </td>
+                          <td>
+                            <label style={styles.checkboxLabel}>
+                              <input
+                                type="checkbox"
+                                checked={component.stockStatus}
+                                onChange={(e) =>
+                                  handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
+                                }
+                              />
+                              {component.stockStatus ? (
+                                <span style={styles.inStock}>In Stock</span>
+                              ) : (
+                                <span style={styles.outOfStock}>Out</span>
+                              )}
+                            </label>
+                          </td>
+                          <td>
+                            <div className="action-stack">
+                              <button
+                                onClick={() => handleEdit(component)}
+                                className="btn btn-warning action-btn"
+                                style={styles.editButton}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(component._id)}
+                                className="btn btn-danger action-btn"
+                                style={styles.deleteButton}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            </>
+          )}
+
+          {activeTab === 'add' && (
+            <div>
+              <h3>Add New Component</h3>
+              <div className="card p-3">
+              <form onSubmit={handleAdd}>
+                <div style={styles.formGrid}>
+                  <div style={styles.formGroup}>
+                    <label>Component Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      required
+                      style={styles.input}
+                      placeholder="e.g., Intel i7-13700K"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Category *</label>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      required
+                      style={styles.input}
+                    >
+                      {categories.length === 0 ? (
+                        <option value="">No categories available</option>
+                      ) : (
+                        categories.map((cat) => (
+                          <option key={cat._id || cat.name} value={cat.name}>
+                            {cat.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Price ($) *</label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      required
+                      min="0"
+                      step="0.01"
+                      style={styles.input}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Priority</label>
+                    <input
+                      type="number"
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleInputChange}
+                      min="1"
+                      step="1"
+                      style={styles.input}
+                      placeholder="1"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Stock Status</label>
+                    <label style={styles.checkboxLabel}>
+                      <input
+                        type="checkbox"
+                        name="stockStatus"
+                        checked={formData.stockStatus}
+                        onChange={handleInputChange}
+                      />
+                      In Stock
+                    </label>
+                  </div>
+                </div>
+                <div style={styles.formGroup}>
+                  <label>Specifications *</label>
+                  <textarea
+                    name="specifications"
+                    value={formData.specifications}
+                    onChange={handleInputChange}
+                    required
+                    rows="4"
+                    style={styles.textarea}
+                    placeholder="e.g., 13th Gen, 16 cores, 3.4GHz base clock"
+                  />
+                </div>
+                <div style={styles.formGroup}>
+                  <label>Compatibility (Legacy - optional)</label>
+                  <input
+                    type="text"
+                    name="compatibility"
+                    value={formData.compatibility}
+                    onChange={handleInputChange}
+                    style={styles.input}
+                    placeholder="Legacy compatibility string"
+                  />
+                </div>
+                <div style={styles.formGrid}>
+                  <div style={styles.formGroup}>
+                    <label>Socket (CPU/Motherboard)</label>
+                    <input
+                      type="text"
+                      name="socket"
+                      value={formData.socket}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., LGA1700, AM4"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Chipset (Motherboard)</label>
+                    <input
+                      type="text"
+                      name="chipset"
+                      value={formData.chipset}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., Z690, B550"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Form Factor (Motherboard/Case)</label>
+                    <input
+                      type="text"
+                      name="formFactor"
+                      value={formData.formFactor}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., ATX, mATX"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>RAM Type (Motherboard/RAM)</label>
+                    <input
+                      type="text"
+                      name="ramType"
+                      value={formData.ramType}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., DDR4, DDR5"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Storage Interface (Storage)</label>
+                    <input
+                      type="text"
+                      name="storageInterface"
+                      value={formData.storageInterface}
+                      onChange={handleInputChange}
+                      style={styles.input}
+                      placeholder="e.g., SATA, NVMe M.2"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Power Requirement (W) (CPU/GPU)</label>
+                    <input
+                      type="number"
+                      name="powerRequirement"
+                      value={formData.powerRequirement}
+                      onChange={handleInputChange}
+                      min="0"
+                      style={styles.input}
+                      placeholder="e.g., 150"
+                    />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label>Wattage (W) (PSU)</label>
+                    <input
+                      type="number"
+                      name="wattage"
+                      value={formData.wattage}
+                      onChange={handleInputChange}
+                      min="0"
+                      style={styles.input}
+                      placeholder="e.g., 650"
+                    />
+                  </div>
+                </div>
+                <div style={styles.formGroup}>
+                  <label>Product URL (optional)</label>
+                  <input
+                    type="url"
+                    name="url"
+                    value={formData.url}
+                    onChange={handleInputChange}
+                    style={styles.input}
+                    placeholder="https://example.com/product"
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary w-100" style={styles.submitButton}>
                   Add Component
                 </button>
               </form>
+              </div>
             </div>
           )}
         </div>

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { allocateBudgetByCategory } from '../utils/budgetAllocation';
 import { checkCompatibility } from '../utils/compatibilityChecker';
+import TopNav from '../components/TopNav';
 
 function UserDashboard() {
   const { user, logout } = useAuth();
@@ -16,19 +17,9 @@ function UserDashboard() {
   };
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.nav}>
-        <h1 style={styles.logo}>PC Build Configurator</h1>
-        <div style={styles.navLinks}>
-          <span style={styles.userInfo}>Welcome, {user?.name} ({user?.role})</span>
-          <Link to="/" style={styles.link}>Home</Link>
-          <button onClick={handleLogout} style={styles.button}>
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      <div style={styles.content}>
+    <div style={styles.container} className="app-container">
+      <TopNav />
+      <div style={styles.content} className="app-content">
         <div style={styles.tabs}>
           <button
             onClick={() => setActiveTab('components')}

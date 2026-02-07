@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import TopNav from '../components/TopNav';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
@@ -14,19 +15,9 @@ function AdminDashboard() {
   };
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.nav}>
-        <h1 style={styles.logo}>Admin Dashboard</h1>
-        <div style={styles.navLinks}>
-          <span style={styles.userInfo}>Welcome, {user?.name} (Admin)</span>
-          <Link to="/" style={styles.link}>Home</Link>
-          <button onClick={handleLogout} style={styles.button}>
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      <div style={styles.content}>
+    <div style={styles.container} className="app-container">
+      <TopNav />
+      <div style={styles.content} className="app-content">
         <div style={styles.tabs}>
           <button
             onClick={() => setActiveTab('overview')}
@@ -290,9 +281,9 @@ function ComponentsTab() {
 
   return (
     <div>
-      <div style={styles.header}>
+      <div style={styles.header} className="d-flex align-items-center justify-content-between mb-3">
         <h2>Component Management</h2>
-        <button onClick={() => setShowAddForm(!showAddForm)} style={styles.addButton}>
+        <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-success" style={styles.addButton}>
           {showAddForm ? 'Cancel' : 'Add Component'}
         </button>
       </div>
@@ -301,7 +292,7 @@ function ComponentsTab() {
         <form onSubmit={handleAdd} style={styles.form}>
           <h3>Add New Component</h3>
           <div style={styles.formGrid}>
-            <div style={styles.formGroup}>
+              <div style={styles.formGroup}>
               <label>Name</label>
               <input
                 type="text"
@@ -309,6 +300,7 @@ function ComponentsTab() {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
+                className="form-control"
                 style={styles.input}
               />
             </div>
@@ -319,6 +311,7 @@ function ComponentsTab() {
                 value={formData.category}
                 onChange={handleInputChange}
                 required
+                className="form-select"
                 style={styles.input}
               >
                 {categories.length === 0 ? (
@@ -342,6 +335,7 @@ function ComponentsTab() {
                 required
                 min="0"
                 step="0.01"
+                className="form-control"
                 style={styles.input}
               />
             </div>
@@ -354,18 +348,21 @@ function ComponentsTab() {
                 onChange={handleInputChange}
                 min="1"
                 step="1"
+                className="form-control"
                 style={styles.input}
                 placeholder="1"
               />
             </div>
-            <div style={styles.formGroup}>
-              <label>Stock Status</label>
+            <div style={styles.formGroup} className="form-check">
               <input
                 type="checkbox"
                 name="stockStatus"
                 checked={formData.stockStatus}
                 onChange={handleInputChange}
+                className="form-check-input"
+                id="add_stock_status"
               />
+              <label className="form-check-label" htmlFor="add_stock_status">Stock Status</label>
             </div>
           </div>
           <div style={styles.formGroup}>
@@ -376,6 +373,7 @@ function ComponentsTab() {
               onChange={handleInputChange}
               required
               rows="3"
+              className="form-control"
               style={styles.textarea}
             />
           </div>
@@ -471,14 +469,238 @@ function ComponentsTab() {
               />
             </div>
           </div>
-          <button type="submit" style={styles.submitButton}>
+          <button type="submit" className="btn btn-primary" style={styles.submitButton}>
             Add Component
           </button>
         </form>
       )}
 
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
+      {editing && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleUpdate(editing);
+          }}
+          style={styles.form}
+        >
+          <h3>Edit Component</h3>
+          <div style={styles.formGrid}>
+            <div style={styles.formGroup}>
+              <label>Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+                className="form-control"
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                required
+                className="form-select"
+                style={styles.input}
+              >
+                {categories.length === 0 ? (
+                  <option value="">No categories available</option>
+                ) : (
+                  categories.map((cat) => (
+                    <option key={cat._id || cat.name} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div style={styles.formGroup}>
+              <label>Price</label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleInputChange}
+                required
+                min="0"
+                step="0.01"
+                className="form-control form-control-sm"
+                style={styles.input}
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Priority</label>
+              <input
+                type="number"
+                name="priority"
+                value={formData.priority}
+                onChange={handleInputChange}
+                min="1"
+                step="1"
+                className="form-control form-control-sm"
+                style={styles.input}
+                placeholder="1"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Stock Status</label>
+              <input
+                type="checkbox"
+                name="stockStatus"
+                checked={formData.stockStatus}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+
+          <div style={styles.formGroup}>
+            <label>Specifications</label>
+            <textarea
+              name="specifications"
+              value={formData.specifications}
+              onChange={handleInputChange}
+              required
+              rows="3"
+              style={styles.textarea}
+            />
+          </div>
+          <div style={styles.formGroup}>
+            <label>Compatibility (Legacy)</label>
+              <input
+                type="text"
+                name="compatibility"
+                value={formData.compatibility}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="Legacy compatibility string"
+              />
+          </div>
+          <div style={styles.formGrid}>
+            <div style={styles.formGroup}>
+              <label>Socket (CPU/Motherboard)</label>
+              <input
+                type="text"
+                name="socket"
+                value={formData.socket || ''}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="e.g., LGA1700, AM4, AM5"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Chipset (Motherboard)</label>
+              <input
+                type="text"
+                name="chipset"
+                value={formData.chipset || ''}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="e.g., Z690, B550, X670"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Form Factor (Motherboard/Case)</label>
+              <input
+                type="text"
+                name="formFactor"
+                value={formData.formFactor || ''}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="e.g., ATX, mATX, ITX"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>RAM Type (Motherboard/RAM)</label>
+              <input
+                type="text"
+                name="ramType"
+                value={formData.ramType || ''}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="e.g., DDR4, DDR5"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Storage Interface (Storage)</label>
+              <input
+                type="text"
+                name="storageInterface"
+                value={formData.storageInterface || ''}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="e.g., SATA, NVMe M.2"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Power Requirement (W) (CPU/GPU)</label>
+              <input
+                type="number"
+                name="powerRequirement"
+                value={formData.powerRequirement || ''}
+                onChange={handleInputChange}
+                min="0"
+                className="form-control form-control-sm"
+                style={styles.input}
+                placeholder="e.g., 150, 200"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Wattage (W) (PSU)</label>
+              <input
+                type="number"
+                name="wattage"
+                value={formData.wattage || ''}
+                onChange={handleInputChange}
+                min="0"
+                className="form-control form-control-sm"
+                style={styles.input}
+                placeholder="e.g., 650, 750"
+              />
+            </div>
+            <div style={styles.formGroup}>
+              <label>Image URL</label>
+              <input
+                type="text"
+                name="url"
+                value={formData.url || ''}
+                onChange={handleInputChange}
+                className="form-control"
+                style={styles.input}
+                placeholder="Image URL"
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '0.75rem' }} className="d-flex gap-2">
+            <button type="submit" className="btn btn-primary" style={styles.submitButton}>
+              Save Changes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEditing(null);
+              }}
+              className="btn btn-secondary"
+              style={styles.cancelButton}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div style={styles.tableContainer} className="table-responsive">
+        <table className="table table-bordered table-hover align-middle" style={styles.table}>
           <thead>
             <tr>
               <th style={styles.tableHeaderCell}>Image</th>
@@ -491,169 +713,83 @@ function ComponentsTab() {
             </tr>
           </thead>
           <tbody>
-            {components.map((component) => {
-              return editing === component._id ? (
-                <tr key={component._id}>
-                  <td style={styles.tableCell}>
-                    {component.url ? (
-                      <div style={styles.imageContainer}>
-                        <img
-                          key={component.url}
-                          src={component.url}
-                          alt={component.name}
-                          style={styles.componentImage}
-                          onError={(e) => {
-                            console.error('Image failed to load:', component.url);
-                            e.target.style.display = 'none';
-                            const errorDiv = e.target.nextSibling;
-                            if (errorDiv) errorDiv.style.display = 'flex';
-                          }}
-                        />
-                        <div style={{ ...styles.noImage, display: 'none' }}>Failed to load</div>
-                      </div>
-                    ) : (
-                      <div style={styles.noImage}>No Image</div>
-                    )}
-                  </td>
-                  <td style={styles.tableCell}>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      style={styles.inlineInput}
+            {components.map((component) => (
+              <tr key={component._id}>
+                <td style={styles.tableCell}>
+                  {component.url ? (
+                    <img
+                      src={component.url}
+                      alt={component.name}
+                      style={styles.componentImage}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
-                  </td>
-                  <td style={styles.tableCell}>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      style={styles.inlineInput}
-                    >
-                      {categories.length === 0 ? (
-                        <option value="">No categories available</option>
-                      ) : (
-                        categories.map((cat) => (
-                          <option key={cat._id || cat.name} value={cat.name}>
-                            {cat.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </td>
-                  <td style={styles.tableCell}>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      step="0.01"
-                      style={styles.inlineInput}
-                    />
-                  </td>
-                  <td style={styles.tableCell}>
-                    <input
-                      type="number"
-                      name="priority"
-                      value={formData.priority}
-                      onChange={handleInputChange}
-                      min="1"
-                      step="1"
-                      style={styles.inlineInput}
-                    />
-                  </td>
-                  <td style={styles.tableCell}>
+                  ) : (
+                    <div style={styles.noImage}>No Image</div>
+                  )}
+                </td>
+                <td style={styles.tableCell}>{component.name}</td>
+                <td style={styles.tableCell}>{component.category}</td>
+                <td style={styles.tableCell}>
+                <input
+                    type="number"
+                    value={component.price}
+                    onChange={(e) =>
+                      handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                    }
+                    onBlur={(e) =>
+                      handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                    }
+                    className="form-control form-control-sm"
+                    style={{ ...styles.priceInput, width: '100px' }}
+                    step="0.01"
+                  />
+                </td>
+                <td style={styles.tableCell}>
+                  <input
+                    type="number"
+                    value={component.priority ?? 1}
+                    onChange={(e) =>
+                      handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                    }
+                    onBlur={(e) =>
+                      handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                    }
+                    className="form-control form-control-sm"
+                    style={{ ...styles.priceInput, width: '80px' }}
+                    step="1"
+                    min="1"
+                  />
+                </td>
+                <td style={styles.tableCell}>
+                  <label style={styles.checkboxLabel}>
                     <input
                       type="checkbox"
-                      name="stockStatus"
-                      checked={formData.stockStatus}
-                      onChange={handleInputChange}
+                      checked={component.stockStatus}
+                      onChange={(e) =>
+                        handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
+                      }
                     />
-                  </td>
-                  <td style={styles.tableCell}>
-                    <button onClick={() => handleUpdate(component._id)} style={styles.saveButton}>
-                      Save
-                    </button>
-                    <button onClick={() => setEditing(null)} style={styles.cancelButton}>
-                      Cancel
-                    </button>
-                  </td>
-                </tr>
-              ) : (
-                <tr key={component._id}>
-                  <td style={styles.tableCell}>
-                    {component.url ? (
-                      <img
-                        src={component.url}
-                        alt={component.name}
-                        style={styles.componentImage}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
+                    {component.stockStatus ? (
+                      <span style={styles.inStock}>In Stock</span>
                     ) : (
-                      <div style={styles.noImage}>No Image</div>
+                      <span style={styles.outOfStock}>Out of Stock</span>
                     )}
-                  </td>
-                  <td style={styles.tableCell}>{component.name}</td>
-                  <td style={styles.tableCell}>{component.category}</td>
-                  <td style={styles.tableCell}>
-                    <input
-                      type="number"
-                      value={component.price}
-                      onChange={(e) =>
-                        handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                      }
-                      onBlur={(e) =>
-                        handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                      }
-                      style={styles.priceInput}
-                      step="0.01"
-                    />
-                  </td>
-                  <td style={styles.tableCell}>
-                    <input
-                      type="number"
-                      value={component.priority ?? 1}
-                      onChange={(e) =>
-                        handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
-                      }
-                      onBlur={(e) =>
-                        handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
-                      }
-                      style={styles.priceInput}
-                      step="1"
-                      min="1"
-                    />
-                  </td>
-                  <td style={styles.tableCell}>
-                    <label style={styles.checkboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={component.stockStatus}
-                        onChange={(e) =>
-                          handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
-                        }
-                      />
-                      {component.stockStatus ? (
-                        <span style={styles.inStock}>In Stock</span>
-                      ) : (
-                        <span style={styles.outOfStock}>Out of Stock</span>
-                      )}
-                    </label>
-                  </td>
-                  <td style={styles.tableCell}>
-                    <button onClick={() => handleEdit(component)} style={styles.editButton}>
+                  </label>
+                </td>
+                <td style={styles.tableCell}>
+                  <div className="action-stack">
+                    <button onClick={() => handleEdit(component)} className="btn btn-warning action-btn">
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(component._id)} style={styles.deleteButton}>
+                    <button onClick={() => handleDelete(component._id)} className="btn btn-danger action-btn">
                       Delete
                     </button>
-                  </td>
-                </tr>
-              );
-            })}
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -786,10 +922,11 @@ function UsersTab() {
 
   return (
     <div>
-      <div style={styles.header}>
+      <div style={styles.header} className="d-flex align-items-center justify-content-between mb-3">
         <h2>User Management ({users.length})</h2>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
+          className="btn btn-success"
           style={styles.addButton}
         >
           {showAddForm ? 'Cancel' : 'Register New User'}
@@ -855,7 +992,7 @@ function UsersTab() {
               </select>
             </div>
           </div>
-          <button type="submit" style={styles.submitButton}>
+          <button type="submit" className="btn btn-primary" style={styles.submitButton}>
             Create User
           </button>
         </form>
@@ -867,7 +1004,7 @@ function UsersTab() {
             Pending Approval ({pendingUsers.length})
           </h3>
           <div style={styles.tableContainer}>
-          <table style={styles.table}>
+          <table className="table table-bordered table-hover align-middle" style={styles.table}>
               <thead>
                 <tr>
                   <th style={styles.tableHeaderCell}>Name</th>
@@ -891,24 +1028,29 @@ function UsersTab() {
                     </td>
                     <td style={styles.tableCell}>{new Date(user.createdAt).toLocaleDateString()}</td>
                     <td style={styles.tableCell}>
-                      <button
-                        onClick={() => handleApprove(user._id)}
-                        style={styles.approveButton}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(user._id)}
-                        style={styles.rejectButton}
-                      >
-                        Reject
-                      </button>
-                      <button
-                        onClick={() => handleDelete(user._id)}
-                        style={styles.deleteButton}
-                      >
-                        Delete
-                      </button>
+                      <div className="action-stack">
+                        <button
+                          onClick={() => handleApprove(user._id)}
+                          className="btn btn-success action-btn"
+                          style={styles.approveButton}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleReject(user._id)}
+                          className="btn btn-warning action-btn"
+                          style={styles.rejectButton}
+                        >
+                          Reject
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user._id)}
+                          className="btn btn-danger action-btn"
+                          style={styles.deleteButton}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1110,9 +1252,9 @@ function CategoriesTab() {
 
   return (
     <div>
-      <div style={styles.header}>
+      <div style={styles.header} className="d-flex align-items-center justify-content-between mb-3">
         <h2>Category Management</h2>
-        <button onClick={() => setShowAddForm(!showAddForm)} style={styles.addButton}>
+        <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-success" style={styles.addButton}>
           {showAddForm ? 'Cancel' : 'Add Category'}
         </button>
       </div>
@@ -1170,14 +1312,14 @@ function CategoriesTab() {
               </label>
             </div>
           </div>
-          <button type="submit" style={styles.submitButton}>
+          <button type="submit" className="btn btn-primary" style={styles.submitButton}>
             Add Category
           </button>
         </form>
       )}
 
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
+      <div style={styles.tableContainer} className="table-responsive">
+        <table className="table table-bordered table-hover align-middle" style={styles.table}>
           <thead>
             <tr>
               <th style={styles.tableHeaderCell}>Name</th>
@@ -1265,18 +1407,22 @@ function CategoriesTab() {
                     </td>
                     <td style={styles.tableCell}>{new Date(category.createdAt).toLocaleDateString()}</td>
                     <td style={styles.tableCell}>
-                      <button
-                        onClick={() => handleEdit(category)}
-                        style={styles.editButton}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(category._id)}
-                        style={styles.deleteButton}
-                      >
-                        Delete
-                      </button>
+                      <div className="action-stack">
+                        <button
+                          onClick={() => handleEdit(category)}
+                          className="btn btn-warning action-btn"
+                          style={styles.editButton}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(category._id)}
+                          className="btn btn-danger action-btn"
+                          style={styles.deleteButton}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </>
                 )}
@@ -1418,12 +1564,13 @@ function BuildsTab() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+      <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           {!deleteMode ? (
             <button
               onClick={() => setDeleteMode(true)}
-              style={{ ...styles.deleteButton, padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
+              className="btn btn-danger"
+              style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
             >
               Delete
             </button>
@@ -1431,14 +1578,16 @@ function BuildsTab() {
             <>
               <button
                 onClick={handleDeleteSelected}
-                style={{ ...styles.deleteButton, padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
+                className="btn btn-danger"
+                style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
                 disabled={selectedBuildIds.length === 0}
               >
                 Confirm Delete
               </button>
               <button
                 onClick={() => { setDeleteMode(false); setSelectedBuildIds([]); }}
-                style={{ ...styles.cancelButton, padding: '0.4rem 0.8rem' }}
+                className="btn btn-secondary"
+                style={{ padding: '0.4rem 0.8rem' }}
               >
                 Cancel
               </button>
@@ -1448,8 +1597,8 @@ function BuildsTab() {
         </div>
       </div>
 
-      <div style={styles.tableContainer}>
-        <table style={styles.table}>
+      <div style={styles.tableContainer} className="table-responsive">
+        <table className="table table-bordered table-hover align-middle" style={styles.table}>
           <thead>
             <tr>
               {deleteMode && (
@@ -1505,6 +1654,7 @@ function BuildsTab() {
                       value={assignMap[build._id] ?? (build.assemblerID?._id ?? '')}
                       onChange={(e) => handleAssignChange(build._id, e.target.value)}
                       style={styles.input}
+                      className="form-select form-select-sm"
                     >
                       <option value="">Not assigned</option>
                       {assemblers.map(a => (
@@ -1513,7 +1663,7 @@ function BuildsTab() {
                         </option>
                       ))}
                     </select>
-                    <button onClick={() => handleAssign(build._id)} style={styles.submitButton}>
+                    <button onClick={() => handleAssign(build._id)} className="btn btn-primary btn-sm" style={styles.submitButton}>
                       Assign
                     </button>
                   </div>
@@ -1522,6 +1672,7 @@ function BuildsTab() {
                 <td style={styles.tableCell}>
                   <button
                     onClick={() => setSelectedBuild(build)}
+                    className="btn btn-primary btn-sm"
                     style={styles.viewButton}
                   >
                     View

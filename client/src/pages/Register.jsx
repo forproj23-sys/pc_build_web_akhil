@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import TopNav from '../components/TopNav';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -128,91 +129,101 @@ function Register() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Register</h1>
-        {error && <div style={styles.error}>{error}</div>}
-        {success && <div style={styles.success}>{success}</div>}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              onBlur={handleNameBlur}
-              required
-              maxLength={30}
-              style={{
-                ...styles.input,
-                ...(nameError ? styles.inputError : {}),
-              }}
-            />
-            {nameError && <div style={styles.fieldError}>{nameError}</div>}
+    <div className="app-container">
+      <TopNav />
+      <div className="container app-content d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 4.5rem)' }}>
+          <div style={{ width: '100%', maxWidth: '520px' }}>
+            <div className="card form-card shadow-sm mx-auto">
+              <div className="row g-0">
+                <div className="col-12">
+                  <div className="card-body">
+                    <div className="mb-3 text-center">
+                      <div className="auth-brand">PC Build Configurator</div>
+                      <div className="form-note">Create an account to start building and managing orders.</div>
+                    </div>
+                    {error && <div className="alert alert-danger">{error}</div>}
+                    {success && <div className="alert alert-success">{success}</div>}
+                    <form onSubmit={handleSubmit}>
+                      <div className="mb-3">
+                        <label className="form-label">Name</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          onBlur={handleNameBlur}
+                          required
+                          maxLength={30}
+                          className={`form-control ${nameError ? 'is-invalid' : ''}`}
+                        />
+                        {nameError && <div className="invalid-feedback">{nameError}</div>}
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Role (for demo)</label>
+                        <select
+                          name="role"
+                          value={formData.role}
+                          onChange={handleChange}
+                          className="form-select"
+                        >
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                          <option value="assembler">Assembler</option>
+                          <option value="supplier">Supplier</option>
+                        </select>
+                        <small className="form-text text-muted">For demo purposes only</small>
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Password</label>
+                        <input
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          required
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Confirm Password</label>
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleChange}
+                          required
+                          className="form-control"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={loading || !!nameError}
+                        className="btn btn-primary w-100"
+                      >
+                        {loading ? 'Registering...' : 'Register'}
+                      </button>
+                    </form>
+                    <div className="text-center mt-3">
+                      <small>
+                        Already have an account? <Link to="/login">Login</Link>
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Role (for demo)</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              style={styles.input}
-            >
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-              <option value="assembler">Assembler</option>
-              <option value="supplier">Supplier</option>
-            </select>
-            <small style={styles.hint}>For demo purposes only</small>
-          </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Confirm Password</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !!nameError}
-            style={{
-              ...styles.button,
-              ...((loading || nameError) ? styles.buttonDisabled : {}),
-            }}
-          >
-            {loading ? 'Registering...' : 'Register'}
-          </button>
-        </form>
-        <p style={styles.link}>
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
       </div>
     </div>
   );

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import TopNav from '../components/TopNav';
 
 function Login() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -48,42 +50,75 @@ function Login() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Login</h1>
-        {error && <div style={styles.error}>{error}</div>}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
+      <div className="app-container">
+        <TopNav />
+        <div className="container app-content d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 4.5rem)' }}>
+          <div style={{ width: '100%', maxWidth: '420px' }}>
+            <div className="card form-card shadow-sm mx-auto">
+              <div className="row g-0">
+                <div className="col-12">
+                  <div className="card-body">
+                    <div className="mb-3 text-center">
+                      <div className="auth-brand">PC Build Configurator</div>
+                      <div className="auth-sub">Sign in to continue</div>
+                    </div>
+                    {error && <div className="alert alert-danger">{error}</div>}
+                    <form onSubmit={handleSubmit}>
+                      <div className="mb-3">
+                        <label className="form-label">Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label className="form-label">Password</label>
+                        <div className="input-group">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-outline-secondary"
+                            onClick={() => setShowPassword((s) => !s)}
+                            aria-label="Toggle password visibility"
+                          >
+                            {showPassword ? 'Hide' : 'Show'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div className="form-check">
+                          <input className="form-check-input" type="checkbox" id="remember" />
+                          <label className="form-check-label" htmlFor="remember">Remember me</label>
+                        </div>
+                        <Link to="/forgot" className="small">Forgot password?</Link>
+                      </div>
+                      <button type="submit" disabled={loading} className="btn btn-primary w-100">
+                        {loading ? 'Logging in...' : 'Login'}
+                      </button>
+                    </form>
+                    <div className="text-center mt-3">
+                      <small>
+                        Don't have an account? <Link to="/register">Register</Link>
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              style={styles.input}
-            />
-          </div>
-          <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <p style={styles.link}>
-          Don't have an account? <Link to="/register">Register</Link>
-        </p>
+        </div>
       </div>
-    </div>
   );
 }
 

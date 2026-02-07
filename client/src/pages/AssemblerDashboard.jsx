@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import TopNav from '../components/TopNav';
 
 function AssemblerDashboard() {
   const { user, logout } = useAuth();
@@ -105,19 +106,9 @@ function AssemblerDashboard() {
   }
 
   return (
-    <div style={styles.container}>
-      <nav style={styles.nav}>
-        <h1 style={styles.logo}>Assembler Dashboard</h1>
-        <div style={styles.navLinks}>
-          <span style={styles.userInfo}>Welcome, {user?.name} (Assembler)</span>
-          <Link to="/" style={styles.link}>Home</Link>
-          <button onClick={handleLogout} style={styles.button}>
-            Logout
-          </button>
-        </div>
-      </nav>
-
-      <div style={styles.content}>
+    <div style={styles.container} className="app-container">
+      <TopNav />
+      <div style={styles.content} className="app-content">
         <h2>Assigned Builds</h2>
 
         {/* Statistics */}
