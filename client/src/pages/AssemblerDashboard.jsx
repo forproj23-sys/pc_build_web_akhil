@@ -62,6 +62,7 @@ function AssemblerDashboard() {
         <button
           onClick={() => handleStatusUpdate(build._id, 'Assembling')}
           disabled={updating}
+          className="btn btn-sm btn-success"
           style={styles.actionButton}
         >
           Start Assembling
@@ -73,6 +74,7 @@ function AssemblerDashboard() {
           <button
             onClick={() => handleStatusUpdate(build._id, 'Pending')}
             disabled={updating}
+            className="btn btn-sm btn-secondary"
             style={styles.secondaryButton}
           >
             Mark Pending
@@ -80,6 +82,7 @@ function AssemblerDashboard() {
           <button
             onClick={() => handleStatusUpdate(build._id, 'Completed')}
             disabled={updating}
+            className="btn btn-sm btn-success"
             style={styles.completeButton}
           >
             Mark Completed
@@ -88,7 +91,7 @@ function AssemblerDashboard() {
       );
     } else if (assemblyStatus === 'Completed') {
       return (
-        <span style={styles.completedBadge}>✓ Completed</span>
+        <span className="badge bg-success" style={styles.completedBadge}>✓ Completed</span>
       );
     }
   };
@@ -132,12 +135,13 @@ function AssemblerDashboard() {
         </div>
 
         {/* Filter */}
-        <div style={styles.filterGroup}>
-          <label style={styles.label}>Filter by Status:</label>
+        <div style={styles.filterGroup} className="d-flex gap-2 align-items-center">
+          <label style={styles.label} className="mb-0">Filter by Status:</label>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            style={styles.select}
+            className="form-select"
+            style={{ maxWidth: '240px' }}
           >
             <option value="">All Statuses</option>
             <option value="Pending">Pending</option>
@@ -148,9 +152,9 @@ function AssemblerDashboard() {
 
         {/* Build Details Modal */}
         {selectedBuild && (
-          <div style={styles.modalOverlay} onClick={() => setSelectedBuild(null)}>
+            <div style={styles.modalOverlay} onClick={() => setSelectedBuild(null)}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setSelectedBuild(null)} style={styles.closeBtn}>
+              <button onClick={() => setSelectedBuild(null)} className="btn btn-light" style={styles.closeBtn}>
                 ×
               </button>
               <h3>Build Details</h3>
@@ -165,30 +169,32 @@ function AssemblerDashboard() {
 
               <div style={styles.detailSection}>
                 <h4>Components List:</h4>
-                <table style={styles.componentTable}>
-                  <thead>
-                    <tr>
-                      <th>Category</th>
-                      <th>Component</th>
-                      <th>Price</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedBuild.components.map((comp, i) => (
-                      <tr key={i}>
-                        <td>{comp.category}</td>
-                        <td>{comp.componentName}</td>
-                        <td>${comp.price.toFixed(2)}</td>
+                <div className="table-responsive">
+                  <table className="table table-bordered table-hover align-middle" style={styles.componentTable}>
+                    <thead>
+                      <tr>
+                        <th>Category</th>
+                        <th>Component</th>
+                        <th>Price</th>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan="2"><strong>Total</strong></td>
-                      <td><strong>${selectedBuild.totalPrice.toFixed(2)}</strong></td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </thead>
+                    <tbody>
+                      {selectedBuild.components.map((comp, i) => (
+                        <tr key={i}>
+                          <td>{comp.category}</td>
+                          <td>{comp.componentName}</td>
+                          <td>${comp.price.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="2"><strong>Total</strong></td>
+                        <td><strong>${selectedBuild.totalPrice.toFixed(2)}</strong></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
 
               {selectedBuild.compatibilityCheck && (
@@ -270,6 +276,7 @@ function AssemblerDashboard() {
                   <div style={styles.buildActions}>
                     <button
                       onClick={() => setSelectedBuild(build)}
+                      className="btn btn-sm btn-outline-primary"
                       style={styles.viewButton}
                     >
                       View Details

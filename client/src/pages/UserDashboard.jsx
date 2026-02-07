@@ -135,6 +135,7 @@ function ComponentsList() {
               placeholder="Search components..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              className="form-control"
               style={styles.searchInput}
             />
           </div>
@@ -192,8 +193,8 @@ function ComponentsList() {
               )}
             </div>
           ) : (
-            <div style={styles.componentsTableWrapper}>
-              <table style={styles.table}>
+            <div className="table-responsive" style={styles.componentsTableWrapper}>
+              <table className="table table-bordered table-hover align-middle" style={styles.table}>
                 <thead>
                   <tr>
                     <th style={styles.tableHeaderCell}>Image</th>
@@ -228,6 +229,7 @@ function ComponentsList() {
                       <td style={styles.tableCell}>
                         <button
                           onClick={() => alert(`${component.name}\n\n${component.specifications || 'No specifications'}\n\nSocket: ${component.socket || 'N/A'}`)}
+                          className="btn btn-sm btn-outline-primary"
                           style={styles.viewButton}
                         >
                           View
@@ -541,7 +543,7 @@ function BuildCreator() {
                           </span>
                         )}
                       </div>
-                      <button onClick={() => toggleComponent(comp)} style={styles.removeBtn}>
+                      <button onClick={() => toggleComponent(comp)} className="btn btn-sm btn-danger" style={styles.removeBtn}>
                         Remove
                       </button>
                     </div>
@@ -569,6 +571,7 @@ function BuildCreator() {
                 <button
                   onClick={createBuild}
                   disabled={saving || (totalBudget && totalPrice > Number(totalBudget))}
+                  className="btn btn-primary w-100"
                   style={styles.createButton}
                 >
                   {saving ? 'Saving...' : 'Save Build'}
@@ -608,8 +611,8 @@ function BuildCreator() {
                         {totalBudget ? 'No compatible components within budget range' : 'No components available'}
                       </p>
                     ) : (
-                      <div style={styles.componentsTableWrapper}>
-                        <table style={styles.table}>
+                      <div className="table-responsive" style={styles.componentsTableWrapper}>
+                        <table className="table table-bordered table-hover align-middle" style={styles.table}>
                           <thead>
                             <tr>
                               <th style={styles.tableHeaderCell}></th>
@@ -664,7 +667,7 @@ function BuildCreator() {
                                     )}
                                   </td>
                                   <td style={styles.tableCell}>
-                                    <button onClick={() => toggleComponent(component)} style={styles.viewButton}>
+                                    <button onClick={() => toggleComponent(component)} className={isSelected ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-primary'} style={styles.viewButton}>
                                       {isSelected ? 'Remove' : 'Select'}
                                     </button>
                                   </td>
@@ -702,8 +705,8 @@ function BuildCreator() {
                         {totalBudget ? 'No compatible components within budget range' : 'No components available'}
                       </p>
                     ) : (
-                      <div style={styles.componentsTableWrapper}>
-                        <table style={styles.table}>
+                      <div className="table-responsive" style={styles.componentsTableWrapper}>
+                        <table className="table table-bordered table-hover align-middle" style={styles.table}>
                           <thead>
                             <tr>
                               <th style={styles.tableHeaderCell}></th>
@@ -758,7 +761,7 @@ function BuildCreator() {
                                     )}
                                   </td>
                                   <td style={styles.tableCell}>
-                                    <button onClick={() => toggleComponent(component)} style={styles.viewButton}>
+                                    <button onClick={() => toggleComponent(component)} className={isSelected ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-primary'} style={styles.viewButton}>
                                       {isSelected ? 'Remove' : 'Select'}
                                     </button>
                                   </td>
@@ -828,7 +831,7 @@ function MyBuilds() {
       
       {selectedBuild && (
         <div style={styles.buildDetails}>
-          <button onClick={() => setSelectedBuild(null)} style={styles.closeBtn}>
+          <button onClick={() => setSelectedBuild(null)} className="btn btn-secondary float-end" style={styles.closeBtn}>
             Close Details
           </button>
           <h3>Build Details</h3>
@@ -890,12 +893,14 @@ function MyBuilds() {
               <div style={styles.buildActions}>
                 <button
                   onClick={() => setSelectedBuild(build)}
+                  className="btn btn-sm btn-outline-primary"
                   style={styles.viewButton}
                 >
                   View Details
                 </button>
                 <button
                   onClick={() => deleteBuild(build._id)}
+                  className="btn btn-sm btn-danger"
                   style={styles.deleteButton}
                 >
                   Delete

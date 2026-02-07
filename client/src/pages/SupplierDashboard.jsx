@@ -284,6 +284,7 @@ function SupplierDashboard() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
+                      className="form-control"
                       style={styles.input}
                       placeholder="e.g., Intel i7-13700K"
                     />
@@ -295,6 +296,7 @@ function SupplierDashboard() {
                       value={formData.category}
                       onChange={handleInputChange}
                       required
+                      className="form-select"
                       style={styles.input}
                     >
                       {categories.length === 0 ? (
@@ -318,6 +320,7 @@ function SupplierDashboard() {
                       required
                       min="0"
                       step="0.01"
+                      className="form-control form-control-sm"
                       style={styles.input}
                       placeholder="0.00"
                     />
@@ -331,6 +334,7 @@ function SupplierDashboard() {
                       onChange={handleInputChange}
                       min="1"
                       step="1"
+                      className="form-control form-control-sm"
                       style={styles.input}
                       placeholder="1"
                     />
@@ -350,12 +354,13 @@ function SupplierDashboard() {
                 </div>
                 <div style={styles.formGroup}>
                   <label>Specifications *</label>
-                  <textarea
+                    <textarea
                     name="specifications"
                     value={formData.specifications}
                     onChange={handleInputChange}
                     required
                     rows="4"
+                    className="form-control"
                     style={styles.textarea}
                     placeholder="e.g., 13th Gen, 16 cores, 3.4GHz base clock"
                   />
@@ -367,6 +372,7 @@ function SupplierDashboard() {
                     name="compatibility"
                     value={formData.compatibility}
                     onChange={handleInputChange}
+                    className="form-control"
                     style={styles.input}
                     placeholder="Legacy compatibility string"
                   />
@@ -379,6 +385,7 @@ function SupplierDashboard() {
                       name="socket"
                       value={formData.socket}
                       onChange={handleInputChange}
+                      className="form-control"
                       style={styles.input}
                       placeholder="e.g., LGA1700, AM4"
                     />
@@ -390,6 +397,7 @@ function SupplierDashboard() {
                       name="chipset"
                       value={formData.chipset}
                       onChange={handleInputChange}
+                      className="form-control"
                       style={styles.input}
                       placeholder="e.g., Z690, B550"
                     />
@@ -401,6 +409,7 @@ function SupplierDashboard() {
                       name="formFactor"
                       value={formData.formFactor}
                       onChange={handleInputChange}
+                      className="form-control"
                       style={styles.input}
                       placeholder="e.g., ATX, mATX"
                     />
@@ -412,6 +421,7 @@ function SupplierDashboard() {
                       name="ramType"
                       value={formData.ramType}
                       onChange={handleInputChange}
+                      className="form-control"
                       style={styles.input}
                       placeholder="e.g., DDR4, DDR5"
                     />
@@ -423,6 +433,7 @@ function SupplierDashboard() {
                       name="storageInterface"
                       value={formData.storageInterface}
                       onChange={handleInputChange}
+                      className="form-control"
                       style={styles.input}
                       placeholder="e.g., SATA, NVMe M.2"
                     />
@@ -435,6 +446,7 @@ function SupplierDashboard() {
                       value={formData.powerRequirement}
                       onChange={handleInputChange}
                       min="0"
+                      className="form-control form-control-sm"
                       style={styles.input}
                       placeholder="e.g., 150"
                     />
@@ -447,6 +459,7 @@ function SupplierDashboard() {
                       value={formData.wattage}
                       onChange={handleInputChange}
                       min="0"
+                      className="form-control form-control-sm"
                       style={styles.input}
                       placeholder="e.g., 650"
                     />
