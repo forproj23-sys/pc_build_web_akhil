@@ -108,11 +108,7 @@ function Login() {
                           </button>
                         </div>
                       </div>
-                      <div className="d-flex justify-content-between align-items-center mb-3">
-                        <div className="form-check">
-                          <input className="form-check-input" type="checkbox" id="remember" />
-                          <label className="form-check-label" htmlFor="remember">Remember me</label>
-                        </div>
+                      <div className="d-flex justify-content-end mb-3">
                         <Link to="/forgot" className="small">Forgot password?</Link>
                       </div>
                       <button type="submit" disabled={loading} className="btn btn-primary w-100">
