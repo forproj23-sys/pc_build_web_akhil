@@ -576,16 +576,16 @@ function SupplierDashboard() {
 
               {/* Right Side - Components Table */}
               <div style={styles.tableWrapper} className="table-responsive">
-                <table className="table table-bordered table-hover align-middle" style={styles.table}>
+                <table className="table table-striped table-bordered table-hover align-middle" style={styles.table}>
                   <thead>
                     <tr>
-                      <th>Image</th>
-                      <th>Name</th>
-                      <th>Category</th>
-                      <th>Price</th>
-                      <th>Priority</th>
-                      <th>Stock</th>
-                      <th>Actions</th>
+                      <th style={styles.tableHeaderCell}>Image</th>
+                      <th style={styles.tableHeaderCell}>Name</th>
+                      <th style={styles.tableHeaderCell}>Category</th>
+                      <th style={styles.tableHeaderCell}>Price</th>
+                      <th style={styles.tableHeaderCell}>Priority</th>
+                      <th style={styles.tableHeaderCell}>Stock</th>
+                      <th style={styles.tableHeaderCell}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -598,7 +598,7 @@ function SupplierDashboard() {
                     ) : (
                       filteredComponents.map((component) => (
                         <tr key={component._id}>
-                          <td>
+                          <td style={styles.tableCell}>
                             {component.url ? (
                               <img
                                 src={component.url}
@@ -612,9 +612,9 @@ function SupplierDashboard() {
                               <div style={styles.noImage}>No Image</div>
                             )}
                           </td>
-                          <td>{component.name}</td>
-                          <td>{component.category}</td>
-                          <td>
+                          <td style={styles.tableCell}>{component.name}</td>
+                          <td style={styles.tableCell}>{component.category}</td>
+                          <td style={styles.tableCell}>
                             <input
                               type="number"
                               value={component.price}
@@ -628,7 +628,7 @@ function SupplierDashboard() {
                               step="0.01"
                             />
                           </td>
-                          <td>
+                          <td style={styles.tableCell}>
                             <input
                               type="number"
                               value={component.priority ?? 1}
@@ -643,7 +643,7 @@ function SupplierDashboard() {
                               min="1"
                             />
                           </td>
-                          <td>
+                          <td style={styles.tableCell}>
                             <label style={styles.checkboxLabel}>
                               <input
                                 type="checkbox"
@@ -659,7 +659,7 @@ function SupplierDashboard() {
                               )}
                             </label>
                           </td>
-                          <td>
+                          <td style={styles.tableCell}>
                             <div className="action-stack">
                               <button
                                 onClick={() => handleEdit(component)}
@@ -690,7 +690,7 @@ function SupplierDashboard() {
           {activeTab === 'add' && (
             <div>
               <h3>Add New Component</h3>
-              <div className="card p-3">
+              <div className="card p-3" style={{ backgroundColor: '#f6fff7', border: '1px solid #e6f4ea' }}>
               <form onSubmit={handleAdd}>
                 <div style={styles.formGrid}>
                   <div style={styles.formGroup}>
@@ -896,7 +896,7 @@ function SupplierDashboard() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    background: 'linear-gradient(180deg, #e8fff2 0%, #f5f5f5 100%)',
   },
   nav: {
     display: 'flex',
@@ -986,7 +986,7 @@ const styles = {
     fontWeight: 'bold',
   },
   tabContent: {
-    backgroundColor: 'white',
+    background: 'linear-gradient(180deg, #eafbf0 0%, #ffffff 100%)',
     padding: '2rem',
     borderRadius: '8px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -1025,6 +1025,19 @@ const styles = {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: '1rem',
+  },
+  tableHeaderCell: {
+    border: '1px solid #e6e6e6',
+    padding: '0.75rem',
+    backgroundColor: '#eaf7ee',
+    textAlign: 'left',
+    fontWeight: '700',
+  },
+  tableCell: {
+    border: '1px solid #e6e6e6',
+    padding: '0.75rem',
+    verticalAlign: 'middle',
+    backgroundColor: '#ffffff',
   },
   'table th': {
     backgroundColor: '#f8f9fa',
@@ -1279,6 +1292,10 @@ const styles = {
   },
   form: {
     maxWidth: '800px',
+    backgroundColor: '#f6fff7',
+    padding: '1rem',
+    borderRadius: '8px',
+    border: '1px solid #e6f4ea',
   },
   formGrid: {
     display: 'grid',

@@ -1775,7 +1775,7 @@ function BuildsTab() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    background: 'linear-gradient(180deg, #e8f6ff 0%, #f5f5f5 100%)',
   },
   nav: {
     display: 'flex',
