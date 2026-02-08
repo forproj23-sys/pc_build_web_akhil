@@ -11,6 +11,8 @@ function Register() {
     confirmPassword: '',
     role: 'user',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [nameError, setNameError] = useState('');
@@ -186,25 +188,69 @@ function Register() {
                       </div>
                       <div className="mb-3">
                         <label className="form-label">Password</label>
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                          className="form-control"
-                        />
+                        <div className="input-group">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-outline-primary"
+                            onClick={() => setShowPassword((s) => !s)}
+                            aria-label="Toggle password visibility"
+                            title={showPassword ? 'Hide password' : 'Show password'}
+                            style={{ color: '#0d6efd', backgroundColor: 'transparent', borderColor: 'transparent', boxShadow: 'none' }}
+                          >
+                            {showPassword ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M13.359 11.238C14.02 10.486 14.5 9.58 14.5 8.5c0-1.38-1.79-4.5-6.5-4.5A9.06 9.06 0 0 0 2.9 6.2a.5.5 0 0 0 .8.6A8.06 8.06 0 0 1 8 4c3.9 0 5.03 2.06 5.03 2.06a7.12 7.12 0 0 1-1.671 1.782.5.5 0 0 0 .0.39z"/>
+                                <path d="M3.646 3.646a.5.5 0 0 1 .708 0L8 7.293 11.646 3.646a.5.5 0 0 1 .708.708L8.707 8l3.647 3.646a.5.5 0 0 1-.708.708L8 8.707 4.354 12.354a.5.5 0 1 1-.708-.708L7.293 8 3.646 4.354a.5.5 0 0 1 0-.708z"/>
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM8 12.5c-2.485 0-4.5-2.015-4.5-4.5S5.515 3.5 8 3.5 12.5 5.515 12.5 8 10.485 12.5 8 12.5z"/>
+                                <path d="M8 5.5A2.5 2.5 0 1 0 8 10.5 2.5 2.5 0 0 0 8 5.5z"/>
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                       </div>
                       <div className="mb-3">
                         <label className="form-label">Confirm Password</label>
-                        <input
-                          type="password"
-                          name="confirmPassword"
-                          value={formData.confirmPassword}
-                          onChange={handleChange}
-                          required
-                          className="form-control"
-                        />
+                        <div className="input-group">
+                          <input
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            required
+                            className="form-control"
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-outline-primary"
+                            onClick={() => setShowConfirmPassword((s) => !s)}
+                            aria-label="Toggle confirm password visibility"
+                            title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                            style={{ color: '#0d6efd', backgroundColor: 'transparent', borderColor: 'transparent', boxShadow: 'none' }}
+                          >
+                            {showConfirmPassword ? (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M13.359 11.238C14.02 10.486 14.5 9.58 14.5 8.5c0-1.38-1.79-4.5-6.5-4.5A9.06 9.06 0 0 0 2.9 6.2a.5.5 0 0 0 .8.6A8.06 8.06 0 0 1 8 4c3.9 0 5.03 2.06 5.03 2.06a7.12 7.12 0 0 1-1.671 1.782.5.5 0 0 0 .0.39z"/>
+                                <path d="M3.646 3.646a.5.5 0 0 1 .708 0L8 7.293 11.646 3.646a.5.5 0 0 1 .708.708L8.707 8l3.647 3.646a.5.5 0 0 1-.708.708L8 8.707 4.354 12.354a.5.5 0 1 1-.708-.708L7.293 8 3.646 4.354a.5.5 0 0 1 0-.708z"/>
+                              </svg>
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM8 12.5c-2.485 0-4.5-2.015-4.5-4.5S5.515 3.5 8 3.5 12.5 5.515 12.5 8 10.485 12.5 8 12.5z"/>
+                                <path d="M8 5.5A2.5 2.5 0 1 0 8 10.5 2.5 2.5 0 0 0 8 5.5z"/>
+                              </svg>
+                            )}
+                          </button>
+                        </div>
                       </div>
                       <button
                         type="submit"

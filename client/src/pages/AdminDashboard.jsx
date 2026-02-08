@@ -158,6 +158,8 @@ function ComponentsTab() {
     priority: 1,
     stockStatus: true,
   });
+  const [deleteMode, setDeleteMode] = useState(false);
+  const [selectedComponentIds, setSelectedComponentIds] = useState([]);
 
   useEffect(() => {
     fetchComponents();
@@ -275,6 +277,40 @@ function ComponentsTab() {
     }
   };
 
+  const toggleSelectComponent = (id) => {
+    setSelectedComponentIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      return [...prev, id];
+    });
+  };
+
+  const selectAllComponents = (checked) => {
+    if (checked) {
+      setSelectedComponentIds(components.map((c) => c._id));
+    } else {
+      setSelectedComponentIds([]);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedComponentIds.length === 0) {
+      alert('No components selected to delete.');
+      return;
+    }
+    if (!window.confirm(`Delete ${selectedComponentIds.length} selected component(s)? This cannot be undone.`)) return;
+
+    try {
+      await Promise.all(selectedComponentIds.map((id) => api.delete(`/components/${id}`)));
+      setComponents((prev) => prev.filter((c) => !selectedComponentIds.includes(c._id)));
+      setSelectedComponentIds([]);
+      setDeleteMode(false);
+      alert('Selected components deleted.');
+    } catch (error) {
+      console.error('Error deleting selected components:', error);
+      alert(error.response?.data?.message || 'Error deleting selected components');
+    }
+  };
+
   if (loading) {
     return <div style={styles.loading}>Loading components...</div>;
   }
@@ -283,9 +319,40 @@ function ComponentsTab() {
     <div>
       <div style={styles.header} className="d-flex align-items-center justify-content-between mb-3">
         <h2>Component Management</h2>
-        <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-success" style={styles.addButton}>
-          {showAddForm ? 'Cancel' : 'Add Component'}
-        </button>
+        <div>
+          {!deleteMode ? (
+            <button
+              onClick={() => setDeleteMode(true)}
+              className="btn btn-danger me-2"
+              style={{ padding: '0.4rem 0.8rem' }}
+            >
+              Delete
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleDeleteSelected}
+                className="btn btn-danger me-2"
+                style={{ padding: '0.4rem 0.8rem' }}
+                disabled={selectedComponentIds.length === 0}
+              >
+                Confirm Delete
+              </button>
+              <button
+                onClick={() => { setDeleteMode(false); setSelectedComponentIds([]); }}
+                className="btn btn-secondary me-2"
+                style={{ padding: '0.4rem 0.8rem' }}
+              >
+                Cancel
+              </button>
+              <span style={{ color: '#666', marginRight: '0.75rem' }}>{selectedComponentIds.length} selected</span>
+            </>
+          )}
+
+          <button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-success" style={styles.addButton}>
+            {showAddForm ? 'Cancel' : 'Add Component'}
+          </button>
+        </div>
       </div>
 
       {showAddForm && (
@@ -703,6 +770,15 @@ function ComponentsTab() {
         <table className="table table-bordered table-hover align-middle" style={styles.table}>
           <thead>
             <tr>
+              {deleteMode && (
+                <th style={{ ...styles.tableHeaderCell, width: '40px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedComponentIds.length === components.length && components.length > 0}
+                    onChange={(e) => selectAllComponents(e.target.checked)}
+                  />
+                </th>
+              )}
               <th style={styles.tableHeaderCell}>Image</th>
               <th style={styles.tableHeaderCell}>Name</th>
               <th style={styles.tableHeaderCell}>Category</th>
@@ -715,6 +791,15 @@ function ComponentsTab() {
           <tbody>
             {components.map((component) => (
               <tr key={component._id}>
+                {deleteMode && (
+                  <td style={styles.tableCell}>
+                    <input
+                      type="checkbox"
+                      checked={selectedComponentIds.includes(component._id)}
+                      onChange={() => toggleSelectComponent(component._id)}
+                    />
+                  </td>
+                )}
                 <td style={styles.tableCell}>
                   {component.url ? (
                     <img
