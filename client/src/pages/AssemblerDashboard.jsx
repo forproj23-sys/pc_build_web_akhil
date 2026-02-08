@@ -296,7 +296,7 @@ function AssemblerDashboard() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    background: 'linear-gradient(180deg, #e8f6ff 0%, #f5f5f5 100%)',
   },
   nav: {
     display: 'flex',
@@ -334,6 +334,10 @@ const styles = {
     maxWidth: '1200px',
     margin: '2rem auto',
     padding: '0 2rem',
+    background: 'linear-gradient(180deg, #eef8ff 0%, #ffffff 100%)',
+    borderRadius: '8px',
+    paddingTop: '1.5rem',
+    paddingBottom: '1.5rem',
   },
   loading: {
     textAlign: 'center',
