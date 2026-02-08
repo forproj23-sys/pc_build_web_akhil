@@ -194,7 +194,7 @@ function ComponentsList() {
             </div>
           ) : (
             <div className="table-responsive" style={styles.componentsTableWrapper}>
-              <table className="table table-bordered table-hover align-middle" style={styles.table}>
+              <table className="table table-striped table-bordered table-hover align-middle" style={styles.table}>
                 <thead>
                   <tr>
                     <th style={styles.tableHeaderCell}>Image</th>
@@ -612,7 +612,7 @@ function BuildCreator() {
                       </p>
                     ) : (
                       <div className="table-responsive" style={styles.componentsTableWrapper}>
-                        <table className="table table-bordered table-hover align-middle" style={styles.table}>
+                        <table className="table table-striped table-bordered table-hover align-middle" style={styles.table}>
                           <thead>
                             <tr>
                               <th style={styles.tableHeaderCell}></th>
@@ -706,7 +706,7 @@ function BuildCreator() {
                       </p>
                     ) : (
                       <div className="table-responsive" style={styles.componentsTableWrapper}>
-                        <table className="table table-bordered table-hover align-middle" style={styles.table}>
+                        <table className="table table-striped table-bordered table-hover align-middle" style={styles.table}>
                           <thead>
                             <tr>
                               <th style={styles.tableHeaderCell}></th>
@@ -917,7 +917,7 @@ function MyBuilds() {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
+    background: 'linear-gradient(180deg, #e8f6ff 0%, #f5f5f5 100%)',
   },
   nav: {
     display: 'flex',
@@ -977,7 +977,7 @@ const styles = {
     fontWeight: 'bold',
   },
   tabContent: {
-    backgroundColor: 'white',
+    background: 'linear-gradient(180deg, #eef8ff 0%, #ffffff 100%)',
     padding: '2rem',
     borderRadius: '8px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -1240,9 +1240,13 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
   },
-  componentsTableWrapper: {
+    componentsTableWrapper: {
     overflowX: 'auto',
     marginTop: '1rem',
+    backgroundColor: '#f6fbff',
+    padding: '0.5rem',
+    borderRadius: '6px',
+    border: '1px solid #e3f0ff',
   },
   table: {
     width: '100%',
@@ -1252,13 +1256,15 @@ const styles = {
   tableHeaderCell: {
     border: '1px solid #e6e6e6',
     padding: '0.6rem',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#e7f3ff',
     textAlign: 'left',
+    fontWeight: '600',
   },
   tableCell: {
     border: '1px solid #e6e6e6',
     padding: '0.6rem',
     verticalAlign: 'middle',
+    backgroundColor: 'transparent',
   },
   componentImage: {
     width: '60px',
