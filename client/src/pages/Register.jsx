@@ -131,7 +131,7 @@ function Register() {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ background: 'linear-gradient(180deg, #e8f6ff 0%, #ffffff 100%)' }}>
       <TopNav />
       <div className="container app-content d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 4.5rem)' }}>
           <div style={{ width: '100%', maxWidth: '520px' }}>
