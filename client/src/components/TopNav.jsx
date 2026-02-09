@@ -40,11 +40,13 @@ export default function TopNav() {
 
         <div className="collapse navbar-collapse" id="mainNavbar">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <NavLink end to="/" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
-                Home
-              </NavLink>
-            </li>
+            {!user && (
+              <li className="nav-item">
+                <NavLink end to="/" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
+                  Home
+                </NavLink>
+              </li>
+            )}
             {role === 'admin' && (
               <li className="nav-item">
                 <NavLink to="/admin" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
@@ -70,6 +72,13 @@ export default function TopNav() {
               <li className="nav-item">
                 <NavLink to="/dashboard" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
                   Dashboard
+                </NavLink>
+              </li>
+            )}
+            {user && (
+              <li className="nav-item">
+                <NavLink to="/payments" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
+                  Payments
                 </NavLink>
               </li>
             )}

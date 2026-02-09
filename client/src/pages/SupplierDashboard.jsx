@@ -466,7 +466,7 @@ function SupplierDashboard() {
                   </div>
                 </div>
                 <div style={styles.formGroup}>
-                  <label>Product URL (optional)</label>
+                  <label>Product's Image URL (optional)</label>
                   <input
                     type="url"
                     name="url"
@@ -870,7 +870,7 @@ function SupplierDashboard() {
                   </div>
                 </div>
                 <div style={styles.formGroup}>
-                  <label>Product URL (optional)</label>
+                  <label>Product's Image URL (optional)</label>
                   <input
                     type="url"
                     name="url"
@@ -1106,7 +1106,8 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '0.875rem',
-    marginLeft: '0.5rem',
+    marginLeft: 0,
+    marginTop: '0.25rem',
   },
   inStock: {
     color: '#28a745',
@@ -1177,7 +1178,7 @@ const styles = {
   activeCategoryItem: {
     backgroundColor: '#007bff',
     color: 'white',
-    borderColor: '#007bff',
+    border: '1px solid #007bff',
     fontWeight: 'bold',
   },
   categoryListItemContent: {

@@ -203,7 +203,7 @@ function Register() {
                             onClick={() => setShowPassword((s) => !s)}
                             aria-label="Toggle password visibility"
                             title={showPassword ? 'Hide password' : 'Show password'}
-                            style={{ color: '#0d6efd', backgroundColor: 'transparent', borderColor: 'transparent', boxShadow: 'none' }}
+                            style={{ color: '#0d6efd', backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}
                           >
                             {showPassword ? (
                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
@@ -236,7 +236,7 @@ function Register() {
                             onClick={() => setShowConfirmPassword((s) => !s)}
                             aria-label="Toggle confirm password visibility"
                             title={showConfirmPassword ? 'Hide password' : 'Show password'}
-                            style={{ color: '#0d6efd', backgroundColor: 'transparent', borderColor: 'transparent', boxShadow: 'none' }}
+                            style={{ color: '#0d6efd', backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}
                           >
                             {showConfirmPassword ? (
                               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">

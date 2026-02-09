@@ -1620,6 +1620,58 @@ function BuildsTab() {
     }
   };
 
+  const handleForwardPayout = async (buildId) => {
+    try {
+      const res = await api.post(`/builds/${buildId}/forward`);
+      const updated = res.data.data;
+      setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
+      if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
+      alert(res.data.message || 'Payout forwarded');
+    } catch (error) {
+      console.error('Error forwarding payout:', error);
+      alert(error.response?.data?.message || 'Error forwarding payout');
+    }
+  };
+
+  const handleRefund = async (buildId) => {
+    try {
+      // Prompt admin for amount and reason (simple UI for MVP)
+      const defaultAmount = selectedBuild?.payment?.paidAmount || 0;
+      const amountInput = window.prompt('Refund amount (leave blank for full):', String(defaultAmount));
+      if (amountInput === null) return; // cancelled
+      const amount = parseFloat(amountInput || String(defaultAmount));
+      if (isNaN(amount) || amount <= 0) {
+        alert('Invalid refund amount');
+        return;
+      }
+      const reason = window.prompt('Reason for refund (optional):', '') || '';
+
+      const res = await api.post(`/builds/${buildId}/refund`, { amount, reason });
+      const updated = res.data.data;
+      setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
+      if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
+      alert(res.data.message || 'Refund processed');
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      alert(error.response?.data?.message || 'Error processing refund');
+    }
+  };
+
+  const handleReleaseFinal = async (buildId) => {
+    try {
+      const confirmed = window.confirm('Release remaining payout to assembler? This will transfer the final amount.');
+      if (!confirmed) return;
+      const res = await api.post(`/builds/${buildId}/release-final`);
+      const updated = res.data.data;
+      setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
+      if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
+      alert(res.data.message || 'Final payout released');
+    } catch (error) {
+      console.error('Error releasing final payout:', error);
+      alert(error.response?.data?.message || 'Error releasing final payout');
+    }
+  };
+
   if (loading) {
     return <div style={styles.loading}>Loading builds...</div>;
   }
@@ -1646,6 +1698,44 @@ function BuildsTab() {
               </li>
             ))}
           </ul>
+          <div className="mt-3">
+            <strong>Payment:</strong>
+            <div className="mt-2">
+              <div>Paid: ${selectedBuild.payment?.paidAmount?.toFixed(2) || 0}</div>
+              <div>Status: {selectedBuild.payment?.status || 'pending'}</div>
+            </div>
+          </div>
+          <div className="mt-3">
+            {selectedBuild.payment?.status === 'paid' && !selectedBuild.assemblerPayout?.paid && selectedBuild.assemblerID ? (
+              <>
+                <button className="btn btn-success me-2" onClick={() => handleForwardPayout(selectedBuild._id)}>
+                  Forward 10% to assembler
+                </button>
+                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>
+                  Issue Refund
+                </button>
+              </>
+            ) : selectedBuild.assemblerPayout?.paid && !selectedBuild.assemblerPayout?.finalPaid ? (
+              <div className="d-flex gap-2">
+                <button className="btn btn-secondary" disabled>Advance sent</button>
+                {selectedBuild.assemblyStatus === 'Completed' ? (
+                  <button className="btn btn-success" onClick={() => handleReleaseFinal(selectedBuild._id)}>Release Remaining 90%</button>
+                ) : (
+                  <button className="btn btn-outline-secondary" disabled>Awaiting completion</button>
+                )}
+                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+              </div>
+            ) : selectedBuild.assemblerPayout?.finalPaid ? (
+              <div className="d-flex gap-2">
+                <button className="btn btn-secondary" disabled>Final payout sent</button>
+                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+              </div>
+            ) : (
+              selectedBuild.payment?.status === 'paid' ? (
+                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+              ) : null
+            )}
+          </div>
         </div>
       )}
 
@@ -1655,7 +1745,7 @@ function BuildsTab() {
             <button
               onClick={() => setDeleteMode(true)}
               className="btn btn-danger"
-              style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
+              style={{ ...styles.toolbarButton, marginRight: '0.5rem' }}
             >
               Delete
             </button>
@@ -1664,7 +1754,7 @@ function BuildsTab() {
               <button
                 onClick={handleDeleteSelected}
                 className="btn btn-danger"
-                style={{ padding: '0.4rem 0.8rem', marginRight: '0.5rem' }}
+                style={{ ...styles.toolbarButton, marginRight: '0.5rem' }}
                 disabled={selectedBuildIds.length === 0}
               >
                 Confirm Delete
@@ -1672,7 +1762,7 @@ function BuildsTab() {
               <button
                 onClick={() => { setDeleteMode(false); setSelectedBuildIds([]); }}
                 className="btn btn-secondary"
-                style={{ padding: '0.4rem 0.8rem' }}
+                style={styles.toolbarButton}
               >
                 Cancel
               </button>
@@ -1882,6 +1972,12 @@ const styles = {
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
+  },
+  toolbarButton: {
+    padding: '0.75rem 1.5rem',
+    borderRadius: '4px',
+    fontSize: '1rem',
+    cursor: 'pointer',
   },
   form: {
     backgroundColor: '#f8f9fa',
@@ -2157,10 +2253,6 @@ const styles = {
     padding: '0.25rem 0.75rem',
     backgroundColor: '#6c757d',
     color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',

@@ -51,6 +51,80 @@ const BuildSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    payment: {
+      status: {
+        type: String,
+        enum: ['pending', 'paid', 'settled', 'refunded', 'partial_refund'],
+        default: 'pending',
+      },
+      totalAmount: {
+        type: Number,
+        default: 0,
+      },
+      paidAmount: {
+        type: Number,
+        default: 0,
+      },
+      currency: {
+        type: String,
+        default: 'USD',
+      },
+      paymentRecords: [
+        {
+          paymentId: String,
+          provider: String,
+          amount: Number,
+          status: String,
+          method: String,
+          meta: Object,
+          createdAt: Date,
+        },
+      ],
+      escrowReleased: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    assemblerPayout: {
+      amount: {
+        type: Number,
+        default: 0,
+      },
+      paid: {
+        type: Boolean,
+        default: false,
+      },
+      paidAt: {
+        type: Date,
+      },
+      transactionId: {
+        type: String,
+      },
+      // Final payout (remaining amount) fields
+      finalPaid: {
+        type: Boolean,
+        default: false,
+      },
+      finalPaidAt: {
+        type: Date,
+      },
+      finalTransactionId: {
+        type: String,
+      },
+    },
+    refundRequests: [
+      {
+        amount: Number,
+        reason: String,
+        status: {
+          type: String,
+          enum: ['requested', 'approved', 'rejected', 'processed'],
+          default: 'requested',
+        },
+        createdAt: Date,
+        processedBy: String,
+      },
+    ],
   },
   {
     timestamps: true,

@@ -3,119 +3,74 @@ import { useAuth } from '../context/AuthContext';
 import TopNav from '../components/TopNav';
 
 function Home() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <div style={styles.container} className="app-container">
+    <div className="app-container">
       <TopNav />
-      <div style={styles.content} className="app-content">
-        <h2 style={styles.title}>Welcome to PC Build Configuration System</h2>
-        <p style={styles.description}>
-          Build your custom PC with compatibility checking. Connect with assemblers and suppliers.
-        </p>
-        {user ? (
-          <div style={styles.actions}>
-            {user.role === 'admin' && (
-              <Link to="/admin" style={styles.actionButton}>
-                Admin Dashboard
-              </Link>
-            )}
-            {user.role === 'assembler' && (
-              <Link to="/assembler" style={styles.actionButton}>
-                Assembler Dashboard
-              </Link>
-            )}
-            {user.role === 'supplier' && (
-              <Link to="/supplier" style={styles.actionButton}>
-                Supplier Dashboard
-              </Link>
-            )}
-            {user.role === 'user' && (
-              <Link to="/dashboard" style={styles.actionButton}>
-                My Dashboard
-              </Link>
-            )}
+
+      <main className="container app-content py-5">
+        <section className="p-4 p-md-5 mb-4 rounded bg-light shadow-sm">
+          <div className="container-fluid py-4 text-center">
+            <h1 className="display-5 fw-bold">PC Build Configurator</h1>
+            <p className="col-md-8 fs-5 mx-auto text-muted">
+              Quickly assemble compatible PC builds, manage components, and coordinate with suppliers and assemblers.
+            </p>
+            <div className="d-flex justify-content-center gap-3 mt-3">
+              {user ? (
+                <>
+                  {user.role === 'admin' && (
+                    <Link className="btn btn-primary btn-lg" to="/admin">Admin Dashboard</Link>
+                  )}
+                  {user.role === 'assembler' && (
+                    <Link className="btn btn-primary btn-lg" to="/assembler">Assembler Dashboard</Link>
+                  )}
+                  {user.role === 'supplier' && (
+                    <Link className="btn btn-success btn-lg" to="/supplier">Supplier Inventory</Link>
+                  )}
+                  {user.role === 'user' && (
+                    <Link className="btn btn-primary btn-lg" to="/dashboard">My Dashboard</Link>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Link className="btn btn-primary btn-lg" to="/register">Get Started</Link>
+                  <Link className="btn btn-outline-primary btn-lg" to="/login">Login</Link>
+                </>
+              )}
+            </div>
           </div>
-        ) : (
-          <div style={styles.actions}>
-            <Link to="/register" style={styles.actionButton}>
-              Get Started
-            </Link>
+        </section>
+
+        <section className="row g-4">
+          <div className="col-md-4">
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">Compatibility First</h5>
+                <p className="card-text text-muted">Pick parts with confidence — the system checks component compatibility during build creation.</p>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+          <div className="col-md-4">
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">Supplier Integration</h5>
+                <p className="card-text text-muted">Suppliers can manage inventory and add components; users can browse parts easily.</p>
+              </div>
+            </div>
+          </div>
+          <div className="col-md-4">
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h5 className="card-title">Assembler Workflow</h5>
+                <p className="card-text text-muted">Assign builds to assemblers and track build status from creation to delivery.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#f5f5f5',
-  },
-  nav: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '1rem 2rem',
-    backgroundColor: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-  },
-  logo: {
-    margin: 0,
-    color: '#333',
-  },
-  navLinks: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-  },
-  link: {
-    color: '#007bff',
-    textDecoration: 'none',
-    padding: '0.5rem 1rem',
-  },
-  button: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  userInfo: {
-    color: '#666',
-    marginRight: '1rem',
-  },
-  content: {
-    maxWidth: '800px',
-    margin: '4rem auto',
-    padding: '2rem',
-    textAlign: 'center',
-  },
-  title: {
-    fontSize: '2.5rem',
-    marginBottom: '1rem',
-    color: '#333',
-  },
-  description: {
-    fontSize: '1.25rem',
-    color: '#666',
-    marginBottom: '2rem',
-  },
-  actions: {
-    display: 'flex',
-    gap: '1rem',
-    justifyContent: 'center',
-  },
-  actionButton: {
-    padding: '1rem 2rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '4px',
-    fontSize: '1.1rem',
-  },
-};
 
 export default Home;

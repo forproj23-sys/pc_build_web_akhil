@@ -229,7 +229,7 @@ function ComponentsList() {
                       <td style={styles.tableCell}>
                         <button
                           onClick={() => alert(`${component.name}\n\n${component.specifications || 'No specifications'}\n\nSocket: ${component.socket || 'N/A'}`)}
-                          className="btn btn-sm btn-outline-primary"
+                        className="btn btn-sm btn-outline-primary action-btn"
                           style={styles.viewButton}
                         >
                           View
@@ -258,6 +258,9 @@ function BuildCreator() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [buildResult, setBuildResult] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
 
   useEffect(() => {
@@ -370,7 +373,8 @@ function BuildCreator() {
       setMessage('');
       const componentIDs = selectedComponents.map((c) => c._id);
       const res = await api.post('/builds', { componentIDs });
-      setBuildResult(res.data);
+      // server returns { success, data: populatedBuild, compatibility }
+      setBuildResult(res.data.data || res.data);
       setSelectedComponents([]);
       setTotalBudget('');
       setMessage('Build created successfully! Check compatibility details below.');
@@ -378,6 +382,23 @@ function BuildCreator() {
       setMessage(error.response?.data?.message || 'Error creating build');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const payForBuild = async (buildId) => {
+    try {
+      setPaymentLoading(true);
+      setPaymentMessage('');
+      const res = await api.post(`/builds/${buildId}/pay`, { method: 'card-sim' });
+      setPaymentMessage(res.data.message || 'Payment completed');
+      setPaymentSuccess(true);
+      // Update local buildResult
+      if (res.data.data) setBuildResult(res.data.data);
+    } catch (error) {
+      setPaymentMessage(error.response?.data?.message || 'Payment failed');
+      setPaymentSuccess(false);
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -522,6 +543,38 @@ function BuildCreator() {
 
         {/* Right Side - Main Content */}
         <div style={styles.mainContent}>
+          {buildResult && (
+            <div className="card mb-3" style={{ padding: '1rem' }}>
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 className="mb-1">Build Created</h5>
+                  <div className="text-muted">Build ID: {buildResult._id}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div className="h5 mb-1">${Number(buildResult.totalPrice || 0).toFixed(2)}</div>
+                  <div className="text-muted">
+                    Payment status: {buildResult.payment?.status || 'pending'}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 d-flex gap-2">
+                {buildResult.payment?.status !== 'paid' ? (
+                  <button
+                    className="btn btn-success"
+                    onClick={() => payForBuild(buildResult._id)}
+                    disabled={paymentLoading}
+                  >
+                    {paymentLoading ? 'Processing...' : 'Pay Now'}
+                  </button>
+                ) : (
+                  <button className="btn btn-secondary" disabled>
+                    Paid
+                  </button>
+                )}
+                {paymentMessage && <div className="align-self-center text-muted">{paymentMessage}</div>}
+              </div>
+            </div>
+          )}
           <div style={styles.selectedSection}>
             <h3>Selected Components ({selectedComponents.length})</h3>
             {selectedComponents.length === 0 ? (
@@ -543,7 +596,7 @@ function BuildCreator() {
                           </span>
                         )}
                       </div>
-                      <button onClick={() => toggleComponent(comp)} className="btn btn-sm btn-danger" style={styles.removeBtn}>
+                      <button onClick={() => toggleComponent(comp)} className="btn btn-sm btn-danger action-btn" style={styles.removeBtn}>
                         Remove
                       </button>
                     </div>
@@ -667,7 +720,7 @@ function BuildCreator() {
                                     )}
                                   </td>
                                   <td style={styles.tableCell}>
-                                    <button onClick={() => toggleComponent(component)} className={isSelected ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-primary'} style={styles.viewButton}>
+                                    <button onClick={() => toggleComponent(component)} className={(isSelected ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-primary') + ' action-btn'} style={styles.viewButton}>
                                       {isSelected ? 'Remove' : 'Select'}
                                     </button>
                                   </td>
@@ -761,7 +814,7 @@ function BuildCreator() {
                                     )}
                                   </td>
                                   <td style={styles.tableCell}>
-                                    <button onClick={() => toggleComponent(component)} className={isSelected ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-primary'} style={styles.viewButton}>
+                                    <button onClick={() => toggleComponent(component)} className={(isSelected ? 'btn btn-sm btn-outline-danger' : 'btn btn-sm btn-outline-primary') + ' action-btn'} style={styles.viewButton}>
                                       {isSelected ? 'Remove' : 'Select'}
                                     </button>
                                   </td>
@@ -788,6 +841,7 @@ function MyBuilds() {
   const [builds, setBuilds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBuild, setSelectedBuild] = useState(null);
+  const [payLoadingMap, setPayLoadingMap] = useState({});
 
   useEffect(() => {
     fetchBuilds();
@@ -818,6 +872,22 @@ function MyBuilds() {
       }
     } catch (error) {
       alert(error.response?.data?.message || 'Error deleting build');
+    }
+  };
+
+  const payForBuildLocal = async (buildId) => {
+    try {
+      setPayLoadingMap((m) => ({ ...m, [buildId]: true }));
+      const res = await api.post(`/builds/${buildId}/pay`, { method: 'card-sim' });
+      // update local state
+      const updated = res.data.data || res.data;
+      setBuilds((prev) => prev.map((b) => (b._id === buildId ? updated : b)));
+      if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
+      alert(res.data.message || 'Payment successful (simulated)');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Payment failed');
+    } finally {
+      setPayLoadingMap((m) => ({ ...m, [buildId]: false }));
     }
   };
 
@@ -893,18 +963,29 @@ function MyBuilds() {
               <div style={styles.buildActions}>
                 <button
                   onClick={() => setSelectedBuild(build)}
-                  className="btn btn-sm btn-outline-primary"
+                  className="btn btn-sm btn-outline-primary action-btn"
                   style={styles.viewButton}
                 >
                   View Details
                 </button>
-                <button
-                  onClick={() => deleteBuild(build._id)}
-                  className="btn btn-sm btn-danger"
-                  style={styles.deleteButton}
-                >
-                  Delete
-                </button>
+                {build.payment?.status !== 'paid' ? (
+                  <button
+                    onClick={() => payForBuildLocal(build._id)}
+                    className="btn btn-sm btn-success action-btn"
+                    style={styles.viewButton}
+                    disabled={!!payLoadingMap[build._id]}
+                  >
+                    {payLoadingMap[build._id] ? 'Processing...' : 'Pay'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => deleteBuild(build._id)}
+                    className="btn btn-sm btn-danger action-btn"
+                    style={styles.deleteButton}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -1088,7 +1169,7 @@ const styles = {
   activeCategoryItem: {
     backgroundColor: '#007bff',
     color: 'white',
-    borderColor: '#007bff',
+    border: '1px solid #007bff',
     fontWeight: 'bold',
   },
   hasSelection: {
@@ -1323,21 +1404,23 @@ const styles = {
   },
   viewButton: {
     flex: 1,
-    padding: '0.5rem',
+    padding: '0.25rem 0.75rem',
     backgroundColor: '#007bff',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
+    fontSize: '0.875rem',
   },
   deleteButton: {
     flex: 1,
-    padding: '0.5rem',
+    padding: '0.25rem 0.75rem',
     backgroundColor: '#dc3545',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
+    fontSize: '0.875rem',
   },
   buildDetails: {
     border: '2px solid #007bff',
@@ -1445,7 +1528,7 @@ const styles = {
   },
   incompatibleOption: {
     opacity: 0.6,
-    borderColor: '#dc3545',
+    border: '1px solid #dc3545',
   },
   incompatibleBadge: {
     fontSize: '0.75rem',

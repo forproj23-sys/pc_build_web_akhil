@@ -8,6 +8,8 @@ import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AssemblerDashboard from './pages/AssemblerDashboard';
 import SupplierDashboard from './pages/SupplierDashboard';
+import Profile from './pages/Profile';
+import Payments from './pages/Payments';
 
 function App() {
   return (
@@ -46,6 +48,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['supplier']}>
               <SupplierDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={['admin','assembler','supplier','user']}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payments"
+          element={
+            <ProtectedRoute allowedRoles={['admin','assembler','supplier','user']}>
+              <Payments />
             </ProtectedRoute>
           }
         />
