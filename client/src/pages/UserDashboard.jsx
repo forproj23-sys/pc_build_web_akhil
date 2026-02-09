@@ -842,6 +842,8 @@ function MyBuilds() {
   const [loading, setLoading] = useState(true);
   const [selectedBuild, setSelectedBuild] = useState(null);
   const [payLoadingMap, setPayLoadingMap] = useState({});
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => {
     fetchBuilds();
@@ -875,6 +877,27 @@ function MyBuilds() {
     }
   };
 
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
+  const deleteSelected = async () => {
+    if (selectedIds.length === 0) {
+      return alert('No builds selected for deletion.');
+    }
+    if (!window.confirm(`Delete ${selectedIds.length} selected build(s)? This action cannot be undone.`)) return;
+    try {
+      // delete in parallel
+      await Promise.all(selectedIds.map((id) => api.delete(`/builds/${id}`)));
+      setBuilds((prev) => prev.filter((b) => !selectedIds.includes(b._id)));
+      if (selectedBuild && selectedIds.includes(selectedBuild._id)) setSelectedBuild(null);
+      setSelectedIds([]);
+      setSelectionMode(false);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error deleting selected builds');
+    }
+  };
+
   const payForBuildLocal = async (buildId) => {
     try {
       setPayLoadingMap((m) => ({ ...m, [buildId]: true }));
@@ -897,7 +920,30 @@ function MyBuilds() {
 
   return (
     <div>
-      <h2>My Builds ({builds.length})</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>My Builds ({builds.length})</h2>
+        {!selectionMode ? (
+          <button
+            onClick={() => {
+              setSelectionMode(true);
+              setSelectedIds([]);
+            }}
+            className="btn btn-danger"
+            style={{ marginLeft: '1rem' }}
+          >
+            Delete
+          </button>
+        ) : (
+          <div>
+            <button onClick={deleteSelected} className="btn btn-danger" style={{ marginLeft: '1rem' }} disabled={selectedIds.length === 0}>
+              Confirm Delete ({selectedIds.length})
+            </button>
+            <button onClick={() => { setSelectionMode(false); setSelectedIds([]); }} className="btn btn-secondary ms-2">
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
       
       {selectedBuild && (
         <div style={styles.buildDetails}>
@@ -950,15 +996,31 @@ function MyBuilds() {
       ) : (
         <div style={styles.buildsList}>
           {builds.map((build) => (
-            <div key={build._id} style={styles.buildCard}>
-              <div>
-                <h3>Build #{builds.indexOf(build) + 1}</h3>
-                <p><strong>Price:</strong> ${build.totalPrice.toFixed(2)}</p>
-                <p><strong>Status:</strong> {build.assemblyStatus}</p>
-                <p><strong>Components:</strong> {build.components.length}</p>
-                <p style={styles.smallText}>
-                  {new Date(build.createdAt).toLocaleString()}
-                </p>
+            <div
+              key={build._id}
+              style={{
+                ...styles.buildCard,
+                ...(selectedIds.includes(build._id) ? { borderLeft: '4px solid #dc3545', backgroundColor: '#fff6f6' } : {}),
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                {selectionMode && (
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(build._id)}
+                    onChange={() => toggleSelect(build._id)}
+                    style={{ marginTop: 6 }}
+                  />
+                )}
+                <div style={{ flex: 1 }}>
+                  <h3>Build #{builds.indexOf(build) + 1}</h3>
+                  <p><strong>Price:</strong> ${build.totalPrice.toFixed(2)}</p>
+                  <p><strong>Status:</strong> {build.assemblyStatus}</p>
+                  <p><strong>Components:</strong> {build.components.length}</p>
+                  <p style={styles.smallText}>
+                    {new Date(build.createdAt).toLocaleString()}
+                  </p>
+                </div>
               </div>
               <div style={styles.buildActions}>
                 <button
@@ -979,11 +1041,11 @@ function MyBuilds() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => deleteBuild(build._id)}
-                    className="btn btn-sm btn-danger action-btn"
-                    style={styles.deleteButton}
+                    className="btn btn-sm btn-secondary action-btn"
+                    style={styles.viewButton}
+                    disabled
                   >
-                    Delete
+                    Paid
                   </button>
                 )}
               </div>
