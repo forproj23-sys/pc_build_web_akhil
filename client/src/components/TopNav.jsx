@@ -114,12 +114,22 @@ export default function TopNav() {
               </div>
             ) : (
               <div>
-                <Link className="btn btn-outline-primary me-2" to="/login">
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) =>
+                    isActive ? 'btn btn-primary me-2' : 'btn btn-outline-primary me-2'
+                  }
+                >
                   Login
-                </Link>
-                <Link className="btn btn-primary" to="/register">
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className={({ isActive }) =>
+                    isActive ? 'btn btn-primary' : 'btn btn-outline-primary'
+                  }
+                >
                   Register
-                </Link>
+                </NavLink>
               </div>
             )}
           </div>
