@@ -1,8 +1,11 @@
 .app-container {
-  background-color: #f5f7fb;
+  /* new app theme: soft gradient background and modern font */
+  background: linear-gradient(180deg, #e8f6ff 0%, #f5f5f5 100%);
   min-height: 100vh;
   color: #243b53;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  font-family: "Poppins", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .navbar-brand {
