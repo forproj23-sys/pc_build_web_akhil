@@ -300,7 +300,10 @@ router.post('/:id/release-final', protect, authorize('admin'), async (req, res) 
 
     const total = Number(build.totalPrice || 0);
     const advance = Number(build.assemblerPayout.amount || 0);
-    const finalAmount = Math.round(((total - advance) + Number.EPSILON) * 100) / 100;
+    // New policy: assembler receives 85% of total (admin keeps 5% commission).
+    // Final amount to forward = (85% of total) - advance already forwarded.
+    let finalAmount = Math.round(((total * 0.85 - advance) + Number.EPSILON) * 100) / 100;
+    if (finalAmount < 0) finalAmount = 0;
 
     const tx = await createTransaction({
       type: 'payout',

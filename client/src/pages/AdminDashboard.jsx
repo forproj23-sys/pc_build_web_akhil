@@ -1671,6 +1671,19 @@ function BuildsTab() {
       alert(error.response?.data?.message || 'Error releasing final payout');
     }
   };
+ 
+  const computeAdvanceAmount = (build) => {
+    const total = Number(build.totalPrice || 0);
+    return Math.round((total * 0.1 + Number.EPSILON) * 100) / 100;
+  };
+
+  const computeFinalAmountClient = (build) => {
+    const total = Number(build.totalPrice || 0);
+    const advance = (build.assemblerPayout && Number(build.assemblerPayout.amount)) || computeAdvanceAmount(build);
+    let finalAmount = Math.round(((total * 0.85 - advance) + Number.EPSILON) * 100) / 100;
+    if (finalAmount < 0) finalAmount = 0;
+    return finalAmount;
+  };
 
   if (loading) {
     return <div style={styles.loading}>Loading builds...</div>;
@@ -1709,30 +1722,40 @@ function BuildsTab() {
             {selectedBuild.payment?.status === 'paid' && !selectedBuild.assemblerPayout?.paid && selectedBuild.assemblerID ? (
               <>
                 <button className="btn btn-success me-2" onClick={() => handleForwardPayout(selectedBuild._id)}>
-                  Forward 10% to assembler
+                  Forward {computeAdvanceAmount(selectedBuild) ? `$${computeAdvanceAmount(selectedBuild)} ` : ''}(10%) to assembler
                 </button>
-                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>
-                  Issue Refund
-                </button>
+                {selectedBuild.assemblyStatus !== 'Completed' && (
+                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>
+                    Issue Refund
+                  </button>
+                )}
               </>
             ) : selectedBuild.assemblerPayout?.paid && !selectedBuild.assemblerPayout?.finalPaid ? (
               <div className="d-flex gap-2">
                 <button className="btn btn-secondary" disabled>Advance sent</button>
                 {selectedBuild.assemblyStatus === 'Completed' ? (
-                  <button className="btn btn-success" onClick={() => handleReleaseFinal(selectedBuild._id)}>Release Remaining 90%</button>
+                  <button className="btn btn-success" onClick={() => handleReleaseFinal(selectedBuild._id)}>
+                    Release Remaining {`$${computeFinalAmountClient(selectedBuild)}`}
+                  </button>
                 ) : (
                   <button className="btn btn-outline-secondary" disabled>Awaiting completion</button>
                 )}
-                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+                {selectedBuild.assemblyStatus !== 'Completed' && (
+                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+                )}
               </div>
             ) : selectedBuild.assemblerPayout?.finalPaid ? (
               <div className="d-flex gap-2">
                 <button className="btn btn-secondary" disabled>Final payout sent</button>
-                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+                {selectedBuild.assemblyStatus !== 'Completed' && (
+                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+                )}
               </div>
             ) : (
               selectedBuild.payment?.status === 'paid' ? (
-                <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+                selectedBuild.assemblyStatus !== 'Completed' && (
+                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
+                )
               ) : null
             )}
           </div>
