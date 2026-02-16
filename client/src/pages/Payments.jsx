@@ -27,30 +27,22 @@ export default function Payments() {
   };
 
   return (
-    <div className="app-container" style={{ background: (role === 'supplier' || role === 'assembler' || role === 'user') ? 'linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%)' : undefined }}>
+    <div className="app-container" style={{ background: (role === 'supplier' || role === 'assembler' || role === 'user' || role === 'admin') ? 'linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%)' : undefined }}>
       <TopNav />
 
       <div className="container app-content" style={{ maxWidth: 1200, margin: '2rem auto', padding: '0 1.5rem' }}>
-        <div className="card-like" style={{ background: (role === 'supplier' || role === 'assembler' || role === 'user') ? '#ffffff' : undefined, padding: '1.5rem', borderRadius: 8, border: (role === 'supplier' || role === 'assembler' || role === 'user') ? '1px solid #e6e6e6' : undefined }}>
+        <div className="card-like" style={{ background: (role === 'supplier' || role === 'assembler' || role === 'user' || role === 'admin') ? '#ffffff' : undefined, padding: '1.5rem', borderRadius: 8, border: (role === 'supplier' || role === 'assembler' || role === 'user' || role === 'admin') ? '1px solid #e6e6e6' : undefined }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem' }}>
-            <h3 style={{ margin: 0 }}>{role === 'supplier' ? 'Supplier Payments & Transactions' : role === 'assembler' ? 'Assembler Payments & Transactions' : role === 'user' ? 'User Payments & Transactions' : 'Payments & Transactions'}</h3>
+            <h3 style={{ margin: 0 }}>{role === 'supplier' ? 'Supplier Payments & Transactions' : role === 'assembler' ? 'Assembler Payments & Transactions' : role === 'user' ? 'User Payments & Transactions' : role === 'admin' ? 'Admin Payments & Transactions' : 'Payments & Transactions'}</h3>
             <div style={{ color: '#6c757d', fontSize: '0.95rem' }}>{transactions.length} transactions</div>
           </div>
 
           {/* supplier-like stats row when on supplier role */}
-          {(role === 'supplier' || role === 'assembler' || role === 'user') && (
+          {(role === 'supplier' || role === 'assembler' || role === 'user' || role === 'admin') && (
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-              <div style={{ padding: '0.75rem 1rem', background: '#fff', borderRadius: 8, border: '1px solid #e6e6e6', minWidth: 160, boxShadow: '0 6px 20px rgba(0,0,0,0.04)' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111' }}>${transactions.reduce((s, t) => s + (Number(t.amount) || 0), 0).toFixed(2)}</div>
+              <div style={{ padding: '0.75rem 1rem', background: '#fff', borderRadius: 8, border: '1px solid #e6e6e6', minWidth: 240, boxShadow: '0 6px 20px rgba(0,0,0,0.04)' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111' }}>${transactions.reduce((s, t) => s + (Number(t.amount) || 0), 0).toFixed(2)}</div>
                 <div style={{ color: '#666' }}>Total Transactions Amount</div>
-              </div>
-              <div style={{ padding: '0.75rem 1rem', background: '#fff', borderRadius: 8, border: '1px solid #e6e6e6', minWidth: 160, boxShadow: '0 6px 20px rgba(0,0,0,0.04)' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111' }}>{transactions.filter(t => t.status === 'paid').length}</div>
-                <div style={{ color: '#666' }}>Paid</div>
-              </div>
-              <div style={{ padding: '0.75rem 1rem', background: '#fff', borderRadius: 8, border: '1px solid #e6e6e6', minWidth: 160, boxShadow: '0 6px 20px rgba(0,0,0,0.04)' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111' }}>{transactions.filter(t => t.status !== 'paid').length}</div>
-                <div style={{ color: '#666' }}>Pending</div>
               </div>
             </div>
           )}
@@ -61,7 +53,7 @@ export default function Payments() {
             <div style={{ padding: '2rem', textAlign: 'center' }}>Loading transactions...</div>
           ) : transactions.length === 0 ? (
             <div style={{ padding: '1.5rem', color: '#6c757d' }}>
-              {role === 'supplier' ? 'No supplier transactions found.' : role === 'assembler' ? 'No assembler transactions found.' : role === 'user' ? 'No user transactions found.' : 'No transactions found.'}
+              {role === 'supplier' ? 'No supplier transactions found.' : role === 'assembler' ? 'No assembler transactions found.' : role === 'user' ? 'No user transactions found.' : role === 'admin' ? 'No admin transactions found.' : 'No transactions found.'}
             </div>
           ) : (
             <div className="table-responsive" style={{ marginTop: '0.5rem' }}>
