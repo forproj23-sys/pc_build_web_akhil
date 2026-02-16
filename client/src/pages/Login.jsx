@@ -50,81 +50,100 @@ function Login() {
   };
 
   return (
-      <div className="app-container" style={{ background: 'linear-gradient(180deg, #e8f6ff 0%, #ffffff 100%)' }}>
-        <TopNav />
-        <div className="container app-content d-flex align-items-center justify-content-center" style={{ minHeight: 'calc(100vh - 4.5rem)' }}>
-          <div style={{ width: '100%', maxWidth: '420px' }}>
-            <div className="card form-card shadow-sm mx-auto">
-              <div className="row g-0">
-                <div className="col-12">
-                  <div className="card-body">
-                    <div className="mb-3 text-center">
-                      <div className="auth-brand">PC Build Configurator</div>
-                      <div className="auth-sub">Sign in to continue</div>
-                    </div>
-                    {error && <div className="alert alert-danger">{error}</div>}
-                    <form onSubmit={handleSubmit}>
-                      <div className="mb-3">
-                        <label className="form-label">Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          className="form-control"
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label className="form-label">Password</label>
-                        <div className="input-group">
-                          <input
-                            type={showPassword ? 'text' : 'password'}
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            required
-                            className="form-control"
-                          />
-                          <button
-                            type="button"
-                            className="btn btn-outline-primary"
-                            onClick={() => setShowPassword((s) => !s)}
-                            aria-label="Toggle password visibility"
-                            title={showPassword ? 'Hide password' : 'Show password'}
-                            style={{ color: '#0d6efd', backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}
-                          >
-                            {showPassword ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M13.359 11.238C14.02 10.486 14.5 9.58 14.5 8.5c0-1.38-1.79-4.5-6.5-4.5A9.06 9.06 0 0 0 2.9 6.2a.5.5 0 0 0 .8.6A8.06 8.06 0 0 1 8 4c3.9 0 5.03 2.06 5.03 2.06a7.12 7.12 0 0 1-1.671 1.782.5.5 0 0 0 .0.39z"/>
-                                <path d="M3.646 3.646a.5.5 0 0 1 .708 0L8 7.293 11.646 3.646a.5.5 0 0 1 .708.708L8.707 8l3.647 3.646a.5.5 0 0 1-.708.708L8 8.707 4.354 12.354a.5.5 0 1 1-.708-.708L7.293 8 3.646 4.354a.5.5 0 0 1 0-.708z"/>
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM8 12.5c-2.485 0-4.5-2.015-4.5-4.5S5.515 3.5 8 3.5 12.5 5.515 12.5 8 10.485 12.5 8 12.5z"/>
-                                <path d="M8 5.5A2.5 2.5 0 1 0 8 10.5 2.5 2.5 0 0 0 8 5.5z"/>
-                              </svg>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                      {/* Forgot password removed — no backend reset implementation */}
-                      <button type="submit" disabled={loading} className="btn btn-primary w-100">
-                        {loading ? 'Logging in...' : 'Login'}
-                      </button>
-                    </form>
-                    <div className="text-center mt-3">
-                      <small>
-                        Don't have an account? <Link to="/register">Register</Link>
-                      </small>
-                    </div>
+    <div
+      className="app-container d-flex align-items-center justify-content-center"
+      style={{
+        minHeight: '100vh',
+        backgroundImage: "url('https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: 760, padding: '2rem' }}>
+        <div className="card shadow-lg mx-auto" style={{ borderRadius: 40, overflow: 'visible', paddingTop: 48 }}>
+          {/* avatar circle */}
+          <div style={{ position: 'relative' }}>
+            <div
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: 48,
+                backgroundColor: '#2b59d9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: 40,
+                position: 'absolute',
+                top: -48,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                boxShadow: '0 6px 18px rgba(0,0,0,0.15)',
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div className="card-body" style={{ paddingTop: 64 }}>
+              <h2 className="text-center" style={{ fontWeight: 700 }}>Welcome Back</h2>
+
+              {error && <div className="alert alert-danger mt-3">{error}</div>}
+
+              <form onSubmit={handleSubmit} className="mt-4" style={{ maxWidth: 520, margin: '0 auto' }}>
+                <div className="mb-3">
+                  <label className="form-label">Username *</label>
+                  <input
+                    type="text"
+                    name="email"
+                    placeholder="Enter your Username"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="form-control"
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Password *</label>
+                  <div className="input-group">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      placeholder="Enter your Password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      className="form-control"
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary"
+                      onClick={() => setShowPassword((s) => !s)}
+                      aria-label="Toggle password visibility"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                      style={{ color: '#0d6efd', backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}
+                    >
+                      {showPassword ? '🙈' : '👁️'}
+                    </button>
                   </div>
                 </div>
+
+                <button type="submit" disabled={loading} className="btn btn-primary w-100" style={{ backgroundColor: '#2b59d9', borderColor: '#2b59d9', padding: '0.75rem 1rem' }}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </button>
+              </form>
+
+              
+              <div className="text-center mb-3" style={{ color: '#999' }}>
+                <small>Don't have an account? <Link to="/register">Create new account</Link></small>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
   );
 }
 
