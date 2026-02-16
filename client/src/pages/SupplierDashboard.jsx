@@ -690,7 +690,7 @@ function SupplierDashboard() {
           {activeTab === 'add' && (
             <div>
               <h3>Add New Component</h3>
-              <div className="card p-3" style={{ backgroundColor: '#f6fff7', border: '1px solid #e6f4ea' }}>
+              <div className="card p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #e6e6e6' }}>
               <form onSubmit={handleAdd}>
                 <div style={styles.formGrid}>
                   <div style={styles.formGroup}>
@@ -896,19 +896,20 @@ function SupplierDashboard() {
 const styles = {
   container: {
     minHeight: '100vh',
-    background: 'linear-gradient(180deg, #e8fff2 0%, #f5f5f5 100%)',
+    background: 'linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%)',
+    color: '#111',
   },
   nav: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '1rem 2rem',
-    backgroundColor: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    backgroundColor: '#000',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
   },
   logo: {
     margin: 0,
-    color: '#333',
+    color: '#fff',
   },
   navLinks: {
     display: 'flex',
@@ -916,19 +917,19 @@ const styles = {
     alignItems: 'center',
   },
   link: {
-    color: '#007bff',
+    color: '#fff',
     textDecoration: 'none',
   },
   button: {
     padding: '0.5rem 1rem',
-    backgroundColor: '#dc3545',
+    backgroundColor: '#000',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
   },
   userInfo: {
-    color: '#666',
+    color: '#444',
   },
   content: {
     maxWidth: '1400px',
@@ -948,17 +949,18 @@ const styles = {
     marginBottom: '2rem',
   },
   statCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     padding: '1.5rem',
     borderRadius: '8px',
     textAlign: 'center',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    border: '2px solid #28a745',
+    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
+    border: '1px solid #e6e6e6',
   },
   statValue: {
     fontSize: '2.5rem',
     margin: '0 0 0.5rem 0',
-    color: '#28a745',
+    color: '#111',
+    fontWeight: '700',
   },
   statLabel: {
     fontSize: '1rem',
@@ -969,7 +971,7 @@ const styles = {
     display: 'flex',
     gap: '1rem',
     marginBottom: '2rem',
-    borderBottom: '2px solid #ddd',
+    borderBottom: '2px solid #eee',
   },
   tab: {
     padding: '0.75rem 1.5rem',
@@ -978,18 +980,18 @@ const styles = {
     borderBottom: '2px solid transparent',
     cursor: 'pointer',
     fontSize: '1rem',
-    color: '#666',
+    color: '#333',
   },
   activeTab: {
-    borderBottom: '2px solid #28a745',
-    color: '#28a745',
-    fontWeight: 'bold',
+    borderBottom: '2px solid #000',
+    color: '#000',
+    fontWeight: '600',
   },
   tabContent: {
-    background: 'linear-gradient(180deg, #eafbf0 0%, #ffffff 100%)',
+    background: '#fff',
     padding: '2rem',
     borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
   },
   filterGroup: {
     display: 'flex',
@@ -997,21 +999,23 @@ const styles = {
     alignItems: 'center',
     marginBottom: '1.5rem',
     padding: '1rem',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff',
     borderRadius: '8px',
   },
   label: {
-    fontWeight: '500',
+    fontWeight: '600',
+    color: '#222',
   },
   select: {
     padding: '0.5rem',
     fontSize: '1rem',
     borderRadius: '4px',
     border: '1px solid #ddd',
+    background: '#fff',
   },
   refreshButton: {
     padding: '0.5rem 1rem',
-    backgroundColor: '#007bff',
+    backgroundColor: '#000',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
@@ -1029,26 +1033,28 @@ const styles = {
   tableHeaderCell: {
     border: '1px solid #e6e6e6',
     padding: '0.75rem',
-    backgroundColor: '#eaf7ee',
+    backgroundColor: '#f5f5f5',
     textAlign: 'left',
     fontWeight: '700',
+    color: '#111',
   },
   tableCell: {
     border: '1px solid #e6e6e6',
     padding: '0.75rem',
     verticalAlign: 'middle',
     backgroundColor: '#ffffff',
+    color: '#222',
   },
   'table th': {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff',
     padding: '0.75rem',
     textAlign: 'left',
-    borderBottom: '2px solid #ddd',
-    fontWeight: 'bold',
+    borderBottom: '2px solid #eee',
+    fontWeight: '700',
   },
   'table td': {
     padding: '0.75rem',
-    borderBottom: '1px solid #ddd',
+    borderBottom: '1px solid #eee',
   },
   inlineInput: {
     padding: '0.25rem',
@@ -1056,24 +1062,29 @@ const styles = {
     borderRadius: '4px',
     fontSize: '0.9rem',
     width: '100%',
+    background: '#fff',
+    color: '#111',
   },
   priceInput: {
     padding: '0.25rem',
-    border: '1px solid #28a745',
+    border: '1px solid #e6e6e6',
     borderRadius: '4px',
     fontSize: '0.9rem',
     width: '80px',
+    background: '#fff',
+    color: '#111',
   },
   checkboxLabel: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
     cursor: 'pointer',
+    color: '#333',
   },
   editButton: {
     padding: '0.25rem 0.75rem',
-    backgroundColor: '#ffc107',
-    color: '#333',
+    backgroundColor: '#000',
+    color: '#fff',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
@@ -1081,7 +1092,7 @@ const styles = {
   },
   saveButton: {
     padding: '0.25rem 0.75rem',
-    backgroundColor: '#28a745',
+    backgroundColor: '#000',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
@@ -1100,7 +1111,7 @@ const styles = {
   },
   deleteButton: {
     padding: '0.25rem 0.75rem',
-    backgroundColor: '#dc3545',
+    backgroundColor: '#444',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
@@ -1110,12 +1121,12 @@ const styles = {
     marginTop: '0.25rem',
   },
   inStock: {
-    color: '#28a745',
-    fontWeight: '500',
+    color: '#111',
+    fontWeight: '600',
   },
   outOfStock: {
-    color: '#dc3545',
-    fontWeight: '500',
+    color: '#666',
+    fontWeight: '600',
   },
   readOnly: {
     color: '#888',
@@ -1134,10 +1145,10 @@ const styles = {
   filterSidebar: {
     width: '280px',
     minWidth: '280px',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff',
     borderRadius: '8px',
     padding: '1.5rem',
-    border: '1px solid #dee2e6',
+    border: '1px solid #e6e6e6',
     position: 'sticky',
     top: '1rem',
     maxHeight: 'calc(100vh - 2rem)',
@@ -1146,8 +1157,8 @@ const styles = {
   sidebarTitle: {
     margin: '0 0 1rem 0',
     fontSize: '1.1rem',
-    color: '#333',
-    borderBottom: '2px solid #007bff',
+    color: '#111',
+    borderBottom: '2px solid #000',
     paddingBottom: '0.5rem',
   },
   searchBox: {
@@ -1158,8 +1169,10 @@ const styles = {
     padding: '0.75rem',
     fontSize: '0.9rem',
     borderRadius: '6px',
-    border: '1px solid #dee2e6',
+    border: '1px solid #e6e6e6',
     boxSizing: 'border-box',
+    background: '#fff',
+    color: '#111',
   },
   categoryList: {
     listStyle: 'none',
@@ -1172,14 +1185,14 @@ const styles = {
     backgroundColor: 'white',
     borderRadius: '6px',
     cursor: 'pointer',
-    border: '1px solid #dee2e6',
-    transition: 'all 0.2s',
+    border: '1px solid #e6e6e6',
+    transition: 'all 0.15s',
   },
   activeCategoryItem: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#111',
     color: 'white',
-    border: '1px solid #007bff',
-    fontWeight: 'bold',
+    border: '1px solid #111',
+    fontWeight: '600',
   },
   categoryListItemContent: {
     display: 'flex',
@@ -1194,25 +1207,25 @@ const styles = {
   },
   countBadge: {
     fontSize: '0.75rem',
-    color: '#007bff',
-    backgroundColor: '#e7f3ff',
+    color: '#111',
+    backgroundColor: '#f2f2f2',
     padding: '0.2rem 0.5rem',
     borderRadius: '12px',
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   // Override for active category items
   activeCategoryItemCountBadge: {
     fontSize: '0.75rem',
     color: '#fff',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     padding: '0.2rem 0.5rem',
     borderRadius: '12px',
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   categoryListDivider: {
     padding: '0.5rem 1rem',
     marginBottom: '0.5rem',
-    borderTop: '1px solid #dee2e6',
+    borderTop: '1px solid #e6e6e6',
     marginTop: '0.5rem',
   },
   dividerText: {
@@ -1225,7 +1238,7 @@ const styles = {
   filterInfo: {
     marginTop: '1.5rem',
     paddingTop: '1rem',
-    borderTop: '1px solid #dee2e6',
+    borderTop: '1px solid #e6e6e6',
   },
   filterInfoText: {
     fontSize: '0.85rem',
@@ -1235,7 +1248,7 @@ const styles = {
   refreshButtonSmall: {
     width: '100%',
     padding: '0.5rem',
-    backgroundColor: '#007bff',
+    backgroundColor: '#000',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
@@ -1262,7 +1275,7 @@ const styles = {
     height: '60px',
     objectFit: 'cover',
     borderRadius: '4px',
-    border: '1px solid #ddd',
+    border: '1px solid #e6e6e6',
     display: 'block',
   },
   noImage: {
@@ -1273,17 +1286,17 @@ const styles = {
     justifyContent: 'center',
     backgroundColor: '#f0f0f0',
     borderRadius: '4px',
-    border: '1px solid #ddd',
+    border: '1px solid #e6e6e6',
     fontSize: '0.75rem',
-    color: '#999',
+    color: '#777',
     textAlign: 'center',
   },
   imageError: {
     fontSize: '0.75rem',
-    color: '#dc3545',
+    color: '#a00',
   },
   urlLink: {
-    color: '#007bff',
+    color: '#111',
     textDecoration: 'none',
     fontSize: '0.875rem',
   },
@@ -1293,10 +1306,10 @@ const styles = {
   },
   form: {
     maxWidth: '800px',
-    backgroundColor: '#f6fff7',
+    backgroundColor: '#fff',
     padding: '1rem',
     borderRadius: '8px',
-    border: '1px solid #e6f4ea',
+    border: '1px solid #e6e6e6',
   },
   formGrid: {
     display: 'grid',
@@ -1310,30 +1323,34 @@ const styles = {
   input: {
     width: '100%',
     padding: '0.5rem',
-    border: '1px solid #ddd',
+    border: '1px solid #e6e6e6',
     borderRadius: '4px',
     fontSize: '1rem',
     boxSizing: 'border-box',
+    background: '#fff',
+    color: '#111',
   },
   textarea: {
     width: '100%',
     padding: '0.5rem',
-    border: '1px solid #ddd',
+    border: '1px solid #e6e6e6',
     borderRadius: '4px',
     fontSize: '1rem',
     fontFamily: 'inherit',
     boxSizing: 'border-box',
     resize: 'vertical',
+    background: '#fff',
+    color: '#111',
   },
   submitButton: {
     padding: '0.75rem 2rem',
-    backgroundColor: '#28a745',
+    backgroundColor: '#000',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
     fontSize: '1rem',
-    fontWeight: '500',
+    fontWeight: '600',
   },
 };
 

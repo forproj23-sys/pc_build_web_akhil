@@ -60,7 +60,7 @@ function Login() {
       }}
     >
       <div style={{ width: '100%', maxWidth: 760, padding: '2rem' }}>
-        <div className="card shadow-lg mx-auto" style={{ borderRadius: 40, overflow: 'visible', paddingTop: 48 }}>
+        <div className="card shadow-lg mx-auto" style={{ borderRadius: 40, overflow: 'visible', paddingTop: 48, transform: 'translateY(-10px)' }}>
           {/* avatar circle */}
           <div style={{ position: 'relative' }}>
             <div
