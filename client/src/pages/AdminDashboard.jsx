@@ -1620,33 +1620,27 @@ function BuildsTab() {
     }
   };
 
-  const handleForwardPayout = async (buildId) => {
-    try {
-      const res = await api.post(`/builds/${buildId}/forward`);
-      const updated = res.data.data;
-      setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
-      if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
-      alert(res.data.message || 'Payout forwarded');
-    } catch (error) {
-      console.error('Error forwarding payout:', error);
-      alert(error.response?.data?.message || 'Error forwarding payout');
-    }
-  };
-
   const handleRefund = async (buildId) => {
     try {
-      // Prompt admin for amount and reason (simple UI for MVP)
-      const defaultAmount = selectedBuild?.payment?.paidAmount || 0;
-      const amountInput = window.prompt('Refund amount (leave blank for full):', String(defaultAmount));
-      if (amountInput === null) return; // cancelled
-      const amount = parseFloat(amountInput || String(defaultAmount));
-      if (isNaN(amount) || amount <= 0) {
-        alert('Invalid refund amount');
+      const build = builds.find(b => b._id === buildId) || selectedBuild;
+      if (!build) return;
+
+      // Check if build is completed (refunds not allowed)
+      if (build.assemblyStatus === 'Completed') {
+        alert('Refunds are not allowed for completed builds.');
         return;
       }
+
+      const confirmed = window.confirm(
+        `Issue refund for this build?\n\n` +
+        `This will refund 90% of the payment (escrow) to the user.\n` +
+        `3% admin commission and 7% assembler commission are non-refundable.`
+      );
+      if (!confirmed) return;
+
       const reason = window.prompt('Reason for refund (optional):', '') || '';
 
-      const res = await api.post(`/builds/${buildId}/refund`, { amount, reason });
+      const res = await api.post(`/builds/${buildId}/refund`, { reason });
       const updated = res.data.data;
       setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
       if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
@@ -1657,32 +1651,24 @@ function BuildsTab() {
     }
   };
 
-  const handleReleaseFinal = async (buildId) => {
+  const handleDistributeSuppliers = async (buildId) => {
     try {
-      const confirmed = window.confirm('Release remaining payout to assembler? This will transfer the final amount.');
+      const confirmed = window.confirm(
+        'Distribute escrow to suppliers?\n\n' +
+        'This will calculate and pay suppliers proportionally based on component prices.\n' +
+        'This usually happens automatically when build status changes to Completed.'
+      );
       if (!confirmed) return;
-      const res = await api.post(`/builds/${buildId}/release-final`);
+
+      const res = await api.post(`/builds/${buildId}/distribute-suppliers`);
       const updated = res.data.data;
       setBuilds(prev => prev.map(b => (b._id === buildId ? updated : b)));
       if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
-      alert(res.data.message || 'Final payout released');
+      alert(res.data.message || 'Supplier payouts distributed');
     } catch (error) {
-      console.error('Error releasing final payout:', error);
-      alert(error.response?.data?.message || 'Error releasing final payout');
+      console.error('Error distributing to suppliers:', error);
+      alert(error.response?.data?.message || 'Error distributing to suppliers');
     }
-  };
- 
-  const computeAdvanceAmount = (build) => {
-    const total = Number(build.totalPrice || 0);
-    return Math.round((total * 0.1 + Number.EPSILON) * 100) / 100;
-  };
-
-  const computeFinalAmountClient = (build) => {
-    const total = Number(build.totalPrice || 0);
-    const advance = (build.assemblerPayout && Number(build.assemblerPayout.amount)) || computeAdvanceAmount(build);
-    let finalAmount = Math.round(((total * 0.85 - advance) + Number.EPSILON) * 100) / 100;
-    if (finalAmount < 0) finalAmount = 0;
-    return finalAmount;
   };
 
   if (loading) {
@@ -1712,51 +1698,65 @@ function BuildsTab() {
             ))}
           </ul>
           <div className="mt-3">
-            <strong>Payment:</strong>
-            <div className="mt-2">
-              <div>Paid: ${selectedBuild.payment?.paidAmount?.toFixed(2) || 0}</div>
-              <div>Status: {selectedBuild.payment?.status || 'pending'}</div>
+            <strong>Payment Distribution:</strong>
+            <div className="mt-2" style={{ fontSize: '0.9rem' }}>
+              <div><strong>Total Paid:</strong> ${selectedBuild.payment?.totalAmount?.toFixed(2) || 0}</div>
+              <div><strong>Status:</strong> {selectedBuild.payment?.status || 'pending'}</div>
+              {selectedBuild.payment?.status === 'paid' && (
+                <>
+                  <div style={{ marginTop: '0.5rem', padding: '0.5rem', background: '#f8f9fa', borderRadius: '4px' }}>
+                    <div><strong>Admin Commission (3%):</strong> ${selectedBuild.payment?.adminCommission?.toFixed(2) || 0}</div>
+                    <div>
+                      <strong>Assembler Commission (7%):</strong> ${selectedBuild.payment?.assemblerCommission?.toFixed(2) || 0}
+                      {selectedBuild.payment?.assemblerCommissionPaid && (
+                        <span style={{ color: 'green', marginLeft: '0.5rem' }}>✓ Paid</span>
+                      )}
+                    </div>
+                    <div>
+                      <strong>Escrow (90%):</strong> ${selectedBuild.payment?.escrowAmount?.toFixed(2) || 0}
+                      {selectedBuild.payment?.escrowDistributed ? (
+                        <span style={{ color: 'green', marginLeft: '0.5rem' }}>✓ Distributed to Suppliers</span>
+                      ) : (
+                        <span style={{ color: '#666', marginLeft: '0.5rem' }}>Held until completion</span>
+                      )}
+                    </div>
+                  </div>
+                  {selectedBuild.supplierPayouts && selectedBuild.supplierPayouts.length > 0 && (
+                    <div style={{ marginTop: '0.5rem' }}>
+                      <strong>Supplier Payouts:</strong>
+                      <ul style={{ marginTop: '0.25rem', marginBottom: 0, paddingLeft: '1.5rem' }}>
+                        {selectedBuild.supplierPayouts.map((payout, idx) => (
+                          <li key={idx} style={{ fontSize: '0.85rem' }}>
+                            ${payout.amount.toFixed(2)} - {payout.componentName}
+                            {payout.paid && <span style={{ color: 'green', marginLeft: '0.5rem' }}>✓</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
           <div className="mt-3">
-            {selectedBuild.payment?.status === 'paid' && !selectedBuild.assemblerPayout?.paid && selectedBuild.assemblerID ? (
+            {selectedBuild.payment?.status === 'paid' && (
               <>
-                <button className="btn btn-success me-2" onClick={() => handleForwardPayout(selectedBuild._id)}>
-                  Forward {computeAdvanceAmount(selectedBuild) ? `$${computeAdvanceAmount(selectedBuild)} ` : ''}(10%) to assembler
-                </button>
                 {selectedBuild.assemblyStatus !== 'Completed' && (
-                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>
-                    Issue Refund
+                  <button className="btn btn-warning me-2" onClick={() => handleRefund(selectedBuild._id)}>
+                    Issue Refund (90% Escrow)
+                  </button>
+                )}
+                {selectedBuild.assemblyStatus === 'Completed' && !selectedBuild.payment?.escrowDistributed && (
+                  <button className="btn btn-success" onClick={() => handleDistributeSuppliers(selectedBuild._id)}>
+                    Distribute to Suppliers
+                  </button>
+                )}
+                {selectedBuild.assemblyStatus === 'Completed' && selectedBuild.payment?.escrowDistributed && (
+                  <button className="btn btn-secondary" disabled>
+                    Suppliers Paid
                   </button>
                 )}
               </>
-            ) : selectedBuild.assemblerPayout?.paid && !selectedBuild.assemblerPayout?.finalPaid ? (
-              <div className="d-flex gap-2">
-                <button className="btn btn-secondary" disabled>Advance sent</button>
-                {selectedBuild.assemblyStatus === 'Completed' ? (
-                  <button className="btn btn-success" onClick={() => handleReleaseFinal(selectedBuild._id)}>
-                    Release Remaining {`$${computeFinalAmountClient(selectedBuild)}`}
-                  </button>
-                ) : (
-                  <button className="btn btn-outline-secondary" disabled>Awaiting completion</button>
-                )}
-                {selectedBuild.assemblyStatus !== 'Completed' && (
-                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
-                )}
-              </div>
-            ) : selectedBuild.assemblerPayout?.finalPaid ? (
-              <div className="d-flex gap-2">
-                <button className="btn btn-secondary" disabled>Final payout sent</button>
-                {selectedBuild.assemblyStatus !== 'Completed' && (
-                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
-                )}
-              </div>
-            ) : (
-              selectedBuild.payment?.status === 'paid' ? (
-                selectedBuild.assemblyStatus !== 'Completed' && (
-                  <button className="btn btn-warning" onClick={() => handleRefund(selectedBuild._id)}>Issue Refund</button>
-                )
-              ) : null
             )}
           </div>
         </div>

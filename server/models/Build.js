@@ -80,38 +80,58 @@ const BuildSchema = new mongoose.Schema(
           createdAt: Date,
         },
       ],
-      escrowReleased: {
-        type: Boolean,
-        default: false,
-      },
-    },
-    assemblerPayout: {
-      amount: {
+      // New payment distribution structure
+      adminCommission: {
         type: Number,
-        default: 0,
+        default: 0, // 3% of total
       },
-      paid: {
+      assemblerCommission: {
+        type: Number,
+        default: 0, // 7% of total
+      },
+      assemblerCommissionPaid: {
         type: Boolean,
         default: false,
       },
-      paidAt: {
+      assemblerCommissionPaidAt: {
         type: Date,
       },
-      transactionId: {
+      assemblerCommissionTxId: {
         type: String,
       },
-      // Final payout (remaining amount) fields
-      finalPaid: {
+      escrowAmount: {
+        type: Number,
+        default: 0, // 90% of total, held until completion
+      },
+      escrowDistributed: {
         type: Boolean,
-        default: false,
-      },
-      finalPaidAt: {
-        type: Date,
-      },
-      finalTransactionId: {
-        type: String,
+        default: false, // True when suppliers have been paid
       },
     },
+    supplierPayouts: [
+      {
+        supplierID: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        amount: {
+          type: Number,
+          required: true,
+        },
+        componentID: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Component',
+        },
+        componentName: String,
+        paid: {
+          type: Boolean,
+          default: false,
+        },
+        paidAt: Date,
+        transactionId: String,
+      },
+    ],
     refundRequests: [
       {
         amount: Number,

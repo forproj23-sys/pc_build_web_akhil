@@ -12,11 +12,11 @@ const TransactionSchema = new mongoose.Schema(
       ref: 'Build',
     },
     from: {
-      type: String, // 'user'|'admin'|'assembler'
+      type: String, // 'user'|'admin'|'assembler'|'supplier'
       required: true,
     },
     to: {
-      type: String, // 'admin'|'assembler'|'user'
+      type: String, // 'admin'|'assembler'|'user'|'supplier'
       required: true,
     },
     amount: {

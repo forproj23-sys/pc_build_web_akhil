@@ -180,12 +180,20 @@ router.post('/:id/pay', protect, authorize('user'), async (req, res) => {
     const amount = build.totalPrice || 0;
     const paymentId = `pay_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
+    // Calculate new payment distribution
+    const adminCommission = Math.round((amount * 0.03 + Number.EPSILON) * 100) / 100; // 3%
+    const assemblerCommission = Math.round((amount * 0.07 + Number.EPSILON) * 100) / 100; // 7%
+    const escrowAmount = Math.round((amount * 0.90 + Number.EPSILON) * 100) / 100; // 90%
+
     // Update build payment info
     build.payment = build.payment || {};
     build.payment.status = 'paid';
     build.payment.totalAmount = amount;
     build.payment.paidAmount = amount;
     build.payment.currency = 'USD';
+    build.payment.adminCommission = adminCommission;
+    build.payment.assemblerCommission = assemblerCommission;
+    build.payment.escrowAmount = escrowAmount;
     build.payment.paymentRecords = build.payment.paymentRecords || [];
     build.payment.paymentRecords.push({
       paymentId,
@@ -197,16 +205,10 @@ router.post('/:id/pay', protect, authorize('user'), async (req, res) => {
       createdAt: new Date(),
     });
 
-    // Calculate assembler payout (10%)
-    const payoutAmount = Math.round((amount * 0.1 + Number.EPSILON) * 100) / 100;
-    build.assemblerPayout = build.assemblerPayout || {};
-    build.assemblerPayout.amount = payoutAmount;
-    build.assemblerPayout.paid = false;
-
     await build.save();
 
-    // Create transaction: user -> admin
-    const tx = await createTransaction({
+    // Create transaction: user -> admin (full payment)
+    const paymentTx = await createTransaction({
       type: 'payment',
       buildId: build._id,
       from: 'user',
@@ -216,123 +218,191 @@ router.post('/:id/pay', protect, authorize('user'), async (req, res) => {
       meta: { paymentId },
     });
 
+    // Immediately pay assembler commission (7%)
+    if (build.assemblerID) {
+      const assemblerTx = await createTransaction({
+        type: 'payout',
+        buildId: build._id,
+        from: 'admin',
+        to: 'assembler',
+        amount: assemblerCommission,
+        currency: 'USD',
+        meta: { assemblerID: build.assemblerID.toString(), kind: 'commission' },
+      });
+
+      build.payment.assemblerCommissionPaid = true;
+      build.payment.assemblerCommissionPaidAt = new Date();
+      build.payment.assemblerCommissionTxId = assemblerTx.txId;
+      await build.save();
+    }
+
     res.json({
       success: true,
-      message: 'Payment successful (simulated)',
+      message: 'Payment successful (simulated). Admin commission: 3%, Assembler commission: 7%, Escrow: 90%',
       data: build,
-      transaction: tx,
+      transaction: paymentTx,
+      distribution: {
+        adminCommission,
+        assemblerCommission,
+        escrowAmount,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// POST /api/builds/:id/forward - Admin forwards assembler payout (10%)
-router.post('/:id/forward', protect, authorize('admin'), async (req, res) => {
+// POST /api/builds/:id/distribute-suppliers - Admin distributes escrow to suppliers proportionally (only when completed)
+router.post('/:id/distribute-suppliers', protect, authorize('admin'), async (req, res) => {
   try {
-    const build = await Build.findById(req.params.id);
+    const build = await Build.findById(req.params.id).populate('components.componentID');
     if (!build) return res.status(404).json({ message: 'Build not found' });
 
     if (!build.payment || build.payment.status !== 'paid') {
       return res.status(400).json({ message: 'Build not paid yet' });
-    }
-
-    if (!build.assemblerID) {
-      return res.status(400).json({ message: 'Build not assigned to an assembler' });
-    }
-
-    if (build.assemblerPayout && build.assemblerPayout.paid) {
-      return res.status(400).json({ message: 'Payout already forwarded' });
-    }
-
-    const payoutAmount = (build.assemblerPayout && build.assemblerPayout.amount) || Math.round((build.totalPrice * 0.1 + Number.EPSILON) * 100) / 100;
-
-    // Simulate payout
-    const tx = await createTransaction({
-      type: 'payout',
-      buildId: build._id,
-      from: 'admin',
-      to: 'assembler',
-      amount: payoutAmount,
-      currency: 'USD',
-      meta: { assemblerID: build.assemblerID.toString() },
-    });
-
-    build.assemblerPayout = build.assemblerPayout || {};
-    build.assemblerPayout.paid = true;
-    build.assemblerPayout.paidAt = new Date();
-    build.assemblerPayout.transactionId = tx.txId;
-    build.payment.escrowReleased = true;
-
-    await build.save();
-
-    res.json({ success: true, message: 'Payout forwarded to assembler (simulated)', transaction: tx, data: build });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/builds/:id/release-final - Admin releases remaining 90% to assembler
-router.post('/:id/release-final', protect, authorize('admin'), async (req, res) => {
-  try {
-    const build = await Build.findById(req.params.id);
-    if (!build) return res.status(404).json({ message: 'Build not found' });
-
-    if (!build.payment || build.payment.status !== 'paid') {
-      return res.status(400).json({ message: 'Build not paid yet' });
-    }
-
-    if (!build.assemblerID) {
-      return res.status(400).json({ message: 'Build not assigned to an assembler' });
-    }
-
-    if (!build.assemblerPayout || !build.assemblerPayout.paid) {
-      return res.status(400).json({ message: 'Advance payout not forwarded yet' });
-    }
-
-    if (build.assemblerPayout.finalPaid) {
-      return res.status(400).json({ message: 'Final payout already forwarded' });
     }
 
     if (build.assemblyStatus !== 'Completed') {
-      return res.status(400).json({ message: 'Build is not completed yet' });
+      return res.status(400).json({ message: 'Build must be completed before distributing to suppliers' });
     }
 
-    const total = Number(build.totalPrice || 0);
-    const advance = Number(build.assemblerPayout.amount || 0);
-    // New policy: assembler receives 85% of total (admin keeps 5% commission).
-    // Final amount to forward = (85% of total) - advance already forwarded.
-    let finalAmount = Math.round(((total * 0.85 - advance) + Number.EPSILON) * 100) / 100;
-    if (finalAmount < 0) finalAmount = 0;
+    if (build.payment.escrowDistributed) {
+      return res.status(400).json({ message: 'Supplier payouts already distributed' });
+    }
 
-    const tx = await createTransaction({
-      type: 'payout',
-      buildId: build._id,
-      from: 'admin',
-      to: 'assembler',
-      amount: finalAmount,
-      currency: 'USD',
-      meta: { assemblerID: build.assemblerID.toString(), kind: 'final' },
-    });
+    const Component = require('../models/Component');
+    const escrowAmount = Number(build.payment.escrowAmount) || 0;
+    const totalComponentPrice = build.components.reduce((sum, comp) => sum + Number(comp.price || 0), 0);
 
-    build.assemblerPayout.finalPaid = true;
-    build.assemblerPayout.finalPaidAt = new Date();
-    build.assemblerPayout.finalTransactionId = tx.txId;
-    // Mark payment settled
+    console.log(`[Manual Distribution] Build ${build._id}: escrowAmount=${escrowAmount}, totalComponentPrice=${totalComponentPrice}`);
+
+    if (totalComponentPrice === 0) {
+      return res.status(400).json({ message: 'No components in build or total price is zero' });
+    }
+
+    if (escrowAmount === 0) {
+      return res.status(400).json({ message: 'Escrow amount is zero. Build may not be paid or escrow already distributed.' });
+    }
+
+    // Calculate proportional payouts for each supplier
+    const supplierPayouts = [];
+    const supplierMap = new Map(); // supplierID -> { amount, components }
+    let componentsWithoutSuppliers = 0;
+
+    // Populate component supplierIDs
+    for (const buildComp of build.components) {
+      const component = await Component.findById(buildComp.componentID);
+      if (!component) {
+        console.warn(`[Manual Distribution] Component ${buildComp.componentID} not found`);
+        componentsWithoutSuppliers++;
+        continue;
+      }
+      if (!component.supplierID) {
+        console.warn(`[Manual Distribution] Component ${buildComp.componentName} (${buildComp.componentID}) has no supplierID`);
+        componentsWithoutSuppliers++;
+        continue;
+      }
+
+      const componentPrice = Number(buildComp.price || 0);
+      const supplierId = component.supplierID.toString();
+      const componentRatio = componentPrice / totalComponentPrice;
+      const supplierAmount = Math.round((escrowAmount * componentRatio + Number.EPSILON) * 100) / 100;
+
+      console.log(`[Manual Distribution] Component: ${buildComp.componentName}, Price: $${componentPrice}, Ratio: ${(componentRatio * 100).toFixed(2)}%, Supplier Amount: $${supplierAmount}`);
+
+      if (supplierMap.has(supplierId)) {
+        const existing = supplierMap.get(supplierId);
+        existing.amount += supplierAmount;
+        existing.components.push({
+          componentID: buildComp.componentID,
+          componentName: buildComp.componentName,
+          price: componentPrice,
+        });
+      } else {
+        supplierMap.set(supplierId, {
+          amount: supplierAmount,
+          components: [{
+            componentID: buildComp.componentID,
+            componentName: buildComp.componentName,
+            price: componentPrice,
+          }],
+        });
+      }
+    }
+
+    if (componentsWithoutSuppliers > 0) {
+      console.warn(`[Manual Distribution] ${componentsWithoutSuppliers} components without suppliers were skipped`);
+    }
+
+    console.log(`[Manual Distribution] Found ${supplierMap.size} unique suppliers to pay`);
+
+    // Create payouts and transactions
+    const transactions = [];
+    let totalDistributed = 0;
+    for (const [supplierId, data] of supplierMap.entries()) {
+      // Validate amount before creating transaction
+      if (!data.amount || data.amount <= 0 || isNaN(data.amount)) {
+        console.error(`[Manual Distribution] Invalid supplier amount for supplier ${supplierId}: ${data.amount}`);
+        continue; // Skip suppliers with invalid amounts
+      }
+
+      console.log(`[Manual Distribution] Paying supplier ${supplierId}: $${data.amount} for ${data.components.length} component(s)`);
+
+      const tx = await createTransaction({
+        type: 'payout',
+        buildId: build._id,
+        from: 'admin',
+        to: 'supplier',
+        amount: data.amount,
+        currency: 'USD',
+        meta: { supplierID: supplierId, kind: 'escrow_distribution' },
+      });
+
+      // Store payout record (using first component as representative)
+      supplierPayouts.push({
+        supplierID: supplierId,
+        amount: data.amount,
+        componentID: data.components[0].componentID,
+        componentName: data.components[0].componentName,
+        paid: true,
+        paidAt: new Date(),
+        transactionId: tx.txId,
+      });
+
+      transactions.push(tx);
+      totalDistributed += data.amount;
+    }
+
+    console.log(`[Manual Distribution] Total distributed: $${totalDistributed.toFixed(2)} out of $${escrowAmount.toFixed(2)} escrow`);
+
+    if (supplierPayouts.length === 0) {
+      return res.status(400).json({ 
+        message: 'No valid supplier payouts created. Check if components have supplierIDs assigned.' 
+      });
+    }
+
+    // Update build
+    build.supplierPayouts = supplierPayouts;
+    build.payment.escrowDistributed = true;
     build.payment.status = 'settled';
-
     await build.save();
 
-    res.json({ success: true, message: 'Final payout released (simulated)', transaction: tx, data: build });
+    res.json({
+      success: true,
+      message: `Supplier payouts distributed: ${supplierPayouts.length} suppliers paid from escrow`,
+      data: build,
+      transactions,
+      payouts: supplierPayouts,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// POST /api/builds/:id/refund - Admin issues refund (full or partial)
+// POST /api/builds/:id/refund - Admin issues refund (90% escrow only, if build not completed)
 router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
   try {
-    const { amount, reason } = req.body;
+    const { reason } = req.body;
     const build = await Build.findById(req.params.id);
     if (!build) return res.status(404).json({ message: 'Build not found' });
 
@@ -340,9 +410,15 @@ router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
       return res.status(400).json({ message: 'Build not paid or already refunded' });
     }
 
-    const refundAmount = Number(amount || build.payment.paidAmount || 0);
+    // If build is completed, refunds are not allowed
+    if (build.assemblyStatus === 'Completed') {
+      return res.status(400).json({ message: 'Refunds are not allowed for completed builds' });
+    }
+
+    // Refund 90% escrow amount (3% admin + 7% assembler commissions are non-refundable)
+    const refundAmount = build.payment.escrowAmount || 0;
     if (refundAmount <= 0) {
-      return res.status(400).json({ message: 'Invalid refund amount' });
+      return res.status(400).json({ message: 'No escrow amount to refund' });
     }
 
     // Create refund transaction (admin -> user)
@@ -353,10 +429,11 @@ router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
       to: 'user',
       amount: refundAmount,
       currency: 'USD',
-      meta: { reason },
+      meta: { reason, note: '90% escrow refunded. 3% admin + 7% assembler commissions are non-refundable.' },
     });
 
     // Update build payment records and status
+    build.payment.escrowAmount = 0; // Escrow refunded
     build.payment.paidAmount = Math.max(0, (build.payment.paidAmount || 0) - refundAmount);
     build.payment.paymentRecords.push({
       paymentId: tx.txId,
@@ -364,7 +441,7 @@ router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
       amount: -refundAmount,
       status: 'succeeded',
       method: 'refund',
-      meta: { reason },
+      meta: { reason, note: 'Escrow refund' },
       createdAt: new Date(),
     });
 
@@ -372,22 +449,23 @@ router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
     build.refundRequests = build.refundRequests || [];
     build.refundRequests.push({
       amount: refundAmount,
-      reason: reason || '',
+      reason: reason || 'Escrow refund (90%)',
       status: 'processed',
       createdAt: new Date(),
       processedBy: req.user._id.toString(),
     });
 
     // Update overall payment status
-    if (build.payment.paidAmount <= 0) {
-      build.payment.status = 'refunded';
-    } else {
-      build.payment.status = 'partial_refund';
-    }
+    build.payment.status = 'refunded';
 
     await build.save();
 
-    res.json({ success: true, message: 'Refund processed (simulated)', transaction: tx, data: build });
+    res.json({
+      success: true,
+      message: `Refund processed: $${refundAmount} (90% escrow). Admin commission (3%) and assembler commission (7%) are non-refundable.`,
+      transaction: tx,
+      data: build,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -402,7 +480,7 @@ router.put('/:id/status', protect, authorize('assembler', 'admin'), async (req, 
       return res.status(400).json({ message: 'Invalid status. Must be Pending, Assembling, or Completed' });
     }
 
-    const build = await Build.findById(req.params.id);
+    const build = await Build.findById(req.params.id).populate('components.componentID');
 
     if (!build) {
       return res.status(404).json({ message: 'Build not found' });
@@ -419,9 +497,136 @@ router.put('/:id/status', protect, authorize('assembler', 'admin'), async (req, 
     // Auto-assign assembler if status changes to Assembling
     if (status === 'Assembling' && !build.assemblerID) {
       build.assemblerID = req.user._id;
+      
+      // If build is paid and assembler commission hasn't been paid yet, pay it now
+      if (build.payment && build.payment.status === 'paid' && !build.payment.assemblerCommissionPaid && build.payment.assemblerCommission > 0) {
+        const assemblerTx = await createTransaction({
+          type: 'payout',
+          buildId: build._id,
+          from: 'admin',
+          to: 'assembler',
+          amount: build.payment.assemblerCommission,
+          currency: 'USD',
+          meta: { assemblerID: req.user._id.toString(), kind: 'commission' },
+        });
+
+        build.payment.assemblerCommissionPaid = true;
+        build.payment.assemblerCommissionPaidAt = new Date();
+        build.payment.assemblerCommissionTxId = assemblerTx.txId;
+      }
     }
 
+    const wasCompleted = build.assemblyStatus === 'Completed';
     build.assemblyStatus = status;
+
+    // Auto-trigger supplier distribution when status changes to Completed
+    if (status === 'Completed' && !wasCompleted && build.payment && build.payment.status === 'paid' && !build.payment.escrowDistributed) {
+      const Component = require('../models/Component');
+      const escrowAmount = Number(build.payment.escrowAmount) || 0;
+      const totalComponentPrice = build.components.reduce((sum, comp) => sum + Number(comp.price || 0), 0);
+
+      console.log(`[Supplier Distribution] Build ${build._id}: escrowAmount=${escrowAmount}, totalComponentPrice=${totalComponentPrice}`);
+
+      if (totalComponentPrice > 0 && escrowAmount > 0) {
+        // Calculate proportional payouts for each supplier
+        const supplierPayouts = [];
+        const supplierMap = new Map();
+        let componentsWithoutSuppliers = 0;
+
+        // Populate component supplierIDs
+        for (const buildComp of build.components) {
+          const component = await Component.findById(buildComp.componentID);
+          if (!component) {
+            console.warn(`[Supplier Distribution] Component ${buildComp.componentID} not found`);
+            componentsWithoutSuppliers++;
+            continue;
+          }
+          if (!component.supplierID) {
+            console.warn(`[Supplier Distribution] Component ${buildComp.componentName} (${buildComp.componentID}) has no supplierID`);
+            componentsWithoutSuppliers++;
+            continue;
+          }
+
+          const componentPrice = Number(buildComp.price || 0);
+          const supplierId = component.supplierID.toString();
+          const componentRatio = componentPrice / totalComponentPrice;
+          const supplierAmount = Math.round((escrowAmount * componentRatio + Number.EPSILON) * 100) / 100;
+
+          console.log(`[Supplier Distribution] Component: ${buildComp.componentName}, Price: $${componentPrice}, Ratio: ${(componentRatio * 100).toFixed(2)}%, Supplier Amount: $${supplierAmount}`);
+
+          if (supplierMap.has(supplierId)) {
+            const existing = supplierMap.get(supplierId);
+            existing.amount += supplierAmount;
+            existing.components.push({
+              componentID: buildComp.componentID,
+              componentName: buildComp.componentName,
+              price: componentPrice,
+            });
+          } else {
+            supplierMap.set(supplierId, {
+              amount: supplierAmount,
+              components: [{
+                componentID: buildComp.componentID,
+                componentName: buildComp.componentName,
+                price: componentPrice,
+              }],
+            });
+          }
+        }
+
+        if (componentsWithoutSuppliers > 0) {
+          console.warn(`[Supplier Distribution] ${componentsWithoutSuppliers} components without suppliers were skipped`);
+        }
+
+        console.log(`[Supplier Distribution] Found ${supplierMap.size} unique suppliers to pay`);
+
+        // Create payouts and transactions
+        let totalDistributed = 0;
+        for (const [supplierId, data] of supplierMap.entries()) {
+          // Validate amount before creating transaction
+          if (!data.amount || data.amount <= 0 || isNaN(data.amount)) {
+            console.error(`[Auto Distribution] Invalid supplier amount for supplier ${supplierId}: ${data.amount}`);
+            continue; // Skip suppliers with invalid amounts
+          }
+
+          console.log(`[Auto Distribution] Paying supplier ${supplierId}: $${data.amount} for ${data.components.length} component(s)`);
+
+          const tx = await createTransaction({
+            type: 'payout',
+            buildId: build._id,
+            from: 'admin',
+            to: 'supplier',
+            amount: data.amount,
+            currency: 'USD',
+            meta: { supplierID: supplierId, kind: 'escrow_distribution', auto: true },
+          });
+
+          supplierPayouts.push({
+            supplierID: supplierId,
+            amount: data.amount,
+            componentID: data.components[0].componentID,
+            componentName: data.components[0].componentName,
+            paid: true,
+            paidAt: new Date(),
+            transactionId: tx.txId,
+          });
+
+          totalDistributed += data.amount;
+        }
+
+        console.log(`[Auto Distribution] Total distributed: $${totalDistributed.toFixed(2)} out of $${escrowAmount.toFixed(2)} escrow`);
+
+        if (supplierPayouts.length === 0) {
+          console.error(`[Auto Distribution] No valid supplier payouts created! Check if components have supplierIDs.`);
+          // Don't mark as distributed if no payouts were created
+        } else {
+          build.supplierPayouts = supplierPayouts;
+          build.payment.escrowDistributed = true;
+          build.payment.status = 'settled';
+        }
+      }
+    }
+
     await build.save();
 
     const populatedBuild = await Build.findById(build._id)
@@ -432,6 +637,9 @@ router.put('/:id/status', protect, authorize('assembler', 'admin'), async (req, 
     res.json({
       success: true,
       data: populatedBuild,
+      message: status === 'Completed' && !wasCompleted && build.payment?.escrowDistributed
+        ? 'Build completed and supplier payouts distributed automatically'
+        : 'Status updated',
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -463,6 +671,23 @@ router.put('/:id/assign', protect, authorize('admin'), async (req, res) => {
     build.assemblerID = assemblerID;
     if (build.assemblyStatus === 'Pending') {
       build.assemblyStatus = 'Assembling';
+    }
+
+    // If build is paid and assembler commission hasn't been paid yet, pay it now
+    if (build.payment && build.payment.status === 'paid' && !build.payment.assemblerCommissionPaid && build.payment.assemblerCommission > 0) {
+      const assemblerTx = await createTransaction({
+        type: 'payout',
+        buildId: build._id,
+        from: 'admin',
+        to: 'assembler',
+        amount: build.payment.assemblerCommission,
+        currency: 'USD',
+        meta: { assemblerID: assemblerID.toString(), kind: 'commission' },
+      });
+
+      build.payment.assemblerCommissionPaid = true;
+      build.payment.assemblerCommissionPaidAt = new Date();
+      build.payment.assemblerCommissionTxId = assemblerTx.txId;
     }
 
     await build.save();
