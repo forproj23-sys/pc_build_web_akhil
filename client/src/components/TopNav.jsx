@@ -75,7 +75,7 @@ export default function TopNav() {
                 </NavLink>
               </li>
             )}
-            {user && (
+            {user && role !== 'supplier' && (
               <li className="nav-item">
                 <NavLink to="/payments" className={({isActive}) => isActive ? 'nav-link active' : 'nav-link'}>
                   Payments
