@@ -1,7 +1,73 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import TopNav from '../components/TopNav';
+import '../styles/auth.css';
+
+// Registration illustration SVG component
+const RegisterIllustration = () => (
+  <svg viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: '400px' }}>
+    {/* Background elements */}
+    <ellipse cx="250" cy="360" rx="180" ry="25" fill="#f0f0f0"/>
+    
+    {/* Clipboard/Form */}
+    <rect x="180" y="100" width="140" height="200" rx="10" fill="#fff" stroke="#e5e7eb" strokeWidth="2"/>
+    <rect x="200" y="80" width="100" height="30" rx="5" fill="#2563eb"/>
+    <rect x="200" y="130" width="100" height="12" rx="3" fill="#e5e7eb"/>
+    <rect x="200" y="155" width="80" height="12" rx="3" fill="#e5e7eb"/>
+    <rect x="200" y="185" width="100" height="12" rx="3" fill="#e5e7eb"/>
+    <rect x="200" y="210" width="60" height="12" rx="3" fill="#e5e7eb"/>
+    <rect x="200" y="240" width="100" height="25" rx="5" fill="#e85d04"/>
+    
+    {/* Check marks */}
+    <circle cx="340" cy="140" r="15" fill="#22c55e"/>
+    <path d="M333 140 L338 145 L348 135" stroke="white" strokeWidth="3" fill="none"/>
+    <circle cx="355" cy="180" r="12" fill="#22c55e"/>
+    <path d="M349 180 L353 184 L361 176" stroke="white" strokeWidth="2" fill="none"/>
+    
+    {/* Person with laptop */}
+    <circle cx="120" cy="250" r="25" fill="#fcd5ce"/>
+    <path d="M80 360 Q80 310 120 300 Q160 310 160 360" fill="#667eea"/>
+    <rect x="70" y="290" width="80" height="50" rx="5" fill="#374151"/>
+    <rect x="75" y="295" width="70" height="35" rx="3" fill="#60a5fa"/>
+    <rect x="60" y="340" width="100" height="8" rx="2" fill="#4b5563"/>
+    
+    {/* Person standing */}
+    <circle cx="380" cy="240" r="22" fill="#fcd5ce"/>
+    <path d="M355 360 L355 285 Q355 260 380 260 Q405 260 405 285 L405 360" fill="#764ba2"/>
+    <ellipse cx="365" cy="360" rx="15" ry="8" fill="#374151"/>
+    <ellipse cx="395" cy="360" rx="15" ry="8" fill="#374151"/>
+    
+    {/* Pencil */}
+    <rect x="400" y="200" width="8" height="60" rx="1" fill="#fbbf24" transform="rotate(30 400 200)"/>
+    <path d="M430 250 L435 260 L425 260 Z" fill="#fcd34d" transform="rotate(30 430 255)"/>
+    <rect x="400" y="195" width="8" height="10" fill="#ec4899" transform="rotate(30 400 195)"/>
+    
+    {/* Decorative elements */}
+    <circle cx="80" cy="150" r="8" fill="#e85d04" opacity="0.6"/>
+    <circle cx="420" cy="120" r="6" fill="#667eea" opacity="0.6"/>
+    <rect x="60" y="200" width="12" height="12" rx="2" fill="none" stroke="#94a3b8" strokeWidth="2"/>
+    <path d="M440 300 L450 310 L440 320" stroke="#94a3b8" strokeWidth="2" fill="none"/>
+    
+    {/* Stars */}
+    <path d="M150 120 L153 128 L161 128 L155 133 L157 141 L150 136 L143 141 L145 133 L139 128 L147 128 Z" fill="#fbbf24"/>
+    <path d="M420 160 L422 165 L427 165 L423 168 L424 173 L420 170 L416 173 L417 168 L413 165 L418 165 Z" fill="#fbbf24"/>
+  </svg>
+);
+
+// Eye icons for password toggle
+const EyeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+
+const EyeOffIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -21,26 +87,20 @@ function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Validate name field
   const validateName = (name) => {
     if (!name || name.trim() === '') {
       return 'Name is required';
     }
-    
     if (name.length < 3) {
       return 'Name must be at least 3 characters';
     }
-    
     if (name.length > 30) {
       return 'Name must not exceed 30 characters';
     }
-    
-    // Only alphabetic characters and spaces allowed
     const namePattern = /^[a-zA-Z\s]+$/;
     if (!namePattern.test(name)) {
       return 'Name can only contain alphabetic characters and spaces';
     }
-    
     return '';
   };
 
@@ -53,7 +113,6 @@ function Register() {
     setError('');
     setSuccess('');
 
-    // Validate name field in real-time
     if (name === 'name') {
       const validationError = validateName(value);
       setNameError(validationError);
@@ -61,7 +120,6 @@ function Register() {
   };
 
   const handleNameBlur = () => {
-    // Validate on blur to ensure error is shown if field is left invalid
     const validationError = validateName(formData.name);
     setNameError(validationError);
   };
@@ -70,14 +128,12 @@ function Register() {
     e.preventDefault();
     setError('');
 
-    // Validate name field before submission
     const nameValidationError = validateName(formData.name);
     if (nameValidationError) {
       setNameError(nameValidationError);
       return;
     }
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -98,9 +154,7 @@ function Register() {
     );
 
     if (result.success) {
-      // Check if user is approved
       if (result.user.approved) {
-        // Redirect based on role if approved
         const role = result.user.role;
         if (role === 'admin') {
           navigate('/admin');
@@ -112,12 +166,10 @@ function Register() {
           navigate('/dashboard');
         }
       } else {
-        // User registered but needs approval
         setSuccess(
           'Registration successful! Your account is pending admin approval. You will be redirected to login page shortly.'
         );
         setError('');
-        // Redirect to login after 3 seconds
         setTimeout(() => {
           navigate('/login');
         }, 3000);
@@ -131,255 +183,123 @@ function Register() {
   };
 
   return (
-    <div
-      className="app-container d-flex align-items-center justify-content-center"
-      style={{
-        minHeight: '100vh',
-        backgroundImage: "url('https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.0.3&s=abcd')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      <div style={{ width: '100%', maxWidth: 760, padding: '2rem' }}>
-        <div className="card shadow-lg mx-auto" style={{ borderRadius: 40, overflow: 'visible', paddingTop: 48, transform: 'translateY(-10px)' }}>
-          {/* avatar circle */}
-          <div style={{ position: 'relative' }}>
-            <div
-              style={{
-                width: 96,
-                height: 96,
-                borderRadius: 48,
-                backgroundColor: '#2b59d9',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: 40,
-                position: 'absolute',
-                top: -48,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                boxShadow: '0 6px 18px rgba(0,0,0,0.15)',
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
+    <div className="auth-page">
+      <div className="auth-container">
+        {/* Left side - Form */}
+        <div className="auth-form-section">
+          <h1 className="auth-heading">Create Account</h1>
+
+          {error && <div className="auth-alert auth-alert-error">{error}</div>}
+          {success && <div className="auth-alert auth-alert-success">{success}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="auth-form-group">
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+                onBlur={handleNameBlur}
+                required
+                maxLength={30}
+                className={`auth-input ${nameError ? 'is-invalid' : ''}`}
+              />
+              {nameError && <div className="auth-invalid-feedback">{nameError}</div>}
             </div>
-            <div className="card-body" style={{ paddingTop: 64 }}>
-              <h2 className="text-center" style={{ fontWeight: 700 }}>Create Account</h2>
 
-              {error && <div className="alert alert-danger mt-3">{error}</div>}
-              {success && <div className="alert alert-success mt-3">{success}</div>}
+            <div className="auth-form-group">
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="auth-input"
+              />
+            </div>
 
-              <form onSubmit={handleSubmit} className="mt-4" style={{ maxWidth: 520, margin: '0 auto' }}>
-                <div className="mb-3">
-                  <label className="form-label">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Enter your Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    onBlur={handleNameBlur}
-                    required
-                    maxLength={30}
-                    className={`form-control ${nameError ? 'is-invalid' : ''}`}
-                  />
-                  {nameError && <div className="invalid-feedback">{nameError}</div>}
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter your Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="form-control"
-                  />
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Password</label>
-                  <div className="input-group">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      placeholder="Enter your Password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                      className="form-control"
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary"
-                      onClick={() => setShowPassword((s) => !s)}
-                      aria-label="Toggle password visibility"
-                      title={showPassword ? 'Hide password' : 'Show password'}
-                      style={{ color: '#0d6efd', backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}
-                    >
-                      {showPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Confirm Password</label>
-                  <div className="input-group">
-                    <input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      name="confirmPassword"
-                      placeholder="Confirm your Password"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      required
-                      className="form-control"
-                    />
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary"
-                      onClick={() => setShowConfirmPassword((s) => !s)}
-                      aria-label="Toggle confirm password visibility"
-                      title={showConfirmPassword ? 'Hide password' : 'Show password'}
-                      style={{ color: '#0d6efd', backgroundColor: 'transparent', border: 'none', boxShadow: 'none' }}
-                    >
-                      {showConfirmPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label className="form-label">Role (for demo)</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="form-select"
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                    <option value="assembler">Assembler</option>
-                    <option value="supplier">Supplier</option>
-                  </select>
-                  <small className="form-text text-muted">For demo purposes only</small>
-                </div>
-
+            <div className="auth-form-group">
+              <div className="auth-password-group">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="auth-input"
+                />
                 <button
-                  type="submit"
-                  disabled={loading || !!nameError}
-                  className="btn btn-primary w-100"
-                  style={{ backgroundColor: '#2b59d9', borderColor: '#2b59d9', padding: '0.75rem 1rem' }}
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label="Toggle password visibility"
                 >
-                  {loading ? 'Registering...' : 'Register'}
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
-              </form>
-
-              <div className="text-center mt-4" style={{ color: '#999' }}>
-                <small>Already have an account? <Link to="/login">Login</Link></small>
               </div>
             </div>
+
+            <div className="auth-form-group">
+              <div className="auth-password-group">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="auth-input"
+                />
+                <button
+                  type="button"
+                  className="auth-password-toggle"
+                  onClick={() => setShowConfirmPassword((s) => !s)}
+                  aria-label="Toggle confirm password visibility"
+                >
+                  {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+            </div>
+
+            <div className="auth-form-group">
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="auth-select"
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="assembler">Assembler</option>
+                <option value="supplier">Supplier</option>
+              </select>
+              <small className="auth-hint">Select your role (for demo)</small>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !!nameError}
+              className="auth-submit-btn"
+            >
+              {loading ? 'Creating...' : 'Submit'}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            Already have an account? <Link to="/login">Login here</Link>
           </div>
+        </div>
+
+        {/* Right side - Illustration */}
+        <div className="auth-illustration-section">
+          <RegisterIllustration />
         </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-    width: '100%',
-    maxWidth: '400px',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: '1.5rem',
-    color: '#333',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  formGroup: {
-    marginBottom: '1rem',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '0.5rem',
-    color: '#555',
-    fontWeight: '500',
-  },
-  input: {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    boxSizing: 'border-box',
-  },
-  inputError: {
-    border: '1px solid #dc3545',
-  },
-  fieldError: {
-    color: '#dc3545',
-    fontSize: '0.875rem',
-    marginTop: '0.25rem',
-  },
-  button: {
-    padding: '0.75rem',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    cursor: 'pointer',
-    marginTop: '1rem',
-  },
-  buttonDisabled: {
-    backgroundColor: '#6c757d',
-    cursor: 'not-allowed',
-    opacity: 0.6,
-  },
-  error: {
-    backgroundColor: '#fee',
-    color: '#c33',
-    padding: '0.75rem',
-    borderRadius: '4px',
-    marginBottom: '1rem',
-  },
-  success: {
-    backgroundColor: '#d1e7dd',
-    color: '#0f5132',
-    padding: '0.75rem',
-    borderRadius: '4px',
-    marginBottom: '1rem',
-  },
-  link: {
-    textAlign: 'center',
-    marginTop: '1rem',
-    color: '#666',
-  },
-  hint: {
-    display: 'block',
-    marginTop: '0.25rem',
-    fontSize: '0.875rem',
-    color: '#888',
-  },
-};
 
 export default Register;
