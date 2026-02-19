@@ -7,7 +7,7 @@ const router = express.Router();
 
 // GET /api/transactions
 // - Admin: returns all transactions
-// - User: returns transactions for builds owned by the user
+// - User: returns transactions where user is involved (from='user' OR to='user')
 // - Assembler: returns transactions for builds assigned to the assembler
 router.get('/', protect, async (req, res) => {
   try {
@@ -16,11 +16,13 @@ router.get('/', protect, async (req, res) => {
     let txQuery = {};
 
     if (role === 'admin') {
-      // no extra filter
+      // Admin sees all transactions - no filter
     } else if (role === 'user') {
-      const builds = await Build.find({ userID: req.user._id }).select('_id');
-      const ids = builds.map((b) => b._id);
-      txQuery.buildId = { $in: ids };
+      // User sees only transactions where they are involved (as sender or receiver)
+      txQuery.$or = [
+        { from: 'user' },
+        { to: 'user' }
+      ];
     } else if (role === 'assembler') {
       const builds = await Build.find({ assemblerID: req.user._id }).select('_id');
       const ids = builds.map((b) => b._id);
