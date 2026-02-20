@@ -954,6 +954,7 @@ function MyBuilds() {
   const [loading, setLoading] = useState(true);
   const [selectedBuild, setSelectedBuild] = useState(null);
   const [payLoadingMap, setPayLoadingMap] = useState({});
+  const [refundLoadingMap, setRefundLoadingMap] = useState({});
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -1026,6 +1027,54 @@ function MyBuilds() {
     }
   };
 
+  const requestRefund = async (buildId) => {
+    const build = builds.find((b) => b._id === buildId);
+    if (!build) return;
+
+    // Check if build is completed
+    if (build.assemblyStatus === 'Completed') {
+      alert('Refunds are not allowed for completed builds.');
+      return;
+    }
+
+    // Check if already refunded
+    if (build.payment?.status === 'refunded') {
+      alert('This build has already been refunded.');
+      return;
+    }
+
+    // Check if there's already a pending request
+    const pendingRequest = (build.refundRequests || []).find(
+      (req) => req.status === 'requested' || req.status === 'approved'
+    );
+    if (pendingRequest) {
+      alert('A refund request is already pending for this build.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Request refund for this build?\n\n` +
+      `You will receive 90% of your payment ($${(build.payment?.escrowAmount || 0).toFixed(2)}) if approved.\n` +
+      `3% admin commission and 7% assembler commission are non-refundable.`
+    );
+    if (!confirmed) return;
+
+    const reason = window.prompt('Reason for refund (optional):', '') || '';
+
+    try {
+      setRefundLoadingMap((m) => ({ ...m, [buildId]: true }));
+      const res = await api.post(`/builds/${buildId}/request-refund`, { reason });
+      const updated = res.data.data;
+      setBuilds((prev) => prev.map((b) => (b._id === buildId ? updated : b)));
+      if (selectedBuild && selectedBuild._id === buildId) setSelectedBuild(updated);
+      alert(res.data.message || 'Refund request submitted');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error submitting refund request');
+    } finally {
+      setRefundLoadingMap((m) => ({ ...m, [buildId]: false }));
+    }
+  };
+
   if (loading) {
     return <div style={styles.loading}>Loading builds...</div>;
   }
@@ -1065,7 +1114,34 @@ function MyBuilds() {
           <h3>Build Details</h3>
           <p><strong>Status:</strong> {selectedBuild.assemblyStatus}</p>
           <p><strong>Total Price:</strong> ${selectedBuild.totalPrice.toFixed(2)}</p>
+          <p><strong>Payment Status:</strong> {selectedBuild.payment?.status || 'pending'}</p>
           <p><strong>Compatible:</strong> {selectedBuild.isCompatible ? 'Yes' : 'No'}</p>
+          
+          {selectedBuild.payment?.status === 'paid' && selectedBuild.assemblyStatus !== 'Completed' && (
+            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#fff9e6', borderRadius: '4px', border: '1px solid #ffd700' }}>
+              <p><strong>Refund Information:</strong></p>
+              <p>You can request a refund for this build. You will receive 90% of your payment (${(selectedBuild.payment?.escrowAmount || 0).toFixed(2)}).</p>
+              <p style={{ fontSize: '0.9rem', color: '#666' }}>Note: 3% admin commission and 7% assembler commission are non-refundable.</p>
+              {selectedBuild.refundRequests && selectedBuild.refundRequests.length > 0 && (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <p><strong>Refund Requests:</strong></p>
+                  {selectedBuild.refundRequests.map((req, i) => (
+                    <div key={i} style={{ marginLeft: '1rem', fontSize: '0.9rem' }}>
+                      <p>Status: <strong>{req.status}</strong> | Amount: ${req.amount?.toFixed(2) || '0.00'}</p>
+                      {req.reason && <p>Reason: {req.reason}</p>}
+                      {req.createdAt && <p>Requested: {new Date(req.createdAt).toLocaleString()}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          {selectedBuild.assemblyStatus === 'Completed' && (
+            <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#f0f0f0', borderRadius: '4px' }}>
+              <p style={{ color: '#666' }}>This build is completed. Refunds are no longer available.</p>
+            </div>
+          )}
           
           {selectedBuild.compatibilityCheck && (
             <div style={styles.compatibilityResult}>
@@ -1151,15 +1227,55 @@ function MyBuilds() {
                   >
                     {payLoadingMap[build._id] ? 'Processing...' : 'Pay'}
                   </button>
-                ) : (
+                ) : build.payment?.status === 'refunded' ? (
                   <button
                     className="btn btn-sm btn-secondary action-btn"
                     style={styles.viewButton}
                     disabled
                   >
-                    Paid
+                    Refunded
                   </button>
-                )}
+                ) : (() => {
+                  const pendingRequest = (build.refundRequests || []).find(
+                    (req) => req.status === 'requested' || req.status === 'approved'
+                  );
+                  const isCompleted = build.assemblyStatus === 'Completed';
+                  
+                  if (pendingRequest) {
+                    return (
+                      <button
+                        className="btn btn-sm btn-warning action-btn"
+                        style={styles.viewButton}
+                        disabled
+                        title={`Refund request ${pendingRequest.status}`}
+                      >
+                        Refund {pendingRequest.status === 'requested' ? 'Pending' : 'Approved'}
+                      </button>
+                    );
+                  } else if (isCompleted) {
+                    return (
+                      <button
+                        className="btn btn-sm btn-secondary action-btn"
+                        style={styles.viewButton}
+                        disabled
+                        title="Refunds not allowed for completed builds"
+                      >
+                        Paid
+                      </button>
+                    );
+                  } else {
+                    return (
+                      <button
+                        onClick={() => requestRefund(build._id)}
+                        className="btn btn-sm btn-warning action-btn"
+                        style={styles.viewButton}
+                        disabled={!!refundLoadingMap[build._id]}
+                      >
+                        {refundLoadingMap[build._id] ? 'Processing...' : 'Request Refund'}
+                      </button>
+                    );
+                  }
+                })()}
               </div>
             </div>
           ))}

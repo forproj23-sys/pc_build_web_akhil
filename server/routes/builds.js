@@ -399,7 +399,63 @@ router.post('/:id/distribute-suppliers', protect, authorize('admin'), async (req
   }
 });
 
-// POST /api/builds/:id/refund - Admin issues refund (90% escrow only, if build not completed)
+// POST /api/builds/:id/request-refund - User requests refund
+router.post('/:id/request-refund', protect, authorize('user'), async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const build = await Build.findById(req.params.id);
+    if (!build) return res.status(404).json({ message: 'Build not found' });
+
+    // Verify build belongs to user
+    if (build.userID.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only request refunds for your own builds' });
+    }
+
+    if (!build.payment || build.payment.status !== 'paid') {
+      return res.status(400).json({ message: 'Build not paid or already refunded' });
+    }
+
+    // If build is completed, refunds are not allowed
+    if (build.assemblyStatus === 'Completed') {
+      return res.status(400).json({ message: 'Refunds are not allowed for completed builds' });
+    }
+
+    // Check if there's already a pending refund request
+    const pendingRequest = (build.refundRequests || []).find(
+      (req) => req.status === 'requested' || req.status === 'approved'
+    );
+    if (pendingRequest) {
+      return res.status(400).json({ message: 'A refund request is already pending for this build' });
+    }
+
+    // Check if already refunded
+    if (build.payment.status === 'refunded') {
+      return res.status(400).json({ message: 'This build has already been refunded' });
+    }
+
+    // Create refund request
+    build.refundRequests = build.refundRequests || [];
+    const refundAmount = build.payment.escrowAmount || 0;
+    build.refundRequests.push({
+      amount: refundAmount,
+      reason: reason || 'User requested refund',
+      status: 'requested',
+      createdAt: new Date(),
+    });
+
+    await build.save();
+
+    res.json({
+      success: true,
+      message: `Refund request submitted. You will receive 90% of your payment ($${refundAmount.toFixed(2)}) if approved. Admin commission (3%) and assembler commission (7%) are non-refundable.`,
+      data: build,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/builds/:id/refund - Admin processes refund (90% escrow only, if build not completed)
 router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
   try {
     const { reason } = req.body;
@@ -445,15 +501,24 @@ router.post('/:id/refund', protect, authorize('admin'), async (req, res) => {
       createdAt: new Date(),
     });
 
-    // Add refund request record
+    // Update or create refund request record
     build.refundRequests = build.refundRequests || [];
-    build.refundRequests.push({
-      amount: refundAmount,
-      reason: reason || 'Escrow refund (90%)',
-      status: 'processed',
-      createdAt: new Date(),
-      processedBy: req.user._id.toString(),
-    });
+    // Find pending request and mark as processed, or create new one
+    const pendingRequest = build.refundRequests.find((req) => req.status === 'requested' || req.status === 'approved');
+    if (pendingRequest) {
+      pendingRequest.status = 'processed';
+      pendingRequest.processedBy = req.user._id.toString();
+      pendingRequest.processedAt = new Date();
+      if (reason) pendingRequest.adminNote = reason;
+    } else {
+      build.refundRequests.push({
+        amount: refundAmount,
+        reason: reason || 'Admin processed refund (90% escrow)',
+        status: 'processed',
+        createdAt: new Date(),
+        processedBy: req.user._id.toString(),
+      });
+    }
 
     // Update overall payment status
     build.payment.status = 'refunded';

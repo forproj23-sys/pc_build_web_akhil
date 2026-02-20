@@ -1631,14 +1631,27 @@ function BuildsTab() {
         return;
       }
 
+      // Check for pending refund requests
+      const pendingRequest = (build.refundRequests || []).find(
+        (req) => req.status === 'requested' || req.status === 'approved'
+      );
+      
+      const refundAmount = build.payment?.escrowAmount || 0;
+      const requestReason = pendingRequest?.reason || '';
+
       const confirmed = window.confirm(
-        `Issue refund for this build?\n\n` +
-        `This will refund 90% of the payment (escrow) to the user.\n` +
-        `3% admin commission and 7% assembler commission are non-refundable.`
+        pendingRequest
+          ? `Process refund request for this build?\n\n` +
+            `User requested refund: ${requestReason}\n` +
+            `This will refund 90% of the payment ($${refundAmount.toFixed(2)}) to the user.\n` +
+            `3% admin commission and 7% assembler commission are non-refundable.`
+          : `Issue refund for this build?\n\n` +
+            `This will refund 90% of the payment ($${refundAmount.toFixed(2)}) to the user.\n` +
+            `3% admin commission and 7% assembler commission are non-refundable.`
       );
       if (!confirmed) return;
 
-      const reason = window.prompt('Reason for refund (optional):', '') || '';
+      const reason = window.prompt('Admin note (optional):', '') || '';
 
       const res = await api.post(`/builds/${buildId}/refund`, { reason });
       const updated = res.data.data;
@@ -1736,14 +1749,45 @@ function BuildsTab() {
                   )}
                 </>
               )}
+              {selectedBuild.refundRequests && selectedBuild.refundRequests.length > 0 && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#fff3cd', borderRadius: '4px', border: '1px solid #ffc107' }}>
+                  <strong>Refund Requests:</strong>
+                  {selectedBuild.refundRequests.map((req, idx) => (
+                    <div key={idx} style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'white', borderRadius: '4px' }}>
+                      <div><strong>Status:</strong> <span style={{ 
+                        color: req.status === 'processed' ? 'green' : req.status === 'rejected' ? 'red' : 'orange',
+                        fontWeight: 'bold'
+                      }}>{req.status.toUpperCase()}</span></div>
+                      <div><strong>Amount:</strong> ${req.amount?.toFixed(2) || '0.00'}</div>
+                      {req.reason && <div><strong>Reason:</strong> {req.reason}</div>}
+                      {req.createdAt && <div><strong>Requested:</strong> {new Date(req.createdAt).toLocaleString()}</div>}
+                      {req.processedBy && <div><strong>Processed By:</strong> Admin</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <div className="mt-3">
             {selectedBuild.payment?.status === 'paid' && (
               <>
-                {selectedBuild.assemblyStatus !== 'Completed' && (
-                  <button className="btn btn-warning me-2" onClick={() => handleRefund(selectedBuild._id)}>
-                    Issue Refund (90% Escrow)
+                {selectedBuild.assemblyStatus !== 'Completed' && (() => {
+                  const pendingRequest = (selectedBuild.refundRequests || []).find(
+                    (req) => req.status === 'requested' || req.status === 'approved'
+                  );
+                  return (
+                    <button 
+                      className="btn btn-warning me-2" 
+                      onClick={() => handleRefund(selectedBuild._id)}
+                      title={pendingRequest ? `Pending refund request: ${pendingRequest.reason}` : 'Issue refund'}
+                    >
+                      {pendingRequest ? `Process Refund Request (90% Escrow)` : 'Issue Refund (90% Escrow)'}
+                    </button>
+                  );
+                })()}
+                {selectedBuild.assemblyStatus === 'Completed' && (
+                  <button className="btn btn-secondary me-2" disabled title="Refunds not allowed for completed builds">
+                    Refund Not Available (Build Completed)
                   </button>
                 )}
                 {selectedBuild.assemblyStatus === 'Completed' && !selectedBuild.payment?.escrowDistributed && (
