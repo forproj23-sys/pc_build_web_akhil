@@ -96,7 +96,9 @@ function ComponentsList() {
     }
   };
 
-  const activeCategories = categories.filter((cat) => cat.isActive !== false);
+  const activeCategories = categories
+    .filter((cat) => cat.isActive !== false)
+    .sort((a, b) => (b.priority || 0) - (a.priority || 0)); // Sort by priority (descending - higher priority first)
 
   // Filter components by search term
   const filteredComponents = components.filter((component) => {
@@ -299,35 +301,102 @@ function BuildCreator() {
     return allocateBudgetByCategory(Number(totalBudget), categories, selectedComponents);
   };
 
+  // Helper to format budget range display
+  const formatBudgetRange = (alloc) => {
+    if (!alloc) return '';
+    if (alloc.minBudget === 0) {
+      return `Up to $${alloc.maxBudget.toFixed(0)}`;
+    }
+    return `$${alloc.minBudget.toFixed(0)} - $${alloc.maxBudget.toFixed(0)}`;
+  };
+
+  // Helper to format budget range with decimals
+  const formatBudgetRangeDecimal = (alloc) => {
+    if (!alloc) return '';
+    if (alloc.minBudget === 0) {
+      return `Up to $${alloc.maxBudget.toFixed(2)}`;
+    }
+    return `$${alloc.minBudget.toFixed(2)} - $${alloc.maxBudget.toFixed(2)}`;
+  };
+
   const getFilteredComponents = (categoryName) => {
+    // First filter by category and stock status
+    const categoryComponents = components.filter((comp) => {
+      if (!comp.stockStatus) return false;
+      const compCategory = (comp.category || '').toUpperCase();
+      return compCategory === categoryName.toUpperCase();
+    });
+
+    // Debug: Log category matching
+    if (categoryName.toUpperCase() === 'MOTHERBOARD') {
+      console.log('🔍 Motherboard Debug:', {
+        totalComponents: components.length,
+        categoryComponents: categoryComponents.length,
+        sampleCategories: components.slice(0, 5).map(c => c.category),
+        categoryName: categoryName,
+      });
+    }
+
+    // If no budget is set, return all components in this category
     if (!totalBudget || categories.length === 0) {
-      return components.filter((c) => (c.category || '').toUpperCase() === categoryName.toUpperCase());
+      return categoryComponents;
     }
 
     const budgetAlloc = getBudgetAllocation();
-    if (!budgetAlloc) return [];
+    if (!budgetAlloc) {
+      // If budget allocation fails, still show components (no budget filtering)
+      return categoryComponents;
+    }
 
     const categoryAlloc = budgetAlloc.allocations.find(
       (a) => a.categoryName.toUpperCase() === categoryName.toUpperCase()
     );
 
-    if (!categoryAlloc) return [];
+    // If no allocation found for this category, show all components (no budget filtering)
+    if (!categoryAlloc) {
+      console.log('⚠️ No allocation found for category:', categoryName);
+      return categoryComponents;
+    }
 
-    // Filter by budget range (with 10% flexibility)
-    const budgetFiltered = components.filter((comp) => {
-      if (!comp.stockStatus) return false;
-      const compCategory = (comp.category || '').toUpperCase();
-      if (compCategory !== categoryName.toUpperCase()) return false;
+    // Filter by budget range
+    // minPrice is always 0 to allow cheaper options (savings get reallocated)
+    // maxPrice uses the allocated maxBudget with 10% flexibility
+    // If maxBudget is 0 or very small, use a reasonable fallback (total budget / number of categories)
+    const maxBudget = categoryAlloc.maxBudget || 0;
+    const fallbackMax = totalBudget && categories.length > 0 
+      ? (Number(totalBudget) / categories.length) * 1.5 
+      : Infinity;
+    const effectiveMaxBudget = maxBudget > 0 ? maxBudget : fallbackMax;
+    const maxPrice = effectiveMaxBudget * 1.1; // Allow 10% over maxBudget
 
+    const budgetFiltered = categoryComponents.filter((comp) => {
       const price = Number(comp.price) || 0;
-      const minPrice = categoryAlloc.minBudget * 0.9;
-      const maxPrice = categoryAlloc.maxBudget * 1.1;
+      const minPrice = 0; // Always allow cheaper options
       return price >= minPrice && price <= maxPrice;
     });
 
+    // Debug: Log budget filtering
+    if (categoryName.toUpperCase() === 'MOTHERBOARD') {
+      console.log('💰 Budget Filter Debug:', {
+        categoryAlloc,
+        maxBudget,
+        effectiveMaxBudget,
+        maxPrice,
+        budgetFiltered: budgetFiltered.length,
+        samplePrices: categoryComponents.slice(0, 3).map(c => c.price),
+      });
+    }
+
     // Filter by compatibility
-    return budgetFiltered.filter((comp) => {
-      if (selectedComponents.length === 0) return true;
+    // IMPORTANT: Show ALL components, even if incompatible, so users can make informed choices
+    // The UI will mark incompatible components visually, but we don't hide them
+    // This allows users to see all options and understand compatibility issues
+    const compatibilityFiltered = budgetFiltered.map((comp) => {
+      // Attach compatibility info to component for UI display
+      if (selectedComponents.length === 0) {
+        comp._compatibility = { isCompatible: true, issues: [], warnings: [] };
+        return comp;
+      }
 
       const testBuild = [...selectedComponents];
       const existingInCategory = testBuild.findIndex(
@@ -341,8 +410,43 @@ function BuildCreator() {
       }
 
       const compatCheck = checkCompatibility(testBuild);
-      return compatCheck.isCompatible;
+      
+      // Attach compatibility info to component
+      comp._compatibility = compatCheck;
+      
+      // Debug: Log compatibility issues for motherboards
+      if (categoryName.toUpperCase() === 'MOTHERBOARD') {
+        if (!compatCheck.isCompatible) {
+          console.log('❌ Compatibility Issue:', {
+            component: comp.name,
+            price: comp.price,
+            socket: comp.socket,
+            issues: compatCheck.issues,
+            warnings: compatCheck.warnings,
+            isCompatible: compatCheck.isCompatible,
+            selectedCPU: selectedComponents.find(c => (c.category || '').toUpperCase() === 'CPU'),
+          });
+        } else {
+          console.log('✅ Compatible:', {
+            component: comp.name,
+            warnings: compatCheck.warnings.length,
+          });
+        }
+      }
+      
+      // Return component regardless of compatibility - we'll show it but mark it
+      return comp;
     });
+
+    // Debug: Final result
+    if (categoryName.toUpperCase() === 'MOTHERBOARD') {
+      console.log('✅ Final Motherboard Filter:', {
+        afterCompatibility: compatibilityFiltered.length,
+        selectedComponents: selectedComponents.length,
+      });
+    }
+
+    return compatibilityFiltered;
   };
 
   const toggleComponent = (component) => {
@@ -410,7 +514,9 @@ function BuildCreator() {
     return <div style={styles.loading}>Loading components...</div>;
   }
 
-  const activeCategories = categories.filter((cat) => cat.isActive !== false);
+  const activeCategories = categories
+    .filter((cat) => cat.isActive !== false)
+    .sort((a, b) => (b.priority || 0) - (a.priority || 0)); // Sort by priority (descending - higher priority first)
 
   return (
     <div>
@@ -510,7 +616,7 @@ function BuildCreator() {
                     )}
                     {alloc && (
                       <span style={styles.budgetBadgeSmall}>
-                        ${alloc.minBudget.toFixed(0)}-${alloc.maxBudget.toFixed(0)}
+                        {formatBudgetRange(alloc)}
                       </span>
                     )}
                     <span style={styles.countBadge}>{filteredComps.length}</span>
@@ -592,7 +698,7 @@ function BuildCreator() {
                         <span style={styles.price}>${comp.price.toFixed(2)}</span>
                         {alloc && (
                           <span style={styles.budgetRange}>
-                            (Budget: ${alloc.minBudget.toFixed(2)} - ${alloc.maxBudget.toFixed(2)})
+                            (Budget: {formatBudgetRangeDecimal(alloc)})
                           </span>
                         )}
                       </div>
@@ -605,7 +711,7 @@ function BuildCreator() {
                       <strong>{cat.name}:</strong> Not selected
                       {alloc && (
                         <div style={styles.budgetRange}>
-                          Budget: ${alloc.minBudget.toFixed(2)} - ${alloc.maxBudget.toFixed(2)}
+                          Budget: {formatBudgetRangeDecimal(alloc)}
                         </div>
                       )}
                     </div>
@@ -655,7 +761,7 @@ function BuildCreator() {
                       {selectedCategory}
                       {alloc && (
                         <span style={styles.budgetBadge}>
-                          ${alloc.minBudget.toFixed(0)} - ${alloc.maxBudget.toFixed(0)}
+                          {formatBudgetRange(alloc)}
                         </span>
                       )}
                     </h4>
@@ -679,16 +785,19 @@ function BuildCreator() {
                           </thead>
                           <tbody>
                             {filteredComps.map((component) => {
-                              const testBuild = [...selectedComponents];
-                              const existingInCategory = testBuild.findIndex(
-                                (s) => (s.category || '').toUpperCase() === (selectedCategory || '').toUpperCase()
-                              );
-                              if (existingInCategory >= 0) {
-                                testBuild[existingInCategory] = component;
-                              } else {
-                                testBuild.push(component);
-                              }
-                              const compatCheck = checkCompatibility(testBuild);
+                              // Use compatibility info attached to component, or calculate it
+                              const compatCheck = component._compatibility || (() => {
+                                const testBuild = [...selectedComponents];
+                                const existingInCategory = testBuild.findIndex(
+                                  (s) => (s.category || '').toUpperCase() === (selectedCategory || '').toUpperCase()
+                                );
+                                if (existingInCategory >= 0) {
+                                  testBuild[existingInCategory] = component;
+                                } else {
+                                  testBuild.push(component);
+                                }
+                                return checkCompatibility(testBuild);
+                              })();
                               const isSelected = selected?._id === component._id;
 
                               return (
@@ -773,16 +882,19 @@ function BuildCreator() {
                           </thead>
                           <tbody>
                             {filteredComps.map((component) => {
-                              const testBuild = [...selectedComponents];
-                              const existingInCategory = testBuild.findIndex(
-                                (s) => (s.category || '').toUpperCase() === (category.name || '').toUpperCase()
-                              );
-                              if (existingInCategory >= 0) {
-                                testBuild[existingInCategory] = component;
-                              } else {
-                                testBuild.push(component);
-                              }
-                              const compatCheck = checkCompatibility(testBuild);
+                              // Use compatibility info attached to component, or calculate it
+                              const compatCheck = component._compatibility || (() => {
+                                const testBuild = [...selectedComponents];
+                                const existingInCategory = testBuild.findIndex(
+                                  (s) => (s.category || '').toUpperCase() === (category.name || '').toUpperCase()
+                                );
+                                if (existingInCategory >= 0) {
+                                  testBuild[existingInCategory] = component;
+                                } else {
+                                  testBuild.push(component);
+                                }
+                                return checkCompatibility(testBuild);
+                              })();
                               const isSelected = selected?._id === component._id;
 
                               return (

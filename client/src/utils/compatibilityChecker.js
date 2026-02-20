@@ -23,12 +23,20 @@ export function checkCompatibility(components) {
 
     if (cpuSocket && mbSocket) {
       if (cpuSocket !== mbSocket) {
+        // Only mark as incompatible if both sockets are explicitly set and don't match
         issues.push(`CPU socket (${cpuSocket}) does not match Motherboard socket (${mbSocket})`);
         isCompatible = false;
       } else {
         warnings.push(`✓ CPU and Motherboard socket compatibility verified (${cpuSocket})`);
       }
+    } else if (cpuSocket && !mbSocket) {
+      // CPU has socket but motherboard doesn't - show warning but don't block
+      warnings.push(`⚠ Motherboard socket information missing - cannot verify compatibility with CPU (${cpuSocket})`);
+    } else if (!cpuSocket && mbSocket) {
+      // Motherboard has socket but CPU doesn't - show warning but don't block
+      warnings.push(`⚠ CPU socket information missing - cannot verify compatibility with Motherboard (${mbSocket})`);
     }
+    // If both are missing, no check needed - allow selection
   }
 
   // Check form factor compatibility

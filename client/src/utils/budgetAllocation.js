@@ -61,17 +61,26 @@ export function allocateBudgetByCategory(totalBudget, categories, selectedCompon
     let maxBudget = 0;
     let ratio = 0;
 
-    if (cat.priority > 0 && totalPriority > 0) {
-      ratio = cat.priority / totalPriority;
-      allocatedBudget = ratio * remainingBudget;
-      // Budget range: ±20% flexibility
-      minBudget = Math.max(0, allocatedBudget * 0.8);
-      maxBudget = allocatedBudget * 1.2;
-    } else if (cat.spent > 0) {
+    if (cat.spent > 0) {
       // Category already has selection
       allocatedBudget = cat.spent;
       minBudget = cat.spent;
       maxBudget = cat.spent;
+    } else if (cat.priority > 0 && totalPriority > 0) {
+      ratio = cat.priority / totalPriority;
+      allocatedBudget = ratio * remainingBudget;
+      // Set minBudget to 0 for unselected categories to allow cheaper options
+      // This enables users to save money and reallocate to other categories
+      minBudget = 0;
+      // Max budget with 20% flexibility to allow some overspending
+      // Ensure maxBudget is at least a small value to avoid filtering out all components
+      maxBudget = Math.max(allocatedBudget * 1.2, remainingBudget * 0.1);
+    } else {
+      // Category has no priority or no remaining budget, but still create allocation
+      // with a reasonable default to ensure components are shown
+      allocatedBudget = remainingBudget > 0 ? remainingBudget / activeCategories.length : 0;
+      minBudget = 0;
+      maxBudget = Math.max(allocatedBudget * 1.2, totalBudgetNum * 0.1);
     }
 
     return {
