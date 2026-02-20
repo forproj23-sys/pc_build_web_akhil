@@ -1,0 +1,341 @@
+/* ============================================================
+   Payments Page — Matching Auth Page Theme
+   Purple gradient circles · Rounded card · Soft shadows
+   Orange-red accent · Modern minimal layout
+   ============================================================ */
+
+/* === Page === */
+.payments-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #ffffff;
+  position: relative;
+  overflow-x: hidden;
+  font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+  padding: 2.5rem 1.5rem;
+}
+
+/* Gradient corner decorations (same as auth-page) */
+.payments-page::before {
+  content: '';
+  position: fixed;
+  top: -150px;
+  right: -150px;
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.payments-page::after {
+  content: '';
+  position: fixed;
+  bottom: -150px;
+  left: -150px;
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* === Main container card === */
+.payments-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1100px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+/* === Header === */
+.payments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2.5rem 1.5rem;
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.payments-header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.payments-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: #f5f5fa;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.payments-back-btn:hover {
+  background: #eaeaf0;
+  color: #333;
+}
+
+.payments-back-btn svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.payments-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #e85d04;
+  margin: 0;
+}
+
+.payments-count {
+  font-size: 0.88rem;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* === Stats row === */
+.payments-stats {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem 2.5rem;
+  flex-wrap: wrap;
+}
+
+.payments-stat-card {
+  padding: 1.25rem 1.5rem;
+  background: #fafafd;
+  border-radius: 16px;
+  border: 1px solid #f0f0f5;
+  min-width: 200px;
+  transition: all 0.3s ease;
+}
+
+.payments-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.payments-stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.2rem 0;
+}
+
+.payments-stat-label {
+  font-size: 0.85rem;
+  color: #888;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* === Content area === */
+.payments-content {
+  padding: 1.5rem 2.5rem 2.5rem;
+}
+
+/* === Alert === */
+.payments-alert {
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.payments-alert-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+/* === Loading === */
+.payments-loading {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.05rem;
+  color: #aaa;
+}
+
+/* === Empty state === */
+.payments-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #aaa;
+  font-size: 0.95rem;
+}
+
+/* === Table === */
+.payments-table-container {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid #f0f0f5;
+}
+
+.payments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payments-table thead th {
+  background: #fafafd;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #f0f0f5;
+  white-space: nowrap;
+}
+
+.payments-table tbody td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #f5f5fa;
+  color: #333;
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.payments-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.payments-table tbody tr:hover {
+  background: #fafafd;
+}
+
+.payments-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Amount column */
+.payments-amount {
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* === Badges === */
+.payments-badge {
+  padding: 0.3rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.payments-badge-completed {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.payments-badge-pending {
+  background: #fff7ed;
+  color: #e96511;
+}
+
+.payments-badge-failed {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.payments-badge-default {
+  background: #f5f5fa;
+  color: #555;
+}
+
+/* Type badge */
+.payments-type-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-block;
+  white-space: nowrap;
+  background: #f3f0ff;
+  color: #764ba2;
+}
+
+/* Meta column */
+.payments-meta {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #888;
+  font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .payments-page {
+    padding: 1rem;
+  }
+
+  .payments-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.5rem;
+  }
+
+  .payments-stats {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+  }
+
+  .payments-stat-card {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .payments-content {
+    padding: 1rem 1.5rem 1.5rem;
+  }
+
+  .payments-title {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .payments-container {
+    border-radius: 14px;
+  }
+
+  .payments-header {
+    padding: 1.25rem;
+  }
+
+  .payments-content {
+    padding: 0.85rem 1.25rem 1.25rem;
+  }
+
+  .payments-title {
+    font-size: 1.15rem;
+  }
+}

@@ -2,11 +2,47 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import TopNav from '../components/TopNav';
+import '../styles/assembler-dashboard.css';
 
+/* ===== SVG Nav Icons (Feather-style stroke icons) ===== */
+const IconDashboard = () => (
+  <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+);
+const IconBuilds = () => (
+  <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+);
+const IconPayments = () => (
+  <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+);
+const IconSettings = () => (
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+);
+const IconLogout = () => (
+  <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+);
+const IconMenu = () => (
+  <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+);
+
+/* ===== Navigation config ===== */
+const NAV_ITEMS = [
+  { key: 'overview', label: 'Dashboard',       icon: IconDashboard },
+  { key: 'builds',   label: 'Assigned Builds', icon: IconBuilds },
+];
+
+const LINK_ITEMS = [
+  { to: '/payments', label: 'Payments', icon: IconPayments },
+  { to: '/profile',  label: 'Settings', icon: IconSettings },
+];
+
+/* ============================================================
+   Main Assembler Dashboard
+   ============================================================ */
 function AssemblerDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [builds, setBuilds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
@@ -31,17 +67,12 @@ function AssemblerDashboard() {
   };
 
   const handleStatusUpdate = async (buildId, newStatus) => {
-    if (!window.confirm(`Change status to "${newStatus}"?`)) {
-      return;
-    }
-
+    if (!window.confirm(`Change status to "${newStatus}"?`)) return;
     try {
       setUpdating(true);
       const res = await api.put(`/builds/${buildId}/status`, { status: newStatus });
       setBuilds(builds.map((b) => (b._id === buildId ? res.data.data : b)));
-      if (selectedBuild?._id === buildId) {
-        setSelectedBuild(res.data.data);
-      }
+      if (selectedBuild?._id === buildId) setSelectedBuild(res.data.data);
     } catch (error) {
       alert(error.response?.data?.message || 'Error updating status');
     } finally {
@@ -49,552 +80,310 @@ function AssemblerDashboard() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleLogout = () => { logout(); navigate('/'); };
+
+  const handleNavClick = (key) => {
+    setActiveTab(key);
+    setSidebarOpen(false);
   };
 
   const getStatusButton = (build) => {
     const { assemblyStatus } = build;
-    
     if (assemblyStatus === 'Pending') {
       return (
-        <button
-          onClick={() => handleStatusUpdate(build._id, 'Assembling')}
-          disabled={updating}
-          className="btn btn-sm btn-success"
-          style={styles.actionButton}
-        >
+        <button onClick={() => handleStatusUpdate(build._id, 'Assembling')} disabled={updating} className="asm-btn asm-btn-success asm-btn-sm">
           Start Assembling
         </button>
       );
     } else if (assemblyStatus === 'Assembling') {
       return (
         <>
-          <button
-            onClick={() => handleStatusUpdate(build._id, 'Pending')}
-            disabled={updating}
-            className="btn btn-sm btn-secondary"
-            style={styles.secondaryButton}
-          >
+          <button onClick={() => handleStatusUpdate(build._id, 'Pending')} disabled={updating} className="asm-btn asm-btn-secondary asm-btn-sm">
             Mark Pending
           </button>
-          <button
-            onClick={() => handleStatusUpdate(build._id, 'Completed')}
-            disabled={updating}
-            className="btn btn-sm btn-success"
-            style={styles.completeButton}
-          >
+          <button onClick={() => handleStatusUpdate(build._id, 'Completed')} disabled={updating} className="asm-btn asm-btn-success asm-btn-sm">
             Mark Completed
           </button>
         </>
       );
     } else if (assemblyStatus === 'Completed') {
-      return (
-        <span className="badge bg-success" style={styles.completedBadge}>✓ Completed</span>
-      );
+      return <span className="asm-completed-badge">✓ Completed</span>;
     }
+  };
+
+  const getStatusBadgeClass = (status) => {
+    if (status === 'Completed') return 'asm-badge asm-badge-completed';
+    if (status === 'Assembling') return 'asm-badge asm-badge-assembling';
+    return 'asm-badge asm-badge-pending';
   };
 
   const pendingCount = builds.filter((b) => b.assemblyStatus === 'Pending').length;
   const assemblingCount = builds.filter((b) => b.assemblyStatus === 'Assembling').length;
   const completedCount = builds.filter((b) => b.assemblyStatus === 'Completed').length;
 
-  if (loading) {
-    return (
-      <div style={styles.container}>
-        <div style={styles.loading}>Loading assigned builds...</div>
-      </div>
-    );
-  }
+  const userInitials = user?.name
+    ? user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+
+  const pageTitleMap = {
+    overview: 'Dashboard',
+    builds: 'Assigned Builds',
+  };
 
   return (
-    <div style={styles.container} className="app-container">
-      <TopNav />
-      <div style={styles.content} className="app-content">
-        <h2>Assigned Builds</h2>
+    <div className="asm-page">
+      {/* Mobile hamburger */}
+      <button className="asm-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <IconMenu />
+      </button>
 
-        {/* Statistics */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{pendingCount}</h3>
-            <p style={styles.statLabel}>Pending</p>
-          </div>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{assemblingCount}</h3>
-            <p style={styles.statLabel}>Assembling</p>
-          </div>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{completedCount}</h3>
-            <p style={styles.statLabel}>Completed</p>
-          </div>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{builds.length}</h3>
-            <p style={styles.statLabel}>Total</p>
-          </div>
+      {/* Overlay (mobile) */}
+      <div className={`asm-sidebar-overlay${sidebarOpen ? ' visible' : ''}`} onClick={() => setSidebarOpen(false)} />
+
+      {/* Sidebar */}
+      <aside className={`asm-sidebar${sidebarOpen ? ' open' : ''}`}>
+        <div className="asm-sidebar-header">
+          <div className="asm-sidebar-logo">PC Build</div>
+          <div className="asm-sidebar-subtitle">Assembler Panel</div>
         </div>
 
-        {/* Filter */}
-        <div style={styles.filterGroup} className="d-flex gap-2 align-items-center">
-          <label style={styles.label} className="mb-0">Filter by Status:</label>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="form-select"
-            style={{ maxWidth: '240px' }}
-          >
-            <option value="">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="Assembling">Assembling</option>
-            <option value="Completed">Completed</option>
-          </select>
+        <nav className="asm-sidebar-nav">
+          {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
+            <button key={key} className={`asm-nav-item${activeTab === key ? ' active' : ''}`} onClick={() => handleNavClick(key)}>
+              <span className="asm-nav-icon"><Icon /></span>
+              <span className="asm-nav-label">{label}</span>
+            </button>
+          ))}
+
+          {LINK_ITEMS.map(({ to, label, icon: Icon }) => (
+            <Link key={to} to={to} className="asm-nav-item" style={{ textDecoration: 'none' }}>
+              <span className="asm-nav-icon"><Icon /></span>
+              <span className="asm-nav-label">{label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="asm-sidebar-footer">
+          <button className="asm-nav-item" onClick={handleLogout}>
+            <span className="asm-nav-icon"><IconLogout /></span>
+            <span className="asm-nav-label">Logout</span>
+          </button>
         </div>
+      </aside>
 
-        {/* Build Details Modal */}
-        {selectedBuild && (
-            <div style={styles.modalOverlay} onClick={() => setSelectedBuild(null)}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setSelectedBuild(null)} className="btn btn-light" style={styles.closeBtn}>
-                ×
-              </button>
-              <h3>Build Details</h3>
-              
-              <div style={styles.detailSection}>
-                <p><strong>Customer:</strong> {selectedBuild.userID?.name || 'N/A'}</p>
-                <p><strong>Email:</strong> {selectedBuild.userID?.email || 'N/A'}</p>
-                <p><strong>Status:</strong> {selectedBuild.assemblyStatus}</p>
-                <p><strong>Total Price:</strong> ${selectedBuild.totalPrice.toFixed(2)}</p>
-                <p><strong>Created:</strong> {new Date(selectedBuild.createdAt).toLocaleString()}</p>
-              </div>
-
-              <div style={styles.detailSection}>
-                <h4>Components List:</h4>
-                <div className="table-responsive">
-                  <table className="table table-bordered table-hover align-middle" style={styles.componentTable}>
-                    <thead>
-                      <tr>
-                        <th>Category</th>
-                        <th>Component</th>
-                        <th>Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedBuild.components.map((comp, i) => (
-                        <tr key={i}>
-                          <td>{comp.category}</td>
-                          <td>{comp.componentName}</td>
-                          <td>${comp.price.toFixed(2)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td colSpan="2"><strong>Total</strong></td>
-                        <td><strong>${selectedBuild.totalPrice.toFixed(2)}</strong></td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-
-              {selectedBuild.compatibilityCheck && (
-                <div style={styles.compatibilitySection}>
-                  <h4>Compatibility Check:</h4>
-                  <p><strong>{selectedBuild.compatibilityCheck.summary}</strong></p>
-                  {selectedBuild.compatibilityCheck.issues?.length > 0 && (
-                    <div>
-                      <strong>Issues:</strong>
-                      <ul>
-                        {selectedBuild.compatibilityCheck.issues.map((issue, i) => (
-                          <li key={i} style={styles.issue}>{issue}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {selectedBuild.compatibilityCheck.warnings?.length > 0 && (
-                    <div>
-                      <strong>Warnings:</strong>
-                      <ul>
-                        {selectedBuild.compatibilityCheck.warnings.map((warning, i) => (
-                          <li key={i} style={styles.warning}>{warning}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div style={styles.modalActions}>
-                {getStatusButton(selectedBuild)}
-              </div>
+      {/* Main area */}
+      <main className="asm-main">
+        <header className="asm-page-header">
+          <div>
+            <h1 className="asm-page-title">{pageTitleMap[activeTab] || 'Dashboard'}</h1>
+            <p className="asm-page-subtitle">Assembler &rsaquo; {pageTitleMap[activeTab]}</p>
+          </div>
+          <div className="asm-profile-section">
+            <div className="asm-profile-info">
+              <span className="asm-profile-name">{user?.name || user?.email}</span>
+              <span className="asm-profile-role">{user?.role}</span>
             </div>
+            <div className="asm-profile-avatar">{userInitials}</div>
           </div>
-        )}
+        </header>
 
-        {/* Builds List */}
-        {builds.length === 0 ? (
-          <div style={styles.emptyState}>
-            <p>No builds assigned to you yet.</p>
-            <p style={styles.smallText}>
-              Builds will be assigned when users request assembly service.
-            </p>
-          </div>
-        ) : (
-          <div style={styles.buildsList}>
-            {builds.map((build) => (
-              <div key={build._id} style={styles.buildCard}>
-                <div style={styles.buildCardHeader}>
-                  <div>
-                    <h3>Build #{builds.indexOf(build) + 1}</h3>
-                    <p style={styles.customerName}>Customer: {build.userID?.name || 'N/A'}</p>
-                    <p style={styles.smallText}>
-                      {new Date(build.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <span
-                      style={{
-                        ...styles.statusBadge,
-                        ...(build.assemblyStatus === 'Completed'
-                          ? styles.completed
-                          : build.assemblyStatus === 'Assembling'
-                          ? styles.assembling
-                          : styles.pending),
-                      }}
-                    >
-                      {build.assemblyStatus}
-                    </span>
-                  </div>
-                </div>
+        <div className="asm-content">
+          {activeTab === 'overview' && (
+            <OverviewTab
+              builds={builds}
+              loading={loading}
+              pendingCount={pendingCount}
+              assemblingCount={assemblingCount}
+              completedCount={completedCount}
+            />
+          )}
+          {activeTab === 'builds' && (
+            <BuildsTab
+              builds={builds}
+              loading={loading}
+              filterStatus={filterStatus}
+              setFilterStatus={setFilterStatus}
+              selectedBuild={selectedBuild}
+              setSelectedBuild={setSelectedBuild}
+              getStatusButton={getStatusButton}
+              getStatusBadgeClass={getStatusBadgeClass}
+            />
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
 
-                <div style={styles.buildCardBody}>
-                  <div style={styles.buildInfo}>
-                    <p><strong>Components:</strong> {build.components.length}</p>
-                    <p><strong>Total Price:</strong> ${build.totalPrice.toFixed(2)}</p>
-                  </div>
+/* ============================================================
+   Overview Tab — Stats summary
+   ============================================================ */
+function OverviewTab({ builds, loading, pendingCount, assemblingCount, completedCount }) {
+  if (loading) return <div className="asm-loading">Loading statistics...</div>;
 
-                  <div style={styles.buildActions}>
-                    <button
-                      onClick={() => setSelectedBuild(build)}
-                      className="btn btn-sm btn-outline-primary"
-                      style={styles.viewButton}
-                    >
-                      View Details
-                    </button>
-                    {getStatusButton(build)}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+  return (
+    <div>
+      <h2 className="asm-section-title">Assembly Overview</h2>
+      <div className="asm-stats-grid">
+        <div className="asm-stat-card highlight">
+          <h3 className="asm-stat-value warning">{pendingCount}</h3>
+          <p className="asm-stat-label">Pending</p>
+        </div>
+        <div className="asm-stat-card">
+          <h3 className="asm-stat-value">{assemblingCount}</h3>
+          <p className="asm-stat-label">Assembling</p>
+        </div>
+        <div className="asm-stat-card">
+          <h3 className="asm-stat-value">{completedCount}</h3>
+          <p className="asm-stat-label">Completed</p>
+        </div>
+        <div className="asm-stat-card">
+          <h3 className="asm-stat-value">{builds.length}</h3>
+          <p className="asm-stat-label">Total Builds</p>
+        </div>
       </div>
     </div>
   );
 }
 
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%)',
-    color: '#111',
-  },
-  nav: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '1rem 2rem',
-    backgroundColor: '#000',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-  },
-  logo: {
-    margin: 0,
-    color: '#fff',
-  },
-  navLinks: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-  },
-  link: {
-    color: '#fff',
-    textDecoration: 'none',
-  },
-  button: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  userInfo: {
-    color: '#444',
-  },
-  content: {
-    maxWidth: '1200px',
-    margin: '2rem auto',
-    padding: '0 2rem',
-    background: '#fff',
-    borderRadius: '8px',
-    paddingTop: '1.5rem',
-    paddingBottom: '1.5rem',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '4rem',
-    fontSize: '1.25rem',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '2rem',
-    marginBottom: '2rem',
-  },
-  statCard: {
-    backgroundColor: '#fff',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    textAlign: 'center',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
-    border: '1px solid #e6e6e6',
-  },
-  statValue: {
-    fontSize: '2.5rem',
-    margin: '0 0 0.5rem 0',
-    color: '#111',
-    fontWeight: '700',
-  },
-  statLabel: {
-    fontSize: '1rem',
-    color: '#666',
-    margin: 0,
-  },
-  filterGroup: {
-    marginBottom: '1.5rem',
-    backgroundColor: '#fff',
-    padding: '1rem',
-    borderRadius: '8px',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.04)',
-    border: '1px solid #e6e6e6',
-  },
-  label: {
-    marginRight: '1rem',
-    fontWeight: '600',
-    color: '#222',
-  },
-  select: {
-    padding: '0.5rem',
-    fontSize: '1rem',
-    borderRadius: '4px',
-    border: '1px solid #ddd',
-  },
-  buildsList: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-    gap: '1.5rem',
-  },
-  buildCard: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '1.5rem',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.04)',
-    border: '1px solid #e6e6e6',
-  },
-  buildCardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: '1rem',
-    paddingBottom: '1rem',
-    borderBottom: '1px solid #eee',
-  },
-  customerName: {
-    color: '#666',
-    margin: '0.5rem 0',
-  },
-  statusBadge: {
-    padding: '0.5rem 1rem',
-    borderRadius: '20px',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    backgroundColor: '#f5f5f5',
-    color: '#111',
-  },
-  pending: {
-    backgroundColor: '#f5f5f5',
-    color: '#111',
-  },
-  assembling: {
-    backgroundColor: '#f5f5f5',
-    color: '#111',
-  },
-  completed: {
-    backgroundColor: '#f5f5f5',
-    color: '#111',
-  },
-  buildCardBody: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
-  },
-  buildInfo: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    color: '#666',
-  },
-  buildActions: {
-    display: 'flex',
-    gap: '0.5rem',
-    flexWrap: 'wrap',
-  },
-  viewButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  actionButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  secondaryButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#6c757d',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  completeButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  completedBadge: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#f5f5f5',
-    color: '#111',
-    borderRadius: '4px',
-    fontWeight: '600',
-  },
-  emptyState: {
-    textAlign: 'center',
-    padding: '4rem',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.04)',
-    border: '1px solid #e6e6e6',
-  },
-  smallText: {
-    fontSize: '0.875rem',
-    color: '#888',
-    margin: '0.25rem 0',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '2rem',
-    maxWidth: '800px',
-    width: '90%',
-    maxHeight: '90vh',
-    overflowY: 'auto',
-    position: 'relative',
-    border: '1px solid #e6e6e6',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
-  },
-  closeBtn: {
-    position: 'absolute',
-    top: '1rem',
-    right: '1rem',
-    background: 'none',
-    border: 'none',
-    fontSize: '2rem',
-    cursor: 'pointer',
-    color: '#666',
-    width: '2rem',
-    height: '2rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  detailSection: {
-    marginBottom: '1.5rem',
-    padding: '1rem',
-    backgroundColor: '#fff',
-    borderRadius: '4px',
-    border: '1px solid #e6e6e6',
-  },
-  componentTable: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginTop: '0.5rem',
-  },
-  'componentTable th': {
-    backgroundColor: '#f5f5f5',
-    padding: '0.75rem',
-    textAlign: 'left',
-    borderBottom: '2px solid #eee',
-    color: '#111',
-    fontWeight: '600',
-  },
-  'componentTable td': {
-    padding: '0.75rem',
-    borderBottom: '1px solid #eee',
-    color: '#222',
-  },
-  'componentTable tfoot': {
-    fontWeight: '700',
-    backgroundColor: '#fff',
-  },
-  compatibilitySection: {
-    marginTop: '1rem',
-    padding: '1rem',
-    backgroundColor: '#f5f5f5',
-    borderRadius: '4px',
-    color: '#333',
-  },
-  issue: {
-    color: '#a00',
-    margin: '0.25rem 0',
-  },
-  warning: {
-    color: '#666',
-    margin: '0.25rem 0',
-  },
-  modalActions: {
-    display: 'flex',
-    gap: '0.5rem',
-    marginTop: '1.5rem',
-    justifyContent: 'flex-end',
-  },
-};
+/* ============================================================
+   Builds Tab — Filter, Cards, Detail Modal
+   ============================================================ */
+function BuildsTab({ builds, loading, filterStatus, setFilterStatus, selectedBuild, setSelectedBuild, getStatusButton, getStatusBadgeClass }) {
+  if (loading) return <div className="asm-loading">Loading builds...</div>;
+
+  return (
+    <div>
+      <h2 className="asm-section-title">Assigned Builds ({builds.length})</h2>
+
+      {/* Filter */}
+      <div className="asm-filter-group">
+        <label className="asm-filter-label">Filter by Status:</label>
+        <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="asm-select">
+          <option value="">All Statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Assembling">Assembling</option>
+          <option value="Completed">Completed</option>
+        </select>
+      </div>
+
+      {/* Build Details Modal */}
+      {selectedBuild && (
+        <div className="asm-modal-overlay" onClick={() => setSelectedBuild(null)}>
+          <div className="asm-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setSelectedBuild(null)} className="asm-modal-close">Close</button>
+            <h3>Build Details</h3>
+
+            <div className="asm-detail-section">
+              <p><strong>Customer:</strong> {selectedBuild.userID?.name || 'N/A'}</p>
+              <p><strong>Email:</strong> {selectedBuild.userID?.email || 'N/A'}</p>
+              <p><strong>Status:</strong> <span className={getStatusBadgeClass(selectedBuild.assemblyStatus)}>{selectedBuild.assemblyStatus}</span></p>
+              <p><strong>Total Price:</strong> ${selectedBuild.totalPrice.toFixed(2)}</p>
+              <p><strong>Created:</strong> {new Date(selectedBuild.createdAt).toLocaleString()}</p>
+            </div>
+
+            <div className="asm-detail-section">
+              <h4>Components List:</h4>
+              <div className="asm-table-container">
+                <table className="asm-table">
+                  <thead>
+                    <tr>
+                      <th>Category</th>
+                      <th>Component</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedBuild.components.map((comp, i) => (
+                      <tr key={i}>
+                        <td>{comp.category}</td>
+                        <td>{comp.componentName}</td>
+                        <td>${comp.price.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan="2"><strong>Total</strong></td>
+                      <td><strong>${selectedBuild.totalPrice.toFixed(2)}</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {selectedBuild.compatibilityCheck && (
+              <div className="asm-compatibility">
+                <h4>Compatibility Check:</h4>
+                <p><strong>{selectedBuild.compatibilityCheck.summary}</strong></p>
+                {selectedBuild.compatibilityCheck.issues?.length > 0 && (
+                  <div>
+                    <strong>Issues:</strong>
+                    <ul>
+                      {selectedBuild.compatibilityCheck.issues.map((issue, i) => (
+                        <li key={i} className="asm-issue">{issue}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {selectedBuild.compatibilityCheck.warnings?.length > 0 && (
+                  <div>
+                    <strong>Warnings:</strong>
+                    <ul>
+                      {selectedBuild.compatibilityCheck.warnings.map((warning, i) => (
+                        <li key={i} className="asm-warning">{warning}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="asm-modal-actions">
+              {getStatusButton(selectedBuild)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Builds Grid */}
+      {builds.length === 0 ? (
+        <div className="asm-empty-state">
+          <p>No builds assigned to you yet.</p>
+          <p className="asm-small-text">Builds will be assigned when users request assembly service.</p>
+        </div>
+      ) : (
+        <div className="asm-builds-grid">
+          {builds.map((build, idx) => (
+            <div key={build._id} className="asm-build-card">
+              <div className="asm-build-card-header">
+                <div>
+                  <h3>Build #{idx + 1}</h3>
+                  <p className="asm-customer-name">Customer: {build.userID?.name || 'N/A'}</p>
+                  <p className="asm-small-text">{new Date(build.createdAt).toLocaleString()}</p>
+                </div>
+                <span className={getStatusBadgeClass(build.assemblyStatus)}>{build.assemblyStatus}</span>
+              </div>
+
+              <div className="asm-build-card-body">
+                <div className="asm-build-info">
+                  <p><strong>Components:</strong> {build.components.length}</p>
+                  <p><strong>Total Price:</strong> ${build.totalPrice.toFixed(2)}</p>
+                </div>
+
+                <div className="asm-build-actions">
+                  <button onClick={() => setSelectedBuild(build)} className="asm-btn asm-btn-primary asm-btn-sm">
+                    View Details
+                  </button>
+                  {getStatusButton(build)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default AssemblerDashboard;
