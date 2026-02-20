@@ -2,12 +2,46 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import TopNav from '../components/TopNav';
+import '../styles/supplier-dashboard.css';
+
+/* ===== SVG Nav Icons (Feather-style stroke icons) ===== */
+const IconInventory = () => (
+  <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+);
+const IconAdd = () => (
+  <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+);
+const IconPayments = () => (
+  <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+);
+const IconSettings = () => (
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+);
+const IconLogout = () => (
+  <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+);
+const IconMenu = () => (
+  <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+);
+
+/* ============================================================
+   Navigation config
+   ============================================================ */
+const NAV_ITEMS = [
+  { key: 'inventory', label: 'Inventory', icon: IconInventory },
+  { key: 'add',       label: 'Add Component', icon: IconAdd },
+];
+
+const LINK_ITEMS = [
+  { to: '/payments', label: 'Payments', icon: IconPayments },
+  { to: '/profile',  label: 'Settings', icon: IconSettings },
+];
 
 function SupplierDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('inventory');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [components, setComponents] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -194,6 +228,20 @@ function SupplierDashboard() {
     navigate('/');
   };
 
+  const handleNavClick = (key) => {
+    setActiveTab(key);
+    setSidebarOpen(false);
+  };
+
+  const userInitials = user?.name
+    ? user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+    : '?';
+
+  const pageTitleMap = {
+    inventory: 'Component Inventory',
+    add: 'Add Component',
+  };
+
   const myComponents = components.filter(
     (c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)
   );
@@ -215,55 +263,97 @@ function SupplierDashboard() {
 
   if (loading && components.length === 0) {
     return (
-      <div style={styles.container}>
-        <div style={styles.loading}>Loading inventory...</div>
+      <div className="supplier-page">
+        <div className="supplier-loading">Loading inventory...</div>
       </div>
     );
   }
 
   return (
-    <div style={styles.container} className="app-container">
-      <TopNav />
-      <div style={styles.content} className="app-content">
-        <h2>Component Inventory Management</h2>
+    <div className="supplier-page">
+      {/* Mobile hamburger */}
+      <button className="supplier-mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
+        <IconMenu />
+      </button>
 
-        {/* Statistics */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{myComponents.length}</h3>
-            <p style={styles.statLabel}>My Components</p>
-          </div>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{inStockCount}</h3>
-            <p style={styles.statLabel}>In Stock</p>
-          </div>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>{outOfStockCount}</h3>
-            <p style={styles.statLabel}>Out of Stock</p>
-          </div>
-          <div style={styles.statCard}>
-            <h3 style={styles.statValue}>${myComponents.reduce((sum, c) => sum + c.price, 0).toFixed(2)}</h3>
-            <p style={styles.statLabel}>Total Inventory Value</p>
-          </div>
+      {/* Overlay (mobile) */}
+      <div
+        className={`supplier-sidebar-overlay${sidebarOpen ? ' visible' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      {/* Sidebar */}
+      <aside className={`supplier-sidebar${sidebarOpen ? ' open' : ''}`}>
+        <div className="supplier-sidebar-header">
+          <div className="supplier-sidebar-logo">PC Build</div>
+          <div className="supplier-sidebar-subtitle">Supplier Panel</div>
         </div>
 
-        {/* Tabs */}
-        <div style={styles.tabs}>
-          <button
-            onClick={() => setActiveTab('inventory')}
-            style={{ ...styles.tab, ...(activeTab === 'inventory' ? styles.activeTab : {}) }}
-          >
-            Inventory
-          </button>
-          <button
-            onClick={() => setActiveTab('add')}
-            style={{ ...styles.tab, ...(activeTab === 'add' ? styles.activeTab : {}) }}
-          >
-            Add Component
+        <nav className="supplier-sidebar-nav">
+          {NAV_ITEMS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              className={`supplier-nav-item${activeTab === key ? ' active' : ''}`}
+              onClick={() => handleNavClick(key)}
+            >
+              <span className="supplier-nav-icon"><Icon /></span>
+              <span className="supplier-nav-label">{label}</span>
+            </button>
+          ))}
+
+          {LINK_ITEMS.map(({ to, label, icon: Icon }) => (
+            <Link key={to} to={to} className="supplier-nav-item" style={{ textDecoration: 'none' }}>
+              <span className="supplier-nav-icon"><Icon /></span>
+              <span className="supplier-nav-label">{label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="supplier-sidebar-footer">
+          <button className="supplier-nav-item" onClick={handleLogout}>
+            <span className="supplier-nav-icon"><IconLogout /></span>
+            <span className="supplier-nav-label">Logout</span>
           </button>
         </div>
+      </aside>
 
-        <div style={styles.tabContent}>
+      {/* Main area */}
+      <main className="supplier-main">
+        <header className="supplier-page-header">
+          <div>
+            <h1 className="supplier-page-title">{pageTitleMap[activeTab] || 'Dashboard'}</h1>
+            <p className="supplier-page-subtitle">Supplier &rsaquo; {pageTitleMap[activeTab]}</p>
+          </div>
+          <div className="supplier-profile-section">
+            <div className="supplier-profile-info">
+              <span className="supplier-profile-name">{user?.name || user?.email}</span>
+              <span className="supplier-profile-role">{user?.role}</span>
+            </div>
+            <div className="supplier-profile-avatar">{userInitials}</div>
+          </div>
+        </header>
+
+        <div className="supplier-content">
+
+          {/* Statistics */}
+          <div className="supplier-stats-grid">
+            <div className="supplier-stat-card">
+              <h3 className="supplier-stat-value">{myComponents.length}</h3>
+              <p className="supplier-stat-label">My Components</p>
+            </div>
+            <div className="supplier-stat-card">
+              <h3 className="supplier-stat-value">{inStockCount}</h3>
+              <p className="supplier-stat-label">In Stock</p>
+            </div>
+            <div className="supplier-stat-card">
+              <h3 className="supplier-stat-value">{outOfStockCount}</h3>
+              <p className="supplier-stat-label">Out of Stock</p>
+            </div>
+            <div className="supplier-stat-card">
+              <h3 className="supplier-stat-value">${myComponents.reduce((sum, c) => sum + c.price, 0).toFixed(2)}</h3>
+              <p className="supplier-stat-label">Total Inventory Value</p>
+            </div>
+          </div>
           {activeTab === 'inventory' && (
             <>
             {editing && (
@@ -272,11 +362,11 @@ function SupplierDashboard() {
                   e.preventDefault();
                   handleUpdate(editing);
                 }}
-                style={styles.form}
+                className="supplier-form"
               >
                 <h3>Edit Component</h3>
-                <div style={styles.formGrid}>
-                  <div style={styles.formGroup}>
+                <div className="supplier-form-grid">
+                  <div className="supplier-form-group">
                     <label>Component Name *</label>
                     <input
                       type="text"
@@ -284,20 +374,18 @@ function SupplierDashboard() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="form-control"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., Intel i7-13700K"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Category *</label>
                     <select
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
                       required
-                      className="form-select"
-                      style={styles.input}
+                      className="supplier-select"
                     >
                       {categories.length === 0 ? (
                         <option value="">No categories available</option>
@@ -310,7 +398,7 @@ function SupplierDashboard() {
                       )}
                     </select>
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Price ($) *</label>
                     <input
                       type="number"
@@ -320,12 +408,11 @@ function SupplierDashboard() {
                       required
                       min="0"
                       step="0.01"
-                      className="form-control form-control-sm"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="0.00"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Priority</label>
                     <input
                       type="number"
@@ -334,14 +421,13 @@ function SupplierDashboard() {
                       onChange={handleInputChange}
                       min="1"
                       step="1"
-                      className="form-control form-control-sm"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="1"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Stock Status</label>
-                    <label style={styles.checkboxLabel}>
+                    <label className="supplier-checkbox-label">
                       <input
                         type="checkbox"
                         name="stockStatus"
@@ -352,7 +438,7 @@ function SupplierDashboard() {
                     </label>
                   </div>
                 </div>
-                <div style={styles.formGroup}>
+                <div className="supplier-form-group">
                   <label>Specifications *</label>
                     <textarea
                     name="specifications"
@@ -360,85 +446,78 @@ function SupplierDashboard() {
                     onChange={handleInputChange}
                     required
                     rows="4"
-                    className="form-control"
-                    style={styles.textarea}
+                    className="supplier-textarea"
                     placeholder="e.g., 13th Gen, 16 cores, 3.4GHz base clock"
                   />
                 </div>
-                <div style={styles.formGroup}>
+                <div className="supplier-form-group">
                   <label>Compatibility (Legacy - optional)</label>
                   <input
                     type="text"
                     name="compatibility"
                     value={formData.compatibility}
                     onChange={handleInputChange}
-                    className="form-control"
-                    style={styles.input}
+                    className="supplier-input"
                     placeholder="Legacy compatibility string"
                   />
                 </div>
-                <div style={styles.formGrid}>
-                  <div style={styles.formGroup}>
+                <div className="supplier-form-grid">
+                  <div className="supplier-form-group">
                     <label>Socket (CPU/Motherboard)</label>
                     <input
                       type="text"
                       name="socket"
                       value={formData.socket}
                       onChange={handleInputChange}
-                      className="form-control"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., LGA1700, AM4"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Chipset (Motherboard)</label>
                     <input
                       type="text"
                       name="chipset"
                       value={formData.chipset}
                       onChange={handleInputChange}
-                      className="form-control"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., Z690, B550"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Form Factor (Motherboard/Case)</label>
                     <input
                       type="text"
                       name="formFactor"
                       value={formData.formFactor}
                       onChange={handleInputChange}
-                      className="form-control"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., ATX, mATX"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>RAM Type (Motherboard/RAM)</label>
                     <input
                       type="text"
                       name="ramType"
                       value={formData.ramType}
                       onChange={handleInputChange}
-                      className="form-control"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., DDR4, DDR5"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Storage Interface (Storage)</label>
                     <input
                       type="text"
                       name="storageInterface"
                       value={formData.storageInterface}
                       onChange={handleInputChange}
-                      className="form-control"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., SATA, NVMe M.2"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Power Requirement (W) (CPU/GPU)</label>
                     <input
                       type="number"
@@ -446,12 +525,11 @@ function SupplierDashboard() {
                       value={formData.powerRequirement}
                       onChange={handleInputChange}
                       min="0"
-                      className="form-control form-control-sm"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., 150"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Wattage (W) (PSU)</label>
                     <input
                       type="number"
@@ -459,99 +537,89 @@ function SupplierDashboard() {
                       value={formData.wattage}
                       onChange={handleInputChange}
                       min="0"
-                      className="form-control form-control-sm"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., 650"
                     />
                   </div>
                 </div>
-                <div style={styles.formGroup}>
+                <div className="supplier-form-group">
                   <label>Product's Image URL (optional)</label>
                   <input
                     type="url"
                     name="url"
                     value={formData.url}
                     onChange={handleInputChange}
-                    style={styles.input}
+                    className="supplier-input"
                     placeholder="https://example.com/product"
                   />
                 </div>
-                <div style={{ marginTop: '0.75rem' }}>
-                  <button type="submit" style={styles.submitButton}>
+                <div className="supplier-toolbar">
+                  <button type="submit" className="supplier-btn supplier-btn-primary">
                     Save Changes
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditing(null)}
-                    style={styles.cancelButton}
+                    className="supplier-btn supplier-btn-secondary"
                   >
                     Cancel
                   </button>
                 </div>
               </form>
             )}
-            <div style={styles.inventoryLayout}>
+            <div className="supplier-inventory-layout">
               {/* Left Sidebar - Category Filter List */}
-              <div style={styles.filterSidebar}>
-                <h3 style={styles.sidebarTitle}>Filters</h3>
+              <div className="supplier-filter-sidebar">
+                <h3 className="supplier-filter-sidebar-title">Filters</h3>
                 
                 {/* Search Box */}
-                <div style={styles.searchBox}>
+                <div className="supplier-search-box">
                   <input
                     type="text"
                     placeholder="Search components..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    style={styles.searchInput}
+                    className="supplier-search-input"
                   />
                 </div>
 
-                <ul style={styles.categoryList}>
+                <ul className="supplier-category-list">
                   <li
-                    style={{
-                      ...styles.categoryListItem,
-                      ...(selectedCategory === 'all' || selectedCategory === null ? styles.activeCategoryItem : {}),
-                    }}
+                    className={`supplier-category-item${selectedCategory === 'all' || selectedCategory === null ? ' active' : ''}`}
                     onClick={() => setSelectedCategory('all')}
                   >
-                    <div style={styles.categoryListItemContent}>
-                      <span style={styles.categoryName}>All Components</span>
-                      <span style={(selectedCategory === 'all' || selectedCategory === null) ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                    <div className="supplier-category-item-content">
+                      <span className="supplier-category-name">All Components</span>
+                      <span className="supplier-count-badge">
                         {components.length}
                       </span>
                     </div>
                   </li>
                   <li
-                    style={{
-                      ...styles.categoryListItem,
-                      ...(selectedCategory === 'mine' ? styles.activeCategoryItem : {}),
-                    }}
+                    className={`supplier-category-item${selectedCategory === 'mine' ? ' active' : ''}`}
                     onClick={() => setSelectedCategory('mine')}
                   >
-                    <div style={styles.categoryListItemContent}>
-                      <span style={styles.categoryName}>My Components</span>
-                      <span style={selectedCategory === 'mine' ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                    <div className="supplier-category-item-content">
+                      <span className="supplier-category-name">My Components</span>
+                      <span className="supplier-count-badge">
                         {components.filter((c) => c.supplierID && (c.supplierID._id === user?.id || c.supplierID._id?.toString() === user?.id)).length}
                       </span>
                     </div>
                   </li>
-                  <li style={styles.categoryListDivider}>
-                    <span style={styles.dividerText}>Categories</span>
+                  <li style={{ padding: '0.5rem 1rem', marginBottom: '0.5rem', borderTop: '1px solid #f0f0f5', marginTop: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#666', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Categories</span>
                   </li>
                   {categories.map((category) => {
                     const count = components.filter((c) => (c.category || '').toUpperCase() === (category.name || '').toUpperCase()).length;
                     return (
                       <li
                         key={category._id}
-                        style={{
-                          ...styles.categoryListItem,
-                          ...(selectedCategory === category.name ? styles.activeCategoryItem : {}),
-                        }}
+                        className={`supplier-category-item${selectedCategory === category.name ? ' active' : ''}`}
                         onClick={() => setSelectedCategory(category.name)}
                       >
-                        <div style={styles.categoryListItemContent}>
-                          <span style={styles.categoryName}>{category.name}</span>
-                          <span style={selectedCategory === category.name ? styles.activeCategoryItemCountBadge : styles.countBadge}>
+                        <div className="supplier-category-item-content">
+                          <span className="supplier-category-name">{category.name}</span>
+                          <span className="supplier-count-badge">
                             {count}
                           </span>
                         </div>
@@ -561,13 +629,14 @@ function SupplierDashboard() {
                 </ul>
 
                 {/* Filter Info */}
-                <div style={styles.filterInfo}>
-                  <p style={styles.filterInfoText}>
+                <div className="supplier-filter-info">
+                  <p className="supplier-filter-info-text">
                     Showing {filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''}
                   </p>
                   <button
                     onClick={() => fetchComponents()}
-                    style={styles.refreshButtonSmall}
+                    className="supplier-btn supplier-btn-secondary supplier-btn-sm"
+                    style={{ width: '100%', marginTop: '0.5rem' }}
                   >
                     ↻ Refresh
                   </button>
@@ -575,113 +644,113 @@ function SupplierDashboard() {
               </div>
 
               {/* Right Side - Components Table */}
-              <div style={styles.tableWrapper} className="table-responsive">
-                <table className="table table-striped table-bordered table-hover align-middle" style={styles.table}>
-                  <thead>
-                    <tr>
-                      <th style={styles.tableHeaderCell}>Image</th>
-                      <th style={styles.tableHeaderCell}>Name</th>
-                      <th style={styles.tableHeaderCell}>Category</th>
-                      <th style={styles.tableHeaderCell}>Price</th>
-                      <th style={styles.tableHeaderCell}>Priority</th>
-                      <th style={styles.tableHeaderCell}>Stock</th>
-                      <th style={styles.tableHeaderCell}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredComponents.length === 0 ? (
+              <div className="supplier-table-wrapper">
+                <div className="supplier-table-container">
+                  <table className="supplier-table">
+                    <thead>
                       <tr>
-                        <td colSpan="7" style={styles.noResultsCell}>
-                          {searchTerm ? 'No components match your search.' : 'No components found.'}
-                        </td>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Priority</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
                       </tr>
-                    ) : (
-                      filteredComponents.map((component) => (
-                        <tr key={component._id}>
-                          <td style={styles.tableCell}>
-                            {component.url ? (
-                              <img
-                                src={component.url}
-                                alt={component.name}
-                                style={styles.componentImage}
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <div style={styles.noImage}>No Image</div>
-                            )}
-                          </td>
-                          <td style={styles.tableCell}>{component.name}</td>
-                          <td style={styles.tableCell}>{component.category}</td>
-                          <td style={styles.tableCell}>
-                            <input
-                              type="number"
-                              value={component.price}
-                              onChange={(e) =>
-                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                              }
-                              onBlur={(e) =>
-                                handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
-                              }
-                              style={styles.priceInput}
-                              step="0.01"
-                            />
-                          </td>
-                          <td style={styles.tableCell}>
-                            <input
-                              type="number"
-                              value={component.priority ?? 1}
-                              onChange={(e) =>
-                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
-                              }
-                              onBlur={(e) =>
-                                handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
-                              }
-                              style={styles.priceInput}
-                              step="1"
-                              min="1"
-                            />
-                          </td>
-                          <td style={styles.tableCell}>
-                            <label style={styles.checkboxLabel}>
-                              <input
-                                type="checkbox"
-                                checked={component.stockStatus}
-                                onChange={(e) =>
-                                  handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
-                                }
-                              />
-                              {component.stockStatus ? (
-                                <span style={styles.inStock}>In Stock</span>
-                              ) : (
-                                <span style={styles.outOfStock}>Out</span>
-                              )}
-                            </label>
-                          </td>
-                          <td style={styles.tableCell}>
-                            <div className="action-stack">
-                              <button
-                                onClick={() => handleEdit(component)}
-                                className="btn btn-warning action-btn"
-                                style={styles.editButton}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(component._id)}
-                                className="btn btn-danger action-btn"
-                                style={styles.deleteButton}
-                              >
-                                Delete
-                              </button>
-                            </div>
+                    </thead>
+                    <tbody>
+                      {filteredComponents.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="supplier-empty-message">
+                            {searchTerm ? 'No components match your search.' : 'No components found.'}
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ) : (
+                        filteredComponents.map((component) => (
+                          <tr key={component._id}>
+                            <td>
+                              {component.url ? (
+                                <img
+                                  src={component.url}
+                                  alt={component.name}
+                                  className="supplier-component-image"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <div className="supplier-no-image">No Image</div>
+                              )}
+                            </td>
+                            <td>{component.name}</td>
+                            <td>{component.category}</td>
+                            <td>
+                              <input
+                                type="number"
+                                value={component.price}
+                                onChange={(e) =>
+                                  handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                                }
+                                onBlur={(e) =>
+                                  handleQuickUpdate(component._id, 'price', parseFloat(e.target.value))
+                                }
+                                className="supplier-price-input"
+                                step="0.01"
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="number"
+                                value={component.priority ?? 1}
+                                onChange={(e) =>
+                                  handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                                }
+                                onBlur={(e) =>
+                                  handleQuickUpdate(component._id, 'priority', parseInt(e.target.value || '1', 10))
+                                }
+                                className="supplier-price-input"
+                                step="1"
+                                min="1"
+                              />
+                            </td>
+                            <td>
+                              <label className="supplier-checkbox-label">
+                                <input
+                                  type="checkbox"
+                                  checked={component.stockStatus}
+                                  onChange={(e) =>
+                                    handleQuickUpdate(component._id, 'stockStatus', e.target.checked)
+                                  }
+                                />
+                                {component.stockStatus ? (
+                                  <span className="supplier-in-stock">In Stock</span>
+                                ) : (
+                                  <span className="supplier-out-of-stock">Out</span>
+                                )}
+                              </label>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                <button
+                                  onClick={() => handleEdit(component)}
+                                  className="supplier-btn supplier-btn-warning supplier-btn-sm"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(component._id)}
+                                  className="supplier-btn supplier-btn-danger supplier-btn-sm"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
             </>
@@ -689,11 +758,10 @@ function SupplierDashboard() {
 
           {activeTab === 'add' && (
             <div>
-              <h3>Add New Component</h3>
-              <div className="card p-3" style={{ backgroundColor: '#ffffff', border: '1px solid #e6e6e6' }}>
-              <form onSubmit={handleAdd}>
-                <div style={styles.formGrid}>
-                  <div style={styles.formGroup}>
+              <h2 className="supplier-section-title">Add New Component</h2>
+              <form onSubmit={handleAdd} className="supplier-form">
+                <div className="supplier-form-grid">
+                  <div className="supplier-form-group">
                     <label>Component Name *</label>
                     <input
                       type="text"
@@ -701,18 +769,18 @@ function SupplierDashboard() {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., Intel i7-13700K"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Category *</label>
                     <select
                       name="category"
                       value={formData.category}
                       onChange={handleInputChange}
                       required
-                      style={styles.input}
+                      className="supplier-select"
                     >
                       {categories.length === 0 ? (
                         <option value="">No categories available</option>
@@ -725,7 +793,7 @@ function SupplierDashboard() {
                       )}
                     </select>
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Price ($) *</label>
                     <input
                       type="number"
@@ -735,11 +803,11 @@ function SupplierDashboard() {
                       required
                       min="0"
                       step="0.01"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="0.00"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Priority</label>
                     <input
                       type="number"
@@ -748,13 +816,13 @@ function SupplierDashboard() {
                       onChange={handleInputChange}
                       min="1"
                       step="1"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="1"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Stock Status</label>
-                    <label style={styles.checkboxLabel}>
+                    <label className="supplier-checkbox-label">
                       <input
                         type="checkbox"
                         name="stockStatus"
@@ -765,7 +833,7 @@ function SupplierDashboard() {
                     </label>
                   </div>
                 </div>
-                <div style={styles.formGroup}>
+                <div className="supplier-form-group">
                   <label>Specifications *</label>
                   <textarea
                     name="specifications"
@@ -773,78 +841,78 @@ function SupplierDashboard() {
                     onChange={handleInputChange}
                     required
                     rows="4"
-                    style={styles.textarea}
+                    className="supplier-textarea"
                     placeholder="e.g., 13th Gen, 16 cores, 3.4GHz base clock"
                   />
                 </div>
-                <div style={styles.formGroup}>
+                <div className="supplier-form-group">
                   <label>Compatibility (Legacy - optional)</label>
                   <input
                     type="text"
                     name="compatibility"
                     value={formData.compatibility}
                     onChange={handleInputChange}
-                    style={styles.input}
+                    className="supplier-input"
                     placeholder="Legacy compatibility string"
                   />
                 </div>
-                <div style={styles.formGrid}>
-                  <div style={styles.formGroup}>
+                <div className="supplier-form-grid">
+                  <div className="supplier-form-group">
                     <label>Socket (CPU/Motherboard)</label>
                     <input
                       type="text"
                       name="socket"
                       value={formData.socket}
                       onChange={handleInputChange}
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., LGA1700, AM4"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Chipset (Motherboard)</label>
                     <input
                       type="text"
                       name="chipset"
                       value={formData.chipset}
                       onChange={handleInputChange}
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., Z690, B550"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Form Factor (Motherboard/Case)</label>
                     <input
                       type="text"
                       name="formFactor"
                       value={formData.formFactor}
                       onChange={handleInputChange}
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., ATX, mATX"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>RAM Type (Motherboard/RAM)</label>
                     <input
                       type="text"
                       name="ramType"
                       value={formData.ramType}
                       onChange={handleInputChange}
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., DDR4, DDR5"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Storage Interface (Storage)</label>
                     <input
                       type="text"
                       name="storageInterface"
                       value={formData.storageInterface}
                       onChange={handleInputChange}
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., SATA, NVMe M.2"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Power Requirement (W) (CPU/GPU)</label>
                     <input
                       type="number"
@@ -852,11 +920,11 @@ function SupplierDashboard() {
                       value={formData.powerRequirement}
                       onChange={handleInputChange}
                       min="0"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., 150"
                     />
                   </div>
-                  <div style={styles.formGroup}>
+                  <div className="supplier-form-group">
                     <label>Wattage (W) (PSU)</label>
                     <input
                       type="number"
@@ -864,494 +932,32 @@ function SupplierDashboard() {
                       value={formData.wattage}
                       onChange={handleInputChange}
                       min="0"
-                      style={styles.input}
+                      className="supplier-input"
                       placeholder="e.g., 650"
                     />
                   </div>
                 </div>
-                <div style={styles.formGroup}>
+                <div className="supplier-form-group">
                   <label>Product's Image URL (optional)</label>
                   <input
                     type="url"
                     name="url"
                     value={formData.url}
                     onChange={handleInputChange}
-                    style={styles.input}
+                    className="supplier-input"
                     placeholder="https://example.com/product"
                   />
                 </div>
-                <button type="submit" className="btn btn-primary w-100" style={styles.submitButton}>
+                <button type="submit" className="supplier-btn supplier-btn-primary" style={{ width: '100%', marginTop: '1rem' }}>
                   Add Component
                 </button>
               </form>
-              </div>
             </div>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: 'linear-gradient(180deg, #ffffff 0%, #f7f7f7 100%)',
-    color: '#111',
-  },
-  nav: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '1rem 2rem',
-    backgroundColor: '#000',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
-  },
-  logo: {
-    margin: 0,
-    color: '#fff',
-  },
-  navLinks: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-  },
-  link: {
-    color: '#fff',
-    textDecoration: 'none',
-  },
-  button: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  userInfo: {
-    color: '#444',
-  },
-  content: {
-    maxWidth: '1400px',
-    margin: '2rem auto',
-    padding: '0 2rem',
-  },
-  loading: {
-    textAlign: 'center',
-    padding: '4rem',
-    fontSize: '1.25rem',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '2rem',
-    marginBottom: '2rem',
-  },
-  statCard: {
-    backgroundColor: '#fff',
-    padding: '1.5rem',
-    borderRadius: '8px',
-    textAlign: 'center',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
-    border: '1px solid #e6e6e6',
-  },
-  statValue: {
-    fontSize: '2.5rem',
-    margin: '0 0 0.5rem 0',
-    color: '#111',
-    fontWeight: '700',
-  },
-  statLabel: {
-    fontSize: '1rem',
-    color: '#666',
-    margin: 0,
-  },
-  tabs: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '2rem',
-    borderBottom: '2px solid #eee',
-  },
-  tab: {
-    padding: '0.75rem 1.5rem',
-    backgroundColor: 'transparent',
-    border: 'none',
-    borderBottom: '2px solid transparent',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    color: '#333',
-  },
-  activeTab: {
-    borderBottom: '2px solid #000',
-    color: '#000',
-    fontWeight: '600',
-  },
-  tabContent: {
-    background: '#fff',
-    padding: '2rem',
-    borderRadius: '8px',
-    boxShadow: '0 6px 20px rgba(0,0,0,0.06)',
-  },
-  filterGroup: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-    marginBottom: '1.5rem',
-    padding: '1rem',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-  },
-  label: {
-    fontWeight: '600',
-    color: '#222',
-  },
-  select: {
-    padding: '0.5rem',
-    fontSize: '1rem',
-    borderRadius: '4px',
-    border: '1px solid #ddd',
-    background: '#fff',
-  },
-  refreshButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  tableContainer: {
-    overflowX: 'auto',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    marginTop: '1rem',
-  },
-  tableHeaderCell: {
-    border: '1px solid #e6e6e6',
-    padding: '0.75rem',
-    backgroundColor: '#f5f5f5',
-    textAlign: 'left',
-    fontWeight: '700',
-    color: '#111',
-  },
-  tableCell: {
-    border: '1px solid #e6e6e6',
-    padding: '0.75rem',
-    verticalAlign: 'middle',
-    backgroundColor: '#ffffff',
-    color: '#222',
-  },
-  'table th': {
-    backgroundColor: '#fff',
-    padding: '0.75rem',
-    textAlign: 'left',
-    borderBottom: '2px solid #eee',
-    fontWeight: '700',
-  },
-  'table td': {
-    padding: '0.75rem',
-    borderBottom: '1px solid #eee',
-  },
-  inlineInput: {
-    padding: '0.25rem',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '0.9rem',
-    width: '100%',
-    background: '#fff',
-    color: '#111',
-  },
-  priceInput: {
-    padding: '0.25rem',
-    border: '1px solid #e6e6e6',
-    borderRadius: '4px',
-    fontSize: '0.9rem',
-    width: '80px',
-    background: '#fff',
-    color: '#111',
-  },
-  checkboxLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    cursor: 'pointer',
-    color: '#333',
-  },
-  editButton: {
-    padding: '0.25rem 0.75rem',
-    backgroundColor: '#000',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  saveButton: {
-    padding: '0.25rem 0.75rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    marginRight: '0.5rem',
-    fontSize: '0.875rem',
-  },
-  cancelButton: {
-    padding: '0.25rem 0.75rem',
-    backgroundColor: '#6c757d',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  deleteButton: {
-    padding: '0.25rem 0.75rem',
-    backgroundColor: '#444',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-    marginLeft: 0,
-    marginTop: '0.25rem',
-  },
-  inStock: {
-    color: '#111',
-    fontWeight: '600',
-  },
-  outOfStock: {
-    color: '#666',
-    fontWeight: '600',
-  },
-  readOnly: {
-    color: '#888',
-    fontSize: '0.875rem',
-  },
-  emptyMessage: {
-    textAlign: 'center',
-    padding: '2rem',
-    color: '#666',
-  },
-  inventoryLayout: {
-    display: 'flex',
-    gap: '2rem',
-    alignItems: 'flex-start',
-  },
-  filterSidebar: {
-    width: '280px',
-    minWidth: '280px',
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    padding: '1.5rem',
-    border: '1px solid #e6e6e6',
-    position: 'sticky',
-    top: '1rem',
-    maxHeight: 'calc(100vh - 2rem)',
-    overflowY: 'auto',
-  },
-  sidebarTitle: {
-    margin: '0 0 1rem 0',
-    fontSize: '1.1rem',
-    color: '#111',
-    borderBottom: '2px solid #000',
-    paddingBottom: '0.5rem',
-  },
-  searchBox: {
-    marginBottom: '1rem',
-  },
-  searchInput: {
-    width: '100%',
-    padding: '0.75rem',
-    fontSize: '0.9rem',
-    borderRadius: '6px',
-    border: '1px solid #e6e6e6',
-    boxSizing: 'border-box',
-    background: '#fff',
-    color: '#111',
-  },
-  categoryList: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-  },
-  categoryListItem: {
-    padding: '0.75rem 1rem',
-    marginBottom: '0.5rem',
-    backgroundColor: 'white',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    border: '1px solid #e6e6e6',
-    transition: 'all 0.15s',
-  },
-  activeCategoryItem: {
-    backgroundColor: '#111',
-    color: 'white',
-    border: '1px solid #111',
-    fontWeight: '600',
-  },
-  categoryListItemContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: '0.5rem',
-  },
-  categoryName: {
-    flex: 1,
-    fontWeight: '500',
-  },
-  countBadge: {
-    fontSize: '0.75rem',
-    color: '#111',
-    backgroundColor: '#f2f2f2',
-    padding: '0.2rem 0.5rem',
-    borderRadius: '12px',
-    fontWeight: '600',
-  },
-  // Override for active category items
-  activeCategoryItemCountBadge: {
-    fontSize: '0.75rem',
-    color: '#fff',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    padding: '0.2rem 0.5rem',
-    borderRadius: '12px',
-    fontWeight: '600',
-  },
-  categoryListDivider: {
-    padding: '0.5rem 1rem',
-    marginBottom: '0.5rem',
-    borderTop: '1px solid #e6e6e6',
-    marginTop: '0.5rem',
-  },
-  dividerText: {
-    fontSize: '0.75rem',
-    color: '#666',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
-  },
-  filterInfo: {
-    marginTop: '1.5rem',
-    paddingTop: '1rem',
-    borderTop: '1px solid #e6e6e6',
-  },
-  filterInfoText: {
-    fontSize: '0.85rem',
-    color: '#666',
-    margin: '0 0 0.5rem 0',
-  },
-  refreshButtonSmall: {
-    width: '100%',
-    padding: '0.5rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-  },
-  tableWrapper: {
-    flex: 1,
-    overflowX: 'auto',
-  },
-  noResultsCell: {
-    textAlign: 'center',
-    padding: '2rem',
-    color: '#999',
-    fontStyle: 'italic',
-  },
-  imageContainer: {
-    position: 'relative',
-    width: '60px',
-    height: '60px',
-  },
-  componentImage: {
-    width: '60px',
-    height: '60px',
-    objectFit: 'cover',
-    borderRadius: '4px',
-    border: '1px solid #e6e6e6',
-    display: 'block',
-  },
-  noImage: {
-    width: '60px',
-    height: '60px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: '4px',
-    border: '1px solid #e6e6e6',
-    fontSize: '0.75rem',
-    color: '#777',
-    textAlign: 'center',
-  },
-  imageError: {
-    fontSize: '0.75rem',
-    color: '#a00',
-  },
-  urlLink: {
-    color: '#111',
-    textDecoration: 'none',
-    fontSize: '0.875rem',
-  },
-  noUrl: {
-    color: '#999',
-    fontSize: '0.875rem',
-  },
-  form: {
-    maxWidth: '800px',
-    backgroundColor: '#fff',
-    padding: '1rem',
-    borderRadius: '8px',
-    border: '1px solid #e6e6e6',
-  },
-  formGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1rem',
-    marginBottom: '1rem',
-  },
-  formGroup: {
-    marginBottom: '1rem',
-  },
-  input: {
-    width: '100%',
-    padding: '0.5rem',
-    border: '1px solid #e6e6e6',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    boxSizing: 'border-box',
-    background: '#fff',
-    color: '#111',
-  },
-  textarea: {
-    width: '100%',
-    padding: '0.5rem',
-    border: '1px solid #e6e6e6',
-    borderRadius: '4px',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box',
-    resize: 'vertical',
-    background: '#fff',
-    color: '#111',
-  },
-  submitButton: {
-    padding: '0.75rem 2rem',
-    backgroundColor: '#000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '600',
-  },
-};
 
 export default SupplierDashboard;
