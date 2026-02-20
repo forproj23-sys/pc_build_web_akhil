@@ -27,8 +27,16 @@ router.get('/', protect, async (req, res) => {
       const builds = await Build.find({ assemblerID: req.user._id }).select('_id');
       const ids = builds.map((b) => b._id);
       txQuery.buildId = { $in: ids };
+    } else if (role === 'supplier') {
+      // Supplier sees transactions where they are the recipient (to='supplier' AND meta.supplierID matches)
+      // Also include transactions where they are the sender (from='supplier')
+      const supplierId = req.user._id.toString();
+      txQuery.$or = [
+        { to: 'supplier', 'meta.supplierID': supplierId },
+        { from: 'supplier', 'meta.supplierID': supplierId }
+      ];
     } else {
-      // other roles (supplier etc) - return empty set by default
+      // other roles - return empty set by default
       return res.json({ success: true, count: 0, data: [] });
     }
 

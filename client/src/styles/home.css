@@ -1,0 +1,387 @@
+/* ============================================================
+   Home / Landing Page — Matching Auth Page Theme
+   Purple gradient circles · Rounded cards · Soft shadows
+   Orange-red gradient accent · Modern minimal layout
+   ============================================================ */
+
+/* === Page === */
+.home-page {
+  min-height: 100vh;
+  background: #ffffff;
+  position: relative;
+  overflow-x: hidden;
+  font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Decorative purple gradient circles */
+.home-page::before {
+  content: '';
+  position: fixed;
+  top: -150px;
+  right: -150px;
+  width: 420px;
+  height: 420px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.home-page::after {
+  content: '';
+  position: fixed;
+  bottom: -150px;
+  left: -150px;
+  width: 420px;
+  height: 420px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* === Top Nav === */
+.home-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.home-nav-logo {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  text-decoration: none;
+}
+
+.home-nav-logo:hover {
+  color: #1a1a2e;
+}
+
+.home-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home-nav-link {
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  font-family: inherit;
+}
+
+.home-nav-link-ghost {
+  color: #555;
+  background: transparent;
+}
+
+.home-nav-link-ghost:hover {
+  color: #e85d04;
+  background: rgba(233, 101, 17, 0.06);
+}
+
+.home-nav-link-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, #e96511 0%, #de3131 100%);
+  box-shadow: 0 3px 10px rgba(233, 101, 17, 0.2);
+}
+
+.home-nav-link-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(233, 101, 17, 0.3);
+  color: #ffffff;
+}
+
+.home-nav-link-outline {
+  color: #e85d04;
+  background: transparent;
+  border: 1.5px solid #e85d04;
+}
+
+.home-nav-link-outline:hover {
+  background: rgba(233, 101, 17, 0.06);
+}
+
+/* Nav avatar */
+.home-nav-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.home-nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.home-nav-user-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* === Content wrapper === */
+.home-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* === Hero Section === */
+.home-hero {
+  text-align: center;
+  padding: 5rem 2rem 4rem;
+}
+
+.home-hero-badge {
+  display: inline-block;
+  padding: 0.4rem 1.15rem;
+  background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+  color: #764ba2;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.home-hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  line-height: 1.15;
+  margin: 0 0 1.25rem 0;
+}
+
+.home-hero-title span {
+  background: linear-gradient(135deg, #e96511 0%, #de3131 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.home-hero-subtitle {
+  font-size: 1.1rem;
+  color: #888;
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.65;
+}
+
+.home-hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* === Buttons === */
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2.25rem;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+}
+
+.home-btn-primary {
+  color: #ffffff;
+  background: linear-gradient(135deg, #e96511 0%, #de3131 100%);
+  box-shadow: 0 4px 15px rgba(233, 101, 17, 0.25);
+}
+
+.home-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(233, 101, 17, 0.35);
+  color: #ffffff;
+}
+
+.home-btn-outline {
+  color: #555;
+  background: #ffffff;
+  border: 1.5px solid #e0e0e5;
+}
+
+.home-btn-outline:hover {
+  border-color: #e85d04;
+  color: #e85d04;
+  background: rgba(233, 101, 17, 0.03);
+}
+
+/* === Features Section === */
+.home-features {
+  padding: 0 0 5rem;
+}
+
+.home-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.home-feature-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f5;
+  transition: all 0.3s ease;
+}
+
+.home-feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+.home-feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.home-feature-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-feature-icon.purple {
+  background: linear-gradient(135deg, rgba(102,126,234,0.12) 0%, rgba(118,75,162,0.12) 100%);
+}
+
+.home-feature-icon.purple svg {
+  stroke: #764ba2;
+}
+
+.home-feature-icon.orange {
+  background: rgba(233, 101, 17, 0.1);
+}
+
+.home-feature-icon.orange svg {
+  stroke: #e96511;
+}
+
+.home-feature-icon.green {
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.home-feature-icon.green svg {
+  stroke: #16a34a;
+}
+
+.home-feature-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 0.6rem 0;
+}
+
+.home-feature-text {
+  font-size: 0.9rem;
+  color: #888;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* === Footer === */
+.home-footer {
+  text-align: center;
+  padding: 2rem;
+  color: #bbb;
+  font-size: 0.8rem;
+  border-top: 1px solid #f0f0f5;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 768px) {
+  .home-nav {
+    padding: 0.85rem 1.25rem;
+  }
+
+  .home-hero {
+    padding: 3.5rem 1rem 3rem;
+  }
+
+  .home-hero-title {
+    font-size: 2rem;
+  }
+
+  .home-hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .home-features-grid {
+    grid-template-columns: 1fr;
+    gap: 1.15rem;
+  }
+
+  .home-content {
+    padding: 0 1.25rem;
+  }
+
+  .home-btn {
+    padding: 0.8rem 1.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-hero-title {
+    font-size: 1.65rem;
+  }
+
+  .home-hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .home-hero-actions .home-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .home-nav-user-name {
+    display: none;
+  }
+}

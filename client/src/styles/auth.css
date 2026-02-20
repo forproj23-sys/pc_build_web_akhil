@@ -200,7 +200,7 @@
 .auth-submit-btn {
   width: 100%;
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, #e85d04 0%, #dc2626 100%);
+  background: linear-gradient(135deg, #e96511 0%, #de3131 100%);
   color: #ffffff;
   border: none;
   border-radius: 50px;
@@ -210,12 +210,12 @@
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(232, 93, 4, 0.3);
+  box-shadow: 0 4px 15px rgba(233, 101, 17, 0.25);
 }
 
 .auth-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(232, 93, 4, 0.4);
+  box-shadow: 0 6px 20px rgba(233, 101, 17, 0.35);
 }
 
 .auth-submit-btn:disabled {

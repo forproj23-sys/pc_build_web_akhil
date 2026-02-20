@@ -1,0 +1,394 @@
+/* ============================================================
+   Profile Page — Matching Auth / Login Page Theme
+   Purple gradient circles · Rounded card · Soft shadows
+   Orange-red gradient accent · Pill inputs · Modern minimal
+   ============================================================ */
+
+/* === Page wrapper === */
+.profile-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #ffffff;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+  padding: 2rem 1rem;
+}
+
+/* Decorative purple gradient circles (mirrors auth-page) */
+.profile-page::before {
+  content: '';
+  position: fixed;
+  top: -150px;
+  right: -150px;
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.profile-page::after {
+  content: '';
+  position: fixed;
+  bottom: -150px;
+  left: -150px;
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* === Back link === */
+.profile-back {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #555;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  transition: all 0.25s ease;
+}
+
+.profile-back:hover {
+  color: #e85d04;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.profile-back svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* === Main card === */
+.profile-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+  margin-top: 3rem;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+/* === Avatar header === */
+.profile-avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 2rem 1.5rem;
+  background: linear-gradient(135deg, rgba(102,126,234,0.06) 0%, rgba(118,75,162,0.06) 100%);
+  border-bottom: 1px solid #f0f0f5;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 6px 20px rgba(102,126,234,0.3);
+}
+
+.profile-avatar-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.profile-avatar-role {
+  font-size: 0.82rem;
+  color: #aaa;
+  text-transform: capitalize;
+  margin: 0.15rem 0 0 0;
+  letter-spacing: 0.5px;
+}
+
+/* === Card body === */
+.profile-body {
+  padding: 2rem;
+}
+
+/* === Section title === */
+.profile-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 1.25rem 0;
+}
+
+/* === Divider === */
+.profile-divider {
+  border: none;
+  height: 1px;
+  background: #f0f0f5;
+  margin: 1.75rem 0;
+}
+
+/* === Form groups === */
+.profile-form-group {
+  margin-bottom: 1.25rem;
+}
+
+.profile-label {
+  display: block;
+  color: #374151;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 0.45rem;
+}
+
+/* === Pill inputs (matching auth-input) === */
+.profile-input {
+  width: 100%;
+  padding: 0.85rem 1.35rem;
+  background: #e8e8e8;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  color: #333;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.profile-input::placeholder {
+  color: #999;
+}
+
+.profile-input:focus {
+  outline: none;
+  background: #ddd;
+  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+}
+
+.profile-input:read-only {
+  color: #666;
+  cursor: default;
+}
+
+.profile-input:read-only:focus {
+  box-shadow: none;
+  background: #e8e8e8;
+}
+
+/* === Input row (input + buttons side-by-side) === */
+.profile-input-row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.profile-input-row .profile-input {
+  flex: 1;
+}
+
+/* === Password input group === */
+.profile-password-group {
+  position: relative;
+}
+
+.profile-password-group .profile-input {
+  padding-right: 3.25rem;
+}
+
+.profile-password-toggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #888;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.profile-password-toggle:hover {
+  color: #555;
+}
+
+/* === Buttons (matching auth-submit-btn) === */
+.profile-btn-primary {
+  padding: 0.75rem 1.75rem;
+  background: linear-gradient(135deg, #e96511 0%, #de3131 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(233, 101, 17, 0.25);
+  font-family: inherit;
+}
+
+.profile-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(233, 101, 17, 0.35);
+}
+
+.profile-btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.profile-btn-secondary {
+  padding: 0.75rem 1.75rem;
+  background: #e8e8e8;
+  color: #555;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.profile-btn-secondary:hover {
+  background: #ddd;
+  color: #333;
+}
+
+.profile-btn-sm {
+  padding: 0.55rem 1.25rem;
+  font-size: 0.82rem;
+}
+
+/* === Alerts === */
+.profile-alert {
+  padding: 0.75rem 1.25rem;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.profile-alert-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+.profile-alert-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+.profile-alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #2563eb;
+}
+
+/* === Info badge (role) === */
+.profile-role-badge {
+  display: inline-block;
+  padding: 0.35rem 1rem;
+  background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+  color: #764ba2;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+/* === Footer actions === */
+.profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .profile-card {
+    margin-top: 3.5rem;
+    border-radius: 16px;
+  }
+
+  .profile-avatar-section {
+    padding: 2rem 1.5rem 1.25rem;
+  }
+
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.4rem;
+  }
+
+  .profile-body {
+    padding: 1.5rem;
+  }
+
+  .profile-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-input-row .profile-btn-primary,
+  .profile-input-row .profile-btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+  }
+
+  .profile-actions .profile-btn-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .profile-back {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+}
