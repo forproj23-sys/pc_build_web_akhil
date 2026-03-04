@@ -192,19 +192,25 @@ After completing Step 3 (Vercel deployment):
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click **"Add New..."** → **"Project"**
 3. Import your GitHub repository
-4. Configure the project:
+4. **IMPORTANT**: Before configuring, click **"Edit"** next to **"Root Directory"**
+   - Set Root Directory to: `client`
+   - This tells Vercel to treat the `client` folder as the project root
+5. Configure the project:
    - **Framework Preset**: Select **"Vite"** (or "Other")
-   - **Root Directory**: Click **"Edit"** and set to `client`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-   - **Install Command**: `npm install`
+   - **Root Directory**: Should now show `client` (from step 4)
+   - **Build Command**: `npm run build` (Vercel will auto-detect this for Vite)
+   - **Output Directory**: `dist` (Vercel will auto-detect this for Vite)
+   - **Install Command**: `npm install` (default)
 
-5. **Environment Variables** section - Add:
+6. **Environment Variables** section - Add:
    | Variable Name | Value | Description |
    |--------------|-------|-------------|
    | `VITE_API_URL` | `https://your-backend-url.onrender.com/api` | Your Render backend URL + `/api` |
 
-6. Click **"Deploy"**
+7. Click **"Deploy"**
+
+**Note**: If you've already created the project, you can update the Root Directory by going to:
+- Project Settings → General → Root Directory → Set to `client` → Save
 
 ### 3.3 Get Your Frontend URL
 
