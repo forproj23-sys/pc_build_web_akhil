@@ -8,33 +8,52 @@ export function checkCompatibility(components) {
   const warnings = [];
   let isCompatible = true;
 
+  const normalizeCategory = (cat) => {
+    const c = String(cat || '').trim().toUpperCase();
+    if (!c) return '';
+    if (c === 'POWER SUPPLY' || c === 'POWER SUPPLY UNIT' || c === 'PSU UNIT') return 'PSU';
+    if (c === 'MOTHER BOARD') return 'MOTHERBOARD';
+    if (c === 'GRAPHICS CARD') return 'GPU';
+    if (c === 'SOLID STATE DRIVE' || c === 'HARD DRIVE') return 'STORAGE';
+    return c;
+  };
+
+  const normalizeSocket = (socket) => {
+    const s = String(socket || '').trim().toUpperCase();
+    if (!s) return '';
+    return s.replace(/SOCKET/gi, '').replace(/[^A-Z0-9]/g, '');
+  };
+
   // Find required components
-  const cpu = components.find((c) => (c.category || '').toUpperCase() === 'CPU');
-  const motherboard = components.find((c) => (c.category || '').toUpperCase() === 'MOTHERBOARD');
-  const psu = components.find((c) => (c.category || '').toUpperCase() === 'PSU');
-  const gpu = components.find((c) => (c.category || '').toUpperCase() === 'GPU');
-  const ram = components.find((c) => (c.category || '').toUpperCase() === 'RAM');
-  const case_ = components.find((c) => (c.category || '').toUpperCase() === 'CASE');
+  const cpu = components.find((c) => normalizeCategory(c.category) === 'CPU');
+  const motherboard = components.find((c) => normalizeCategory(c.category) === 'MOTHERBOARD');
+  const psu = components.find((c) => normalizeCategory(c.category) === 'PSU');
+  const gpu = components.find((c) => normalizeCategory(c.category) === 'GPU');
+  const ram = components.find((c) => normalizeCategory(c.category) === 'RAM');
+  const case_ = components.find((c) => normalizeCategory(c.category) === 'CASE');
 
   // Check CPU and Motherboard socket compatibility
   if (cpu && motherboard) {
-    const cpuSocket = (cpu.socket || '').trim().toUpperCase();
-    const mbSocket = (motherboard.socket || '').trim().toUpperCase();
+    const rawCpuSocket = (cpu.socket || '').trim().toUpperCase();
+    const rawMbSocket = (motherboard.socket || '').trim().toUpperCase();
+
+    const cpuSocket = normalizeSocket(rawCpuSocket);
+    const mbSocket = normalizeSocket(rawMbSocket);
 
     if (cpuSocket && mbSocket) {
       if (cpuSocket !== mbSocket) {
         // Only mark as incompatible if both sockets are explicitly set and don't match
-        issues.push(`CPU socket (${cpuSocket}) does not match Motherboard socket (${mbSocket})`);
+        issues.push(`CPU socket (${rawCpuSocket || cpuSocket}) does not match Motherboard socket (${rawMbSocket || mbSocket})`);
         isCompatible = false;
       } else {
-        warnings.push(`✓ CPU and Motherboard socket compatibility verified (${cpuSocket})`);
+        warnings.push(`✓ CPU and Motherboard socket compatibility verified (${rawCpuSocket || cpuSocket})`);
       }
     } else if (cpuSocket && !mbSocket) {
       // CPU has socket but motherboard doesn't - show warning but don't block
-      warnings.push(`⚠ Motherboard socket information missing - cannot verify compatibility with CPU (${cpuSocket})`);
+      warnings.push(`⚠ Motherboard socket information missing - cannot verify compatibility with CPU (${rawCpuSocket || cpuSocket})`);
     } else if (!cpuSocket && mbSocket) {
       // Motherboard has socket but CPU doesn't - show warning but don't block
-      warnings.push(`⚠ CPU socket information missing - cannot verify compatibility with Motherboard (${mbSocket})`);
+      warnings.push(`⚠ CPU socket information missing - cannot verify compatibility with Motherboard (${rawMbSocket || mbSocket})`);
     }
     // If both are missing, no check needed - allow selection
   }
