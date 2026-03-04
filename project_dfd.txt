@@ -1,0 +1,568 @@
+PC BUILDING WEBSITE – DATA FLOW DIAGRAM (DFD) DOCUMENTATION
+================================================================================
+
+This document contains Data Flow Diagrams (DFDs) for the PC Building Website
+project, created using Mermaid syntax. These diagrams can be rendered in any
+Mermaid-compatible viewer (GitHub, GitLab, Mermaid Live Editor, etc.).
+
+================================================================================
+DFD LEVEL 0 - CONTEXT DIAGRAM
+================================================================================
+
+Description: This is the highest-level DFD showing the entire system as a single
+process and its interactions with external entities (Admin, User, Assembler, Supplier).
+
+```mermaid
+flowchart TD
+    Admin[Admin]
+    User[User/Customer]
+    Assembler[PC Assembler]
+    Supplier[Supplier/Vendor]
+    System[PC Building System]
+    
+    Admin -->|Login Credentials| System
+    Admin -->|Component Data| System
+    Admin -->|User Management Data| System
+    Admin -->|Build Assignment| System
+    System -->|Authentication Response| Admin
+    System -->|Component List| Admin
+    System -->|User List| Admin
+    System -->|Build Status| Admin
+    
+    User -->|Registration/Login| System
+    User -->|Component Selection| System
+    User -->|Build Request| System
+    User -->|Payment Data| System
+    System -->|Authentication Response| User
+    System -->|Component Catalog| User
+    System -->|Compatibility Status| User
+    System -->|Build Confirmation| User
+    
+    Assembler -->|Login Credentials| System
+    Assembler -->|Status Updates| System
+    System -->|Authentication Response| Assembler
+    System -->|Assigned Builds| Assembler
+    System -->|Component Details| Assembler
+    
+    Supplier -->|Login Credentials| System
+    Supplier -->|Component Inventory| System
+    Supplier -->|Price Updates| System
+    Supplier -->|Stock Status| System
+    System -->|Authentication Response| Supplier
+    System -->|Component List| Supplier
+    System -->|Inventory Status| Supplier
+```
+
+================================================================================
+DFD LEVEL 1 - SYSTEM OVERVIEW
+================================================================================
+
+Description: This DFD decomposes the PC Building System into major processes
+and shows data stores (databases) and data flows between processes and stores.
+
+```mermaid
+flowchart TD
+    %% External Entities
+    Admin[Admin]
+    User[User/Customer]
+    Assembler[PC Assembler]
+    Supplier[Supplier/Vendor]
+    
+    %% Processes
+    P1[1.0<br/>Authentication<br/>Management]
+    P2[2.0<br/>Component<br/>Management]
+    P3[3.0<br/>Build<br/>Management]
+    P4[4.0<br/>Assembly<br/>Management]
+    P5[5.0<br/>Payment<br/>Management]
+    P6[6.0<br/>User<br/>Management]
+    P7[7.0<br/>Compatibility<br/>Validation]
+    
+    %% Data Stores
+    D1[(D1: Users)]
+    D2[(D2: Components)]
+    D3[(D3: Builds)]
+    D4[(D4: Transactions)]
+    D5[(D5: Categories)]
+    
+    %% External to Processes
+    Admin -->|Login Request| P1
+    Admin -->|Component CRUD| P2
+    Admin -->|User Management| P6
+    Admin -->|Build Assignment| P4
+    
+    User -->|Register/Login| P1
+    User -->|Browse Components| P2
+    User -->|Create Build| P3
+    User -->|Payment Info| P5
+    
+    Assembler -->|Login| P1
+    Assembler -->|Status Update| P4
+    Assembler -->|View Builds| P3
+    
+    Supplier -->|Login| P1
+    Supplier -->|Manage Inventory| P2
+    Supplier -->|Update Prices| P2
+    
+    %% Process to Data Store
+    P1 -->|Read/Write| D1
+    P2 -->|Read/Write| D2
+    P2 -->|Read| D5
+    P3 -->|Read/Write| D3
+    P3 -->|Read| D2
+    P3 -->|Read| D1
+    P4 -->|Read/Write| D3
+    P4 -->|Read| D1
+    P5 -->|Read/Write| D4
+    P5 -->|Read/Write| D3
+    P6 -->|Read/Write| D1
+    P7 -->|Read| D2
+    P7 -->|Read| D3
+    
+    %% Process to Process
+    P3 -->|Component List| P7
+    P7 -->|Validation Result| P3
+    
+    %% Data Store to Process
+    D1 -->|User Data| P1
+    D1 -->|User Data| P3
+    D1 -->|User Data| P4
+    D1 -->|User Data| P6
+    D2 -->|Component Data| P2
+    D2 -->|Component Data| P3
+    D2 -->|Component Data| P7
+    D3 -->|Build Data| P3
+    D3 -->|Build Data| P4
+    D3 -->|Build Data| P5
+    D4 -->|Transaction Data| P5
+    D5 -->|Category Data| P2
+    
+    %% Process to External
+    P1 -->|Auth Response| Admin
+    P1 -->|Auth Response| User
+    P1 -->|Auth Response| Assembler
+    P1 -->|Auth Response| Supplier
+    
+    P2 -->|Component List| Admin
+    P2 -->|Component Catalog| User
+    P2 -->|Inventory Status| Supplier
+    
+    P3 -->|Build Confirmation| User
+    P3 -->|Build List| Assembler
+    P3 -->|Compatibility Status| User
+    
+    P4 -->|Status Update| Assembler
+    P4 -->|Build Status| Admin
+    P4 -->|Build Status| User
+    
+    P5 -->|Payment Confirmation| User
+    P5 -->|Transaction History| Admin
+    P5 -->|Transaction History| Supplier
+    
+    P6 -->|User List| Admin
+```
+
+================================================================================
+DFD LEVEL 1.1 - ADMIN MODULE
+================================================================================
+
+Description: Detailed DFD showing Admin-specific processes including component
+management, user management, build monitoring, and system administration.
+
+```mermaid
+flowchart TD
+    Admin[Admin]
+    
+    %% Admin Processes
+    P1_1[1.1<br/>Authenticate<br/>Admin]
+    P1_2[1.2<br/>Manage<br/>Components]
+    P1_3[1.3<br/>Manage<br/>Users]
+    P1_4[1.4<br/>Monitor<br/>Builds]
+    P1_5[1.5<br/>Assign<br/>Assemblers]
+    P1_6[1.6<br/>Manage<br/>Categories]
+    P1_7[1.7<br/>Process<br/>Refunds]
+    P1_8[1.8<br/>View<br/>Transactions]
+    
+    %% Data Stores
+    D1[(D1: Users)]
+    D2[(D2: Components)]
+    D3[(D3: Builds)]
+    D4[(D4: Transactions)]
+    D5[(D5: Categories)]
+    
+    %% External to Process
+    Admin -->|Login Credentials| P1_1
+    Admin -->|Component Data| P1_2
+    Admin -->|User Management| P1_3
+    Admin -->|Build Assignment| P1_5
+    Admin -->|Category Data| P1_6
+    Admin -->|Refund Request| P1_7
+    Admin -->|View Request| P1_8
+    
+    %% Process to Data Store
+    P1_1 -->|Read| D1
+    P1_2 -->|Read/Write| D2
+    P1_2 -->|Read| D5
+    P1_3 -->|Read/Write| D1
+    P1_4 -->|Read| D3
+    P1_4 -->|Read| D1
+    P1_5 -->|Read/Write| D3
+    P1_5 -->|Read| D1
+    P1_6 -->|Read/Write| D5
+    P1_7 -->|Read/Write| D3
+    P1_7 -->|Read/Write| D4
+    P1_8 -->|Read| D4
+    P1_8 -->|Read| D3
+    
+    %% Data Store to Process
+    D1 -->|User Data| P1_1
+    D1 -->|User List| P1_3
+    D1 -->|Assembler List| P1_5
+    D2 -->|Component List| P1_2
+    D3 -->|Build List| P1_4
+    D3 -->|Build Details| P1_5
+    D3 -->|Build Data| P1_7
+    D4 -->|Transaction List| P1_8
+    D5 -->|Category List| P1_2
+    D5 -->|Category Data| P1_6
+    
+    %% Process to External
+    P1_1 -->|Auth Response| Admin
+    P1_2 -->|Component List| Admin
+    P1_2 -->|Success Message| Admin
+    P1_3 -->|User List| Admin
+    P1_3 -->|Update Confirmation| Admin
+    P1_4 -->|Build Statistics| Admin
+    P1_4 -->|Build List| Admin
+    P1_5 -->|Assignment Confirmation| Admin
+    P1_6 -->|Category List| Admin
+    P1_7 -->|Refund Status| Admin
+    P1_8 -->|Transaction Report| Admin
+```
+
+================================================================================
+DFD LEVEL 1.2 - USER MODULE
+================================================================================
+
+Description: Detailed DFD showing User/Customer-specific processes including
+registration, component browsing, build creation, compatibility checking, and
+payment processing.
+
+```mermaid
+flowchart TD
+    User[User/Customer]
+    
+    %% User Processes
+    P2_1[2.1<br/>Register/<br/>Login]
+    P2_2[2.2<br/>Browse<br/>Components]
+    P2_3[2.3<br/>Create<br/>PC Build]
+    P2_4[2.4<br/>Check<br/>Compatibility]
+    P2_5[2.5<br/>Calculate<br/>Total Price]
+    P2_6[2.6<br/>Make<br/>Payment]
+    P2_7[2.7<br/>View My<br/>Builds]
+    P2_8[2.8<br/>Request<br/>Refund]
+    P2_9[2.9<br/>View<br/>Transactions]
+    
+    %% Data Stores
+    D1[(D1: Users)]
+    D2[(D2: Components)]
+    D3[(D3: Builds)]
+    D4[(D4: Transactions)]
+    D5[(D5: Categories)]
+    
+    %% External to Process
+    User -->|Registration Data| P2_1
+    User -->|Login Credentials| P2_1
+    User -->|Filter Criteria| P2_2
+    User -->|Component Selection| P2_3
+    User -->|Budget Info| P2_3
+    User -->|Payment Details| P2_6
+    User -->|Refund Request| P2_8
+    
+    %% Process to Data Store
+    P2_1 -->|Write| D1
+    P2_1 -->|Read| D1
+    P2_2 -->|Read| D2
+    P2_2 -->|Read| D5
+    P2_3 -->|Read| D2
+    P2_3 -->|Write| D3
+    P2_4 -->|Read| D2
+    P2_4 -->|Read| D3
+    P2_5 -->|Read| D2
+    P2_6 -->|Read| D3
+    P2_6 -->|Write| D4
+    P2_6 -->|Write| D3
+    P2_7 -->|Read| D3
+    P2_8 -->|Read| D3
+    P2_8 -->|Write| D3
+    P2_9 -->|Read| D4
+    
+    %% Data Store to Process
+    D1 -->|User Data| P2_1
+    D2 -->|Component Catalog| P2_2
+    D2 -->|Component Details| P2_3
+    D2 -->|Component Specs| P2_4
+    D2 -->|Component Prices| P2_5
+    D3 -->|Build Data| P2_4
+    D3 -->|Build List| P2_7
+    D3 -->|Build Details| P2_8
+    D4 -->|Transaction History| P2_9
+    D5 -->|Category List| P2_2
+    
+    %% Process to Process
+    P2_3 -->|Component List| P2_4
+    P2_4 -->|Validation Result| P2_3
+    P2_3 -->|Component List| P2_5
+    P2_5 -->|Total Price| P2_3
+    P2_3 -->|Build Data| P2_6
+    
+    %% Process to External
+    P2_1 -->|Auth Response| User
+    P2_2 -->|Component List| User
+    P2_3 -->|Build Confirmation| User
+    P2_4 -->|Compatibility Status| User
+    P2_5 -->|Price Summary| User
+    P2_6 -->|Payment Confirmation| User
+    P2_7 -->|Build List| User
+    P2_8 -->|Refund Status| User
+    P2_9 -->|Transaction List| User
+```
+
+================================================================================
+DFD LEVEL 1.3 - ASSEMBLER MODULE
+================================================================================
+
+Description: Detailed DFD showing PC Assembler-specific processes including
+viewing assigned builds, reviewing components, and updating assembly status.
+
+```mermaid
+flowchart TD
+    Assembler[PC Assembler]
+    
+    %% Assembler Processes
+    P3_1[3.1<br/>Login/<br/>Authenticate]
+    P3_2[3.2<br/>View<br/>Assigned Builds]
+    P3_3[3.3<br/>Review<br/>Component List]
+    P3_4[3.4<br/>Update<br/>Assembly Status]
+    P3_5[3.5<br/>View Build<br/>Details]
+    P3_6[3.6<br/>View<br/>Transactions]
+    
+    %% Data Stores
+    D1[(D1: Users)]
+    D2[(D2: Components)]
+    D3[(D3: Builds)]
+    D4[(D4: Transactions)]
+    
+    %% External to Process
+    Assembler -->|Login Credentials| P3_1
+    Assembler -->|View Request| P3_2
+    Assembler -->|Status Update| P3_4
+    
+    %% Process to Data Store
+    P3_1 -->|Read| D1
+    P3_2 -->|Read| D3
+    P3_2 -->|Read| D1
+    P3_3 -->|Read| D3
+    P3_3 -->|Read| D2
+    P3_4 -->|Read| D3
+    P3_4 -->|Write| D3
+    P3_5 -->|Read| D3
+    P3_5 -->|Read| D2
+    P3_6 -->|Read| D4
+    P3_6 -->|Read| D3
+    
+    %% Data Store to Process
+    D1 -->|User Data| P3_1
+    D1 -->|Assembler Info| P3_2
+    D3 -->|Assigned Builds| P3_2
+    D3 -->|Build Details| P3_3
+    D3 -->|Build Data| P3_4
+    D3 -->|Build Info| P3_5
+    D2 -->|Component Details| P3_3
+    D2 -->|Component List| P3_5
+    D4 -->|Transaction List| P3_6
+    
+    %% Process to Process
+    P3_2 -->|Build ID| P3_3
+    P3_2 -->|Build ID| P3_5
+    P3_3 -->|Component Info| P3_4
+    
+    %% Process to External
+    P3_1 -->|Auth Response| Assembler
+    P3_2 -->|Build List| Assembler
+    P3_3 -->|Component List| Assembler
+    P3_4 -->|Status Confirmation| Assembler
+    P3_5 -->|Build Details| Assembler
+    P3_6 -->|Transaction History| Assembler
+```
+
+================================================================================
+DFD LEVEL 1.4 - SUPPLIER MODULE
+================================================================================
+
+Description: Detailed DFD showing Supplier/Vendor-specific processes including
+component inventory management, price updates, and stock status management.
+
+```mermaid
+flowchart TD
+    Supplier[Supplier/Vendor]
+    
+    %% Supplier Processes
+    P4_1[4.1<br/>Login/<br/>Authenticate]
+    P4_2[4.2<br/>Add<br/>Components]
+    P4_3[4.3<br/>Update<br/>Component Prices]
+    P4_4[4.4<br/>Manage<br/>Stock Status]
+    P4_5[4.5<br/>View My<br/>Components]
+    P4_6[4.6<br/>View<br/>Inventory Stats]
+    P4_7[4.7<br/>View<br/>Transactions]
+    P4_8[4.8<br/>View<br/>Payouts]
+    
+    %% Data Stores
+    D1[(D1: Users)]
+    D2[(D2: Components)]
+    D3[(D3: Builds)]
+    D4[(D4: Transactions)]
+    D5[(D5: Categories)]
+    
+    %% External to Process
+    Supplier -->|Login Credentials| P4_1
+    Supplier -->|Component Data| P4_2
+    Supplier -->|Price Data| P4_3
+    Supplier -->|Stock Status| P4_4
+    
+    %% Process to Data Store
+    P4_1 -->|Read| D1
+    P4_2 -->|Write| D2
+    P4_2 -->|Read| D5
+    P4_3 -->|Read| D2
+    P4_3 -->|Write| D2
+    P4_4 -->|Read| D2
+    P4_4 -->|Write| D2
+    P4_5 -->|Read| D2
+    P4_5 -->|Read| D1
+    P4_6 -->|Read| D2
+    P4_6 -->|Read| D1
+    P4_7 -->|Read| D4
+    P4_8 -->|Read| D3
+    P4_8 -->|Read| D4
+    
+    %% Data Store to Process
+    D1 -->|User Data| P4_1
+    D1 -->|Supplier Info| P4_5
+    D2 -->|Component List| P4_3
+    D2 -->|Component Data| P4_4
+    D2 -->|My Components| P4_5
+    D2 -->|Inventory Data| P4_6
+    D3 -->|Build Data| P4_8
+    D4 -->|Transaction List| P4_7
+    D4 -->|Payout Records| P4_8
+    D5 -->|Category List| P4_2
+    
+    %% Process to Process
+    P4_2 -->|Component ID| P4_3
+    P4_2 -->|Component ID| P4_4
+    
+    %% Process to External
+    P4_1 -->|Auth Response| Supplier
+    P4_2 -->|Component Confirmation| Supplier
+    P4_3 -->|Price Update Confirmation| Supplier
+    P4_4 -->|Stock Update Confirmation| Supplier
+    P4_5 -->|Component List| Supplier
+    P4_6 -->|Inventory Statistics| Supplier
+    P4_7 -->|Transaction History| Supplier
+    P4_8 -->|Payout History| Supplier
+```
+
+================================================================================
+DATA STORE DESCRIPTIONS
+================================================================================
+
+D1: Users
+- Stores user account information including authentication credentials,
+  roles (admin, user, assembler, supplier), and approval status.
+
+D2: Components
+- Stores PC component information including name, category, price,
+  specifications, compatibility details, stock status, and supplier reference.
+
+D3: Builds
+- Stores PC build configurations including selected components, total price,
+  assembly status, payment information, supplier payouts, and refund requests.
+
+D4: Transactions
+- Stores financial transaction records including payments, payouts, and
+  refunds with amount, status, and metadata.
+
+D5: Categories
+- Stores component category definitions with priority and activation status
+  for organizing components.
+
+================================================================================
+PROCESS DESCRIPTIONS
+================================================================================
+
+LEVEL 1 PROCESSES:
+
+1.0 Authentication Management
+- Handles user registration, login, password changes, and session management.
+- Validates credentials and generates JWT tokens.
+
+2.0 Component Management
+- Manages CRUD operations for PC components.
+- Handles component inventory, pricing, and stock status updates.
+
+3.0 Build Management
+- Manages PC build creation, retrieval, and deletion.
+- Handles component selection and build persistence.
+
+4.0 Assembly Management
+- Manages build assignment to assemblers.
+- Handles assembly status updates through workflow (Pending → Assembling → Completed).
+
+5.0 Payment Management
+- Processes payments for builds.
+- Manages escrow, commissions, and supplier payouts.
+- Handles refund processing.
+
+6.0 User Management
+- Manages user accounts, roles, and approval status.
+- Admin-only operations for user administration.
+
+7.0 Compatibility Validation
+- Validates component compatibility within builds.
+- Checks socket matching, power requirements, form factors, etc.
+
+================================================================================
+DATA FLOW NOTATION
+================================================================================
+
+Data flows are labeled with descriptive names indicating the type of data
+being transferred. Common patterns:
+
+- "Login Credentials" → Authentication data (email, password)
+- "Component Data" → Component information (name, price, specs)
+- "Build Request" → Build creation data (components, budget)
+- "Status Update" → Assembly status changes
+- "Payment Data" → Payment information and transaction details
+- "Auth Response" → Authentication result (token, user data)
+
+================================================================================
+USAGE INSTRUCTIONS
+================================================================================
+
+To render these Mermaid diagrams:
+
+1. GitHub/GitLab: Copy the code blocks (between ```mermaid and ```) into
+   markdown files. They will render automatically.
+
+2. Mermaid Live Editor: Visit https://mermaid.live/ and paste the code.
+
+3. VS Code: Install the "Markdown Preview Mermaid Support" extension.
+
+4. Documentation Tools: Most modern documentation platforms (Notion, Confluence,
+   etc.) support Mermaid diagrams.
+
+5. Standalone: Use Mermaid CLI or online renderers to generate images.
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================

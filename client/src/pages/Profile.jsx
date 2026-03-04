@@ -43,12 +43,13 @@ export default function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const userInitials = user?.name
     ? user.name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
     : '?';
 
-  const handleChangePassword = (e) => {
+  const handleChangePassword = async (e) => {
     e.preventDefault();
     setMessage(null);
     setError(null);
@@ -61,8 +62,31 @@ export default function Profile() {
       setError('New password and confirm password do not match.');
       return;
     }
+    if (newPassword.length < 6) {
+      setError('New password must be at least 6 characters long.');
+      return;
+    }
 
-    setMessage('Password change is not implemented in this demo. Backend endpoint required.');
+    setChangingPassword(true);
+    try {
+      const res = await api.put('/auth/change-password', {
+        currentPassword,
+        newPassword,
+      });
+      setMessage(res.data.message || 'Password changed successfully!');
+      // Clear form
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setMessage(null);
+      }, 5000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to change password. Please try again.');
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   const handleSaveName = async () => {
@@ -236,8 +260,8 @@ export default function Profile() {
             </div>
 
             <div className="profile-actions">
-              <button type="submit" className="profile-btn-primary">
-                Change Password
+              <button type="submit" className="profile-btn-primary" disabled={changingPassword}>
+                {changingPassword ? 'Changing Password...' : 'Change Password'}
               </button>
             </div>
           </form>

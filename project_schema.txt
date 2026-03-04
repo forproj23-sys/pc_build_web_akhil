@@ -1,0 +1,231 @@
+PC BUILDING WEBSITE – DATABASE SCHEMA DOCUMENTATION
+================================================================================
+
+This document contains the complete database schema structure for the PC Building
+Website project, including all collections (tables) and their fields.
+
+================================================================================
+1. USER COLLECTION
+================================================================================
+
+Collection Name: users
+Description: Stores user account information including authentication details
+             and role-based access control.
+
+┌──────────────────────┬──────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────────────────────┐
+│ Field Name           │ Data Type    │ Constraints                          │ Required │ Description                                 │
+├──────────────────────┼──────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────────────────────┤
+│ _id                  │ ObjectId     │ Primary Key, Auto-generated          │ Yes      │ Unique identifier for each user            │
+│ name                 │ String       │ trim: true                           │ Yes      │ User's full name                           │
+│ email                │ String       │ unique: true, lowercase: true,        │ Yes      │ User's email address (unique)               │
+│                      │              │ trim: true                           │          │                                             │
+│ password             │ String       │ Hashed with bcrypt                   │ Yes      │ Encrypted password for authentication      │
+│ role                 │ String       │ enum: ['user', 'admin',              │ No       │ User role in the system                    │
+│                      │              │ 'assembler', 'supplier'],            │          │ Default: 'user'                            │
+│                      │              │ default: 'user'                      │          │                                             │
+│ approved             │ Boolean      │ default: false                       │ No       │ Admin approval status for account access    │
+│ createdAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when user was created             │
+│ updatedAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when user was last updated        │
+└──────────────────────┴──────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────────────────────┘
+
+================================================================================
+2. COMPONENT COLLECTION
+================================================================================
+
+Collection Name: components
+Description: Stores PC component information including specifications, pricing,
+             compatibility details, and stock status.
+
+┌──────────────────────┬──────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────────────────────┐
+│ Field Name           │ Data Type    │ Constraints                          │ Required │ Description                                 │
+├──────────────────────┼──────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────────────────────┤
+│ _id                  │ ObjectId     │ Primary Key, Auto-generated          │ Yes      │ Unique identifier for each component        │
+│ name                 │ String       │ trim: true                           │ Yes      │ Component name (e.g., "Intel Core i7-12700")│
+│ category             │ String       │ trim: true, uppercase: true           │ Yes      │ Component category (CPU, GPU, RAM, etc.)   │
+│ price                │ Number       │ min: 0                               │ Yes      │ Component price in USD                      │
+│ specifications       │ String       │                                      │ Yes      │ Detailed technical specifications           │
+│ compatibility        │ String       │ default: ''                          │ No       │ Legacy compatibility information            │
+│ socket               │ String       │ trim: true, uppercase: true,          │ No       │ CPU/Motherboard socket type                 │
+│                      │              │ default: ''                          │          │ (e.g., "LGA1700", "AM4")                   │
+│ chipset              │ String       │ trim: true, default: ''               │ No       │ Motherboard chipset (e.g., "Z690", "B550")  │
+│ formFactor           │ String       │ trim: true, uppercase: true,         │ No       │ Case/Motherboard form factor                │
+│                      │              │ default: ''                          │          │ (e.g., "ATX", "M-ATX", "ITX")               │
+│ powerRequirement     │ Number       │ min: 0, default: 0                    │ No       │ Power consumption in watts                  │
+│ ramType              │ String       │ trim: true, uppercase: true,         │ No       │ RAM type (e.g., "DDR4", "DDR5")            │
+│                      │              │ default: ''                          │          │                                             │
+│ storageInterface     │ String       │ trim: true, uppercase: true,          │ No       │ Storage interface (e.g., "SATA", "NVME")     │
+│                      │              │ default: ''                          │          │                                             │
+│ wattage              │ Number       │ min: 0, default: 0                    │ No       │ PSU wattage rating                          │
+│ url                  │ String       │ trim: true, default: ''                │ No       │ Product URL or image link                  │
+│ stockStatus          │ Boolean      │ default: true                        │ No       │ Availability status (true = in stock)       │
+│ priority             │ Number       │ min: 1, default: 1                   │ No       │ Display priority for component listing      │
+│ supplierID           │ ObjectId     │ ref: 'User', default: null            │ No       │ Reference to supplier user account          │
+│ createdAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when component was created         │
+│ updatedAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when component was last updated   │
+└──────────────────────┴──────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────────────────────┘
+
+================================================================================
+3. BUILD COLLECTION
+================================================================================
+
+Collection Name: builds
+Description: Stores PC build configurations created by users, including
+             component selections, assembly status, payment information,
+             and refund requests.
+
+┌──────────────────────┬──────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────────────────────┐
+│ Field Name           │ Data Type    │ Constraints                          │ Required │ Description                                 │
+├──────────────────────┼──────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────────────────────┤
+│ _id                  │ ObjectId     │ Primary Key, Auto-generated          │ Yes      │ Unique identifier for each build            │
+│ userID               │ ObjectId     │ ref: 'User'                          │ Yes      │ Reference to user who created the build     │
+│ components           │ Array        │ Array of Component Objects           │ Yes      │ List of selected components in the build    │
+│   └─ componentID     │ ObjectId     │ ref: 'Component'                     │ Yes      │ Reference to component                     │
+│   └─ componentName   │ String       │                                      │ Yes      │ Component name at time of build creation    │
+│   └─ category        │ String       │                                      │ Yes      │ Component category                          │
+│   └─ price           │ Number       │                                      │ Yes      │ Component price at time of build creation   │
+│ totalPrice           │ Number       │ default: 0                           │ Yes      │ Total cost of all components                │
+│ assemblyStatus       │ String       │ enum: ['Pending', 'Assembling',      │ No       │ Current assembly workflow status            │
+│                      │              │ 'Completed'], default: 'Pending'     │          │                                             │
+│ assemblerID          │ ObjectId     │ ref: 'User', default: null            │ No       │ Reference to assigned assembler             │
+│ compatibilityCheck   │ Object       │ default: {}                          │ No       │ Compatibility validation results            │
+│ isCompatible         │ Boolean      │ default: true                        │ No       │ Overall compatibility status                 │
+│ payment              │ Object       │ Nested Payment Object                 │ No       │ Payment and escrow information              │
+│   └─ status          │ String       │ enum: ['pending', 'paid', 'settled', │ No       │ Payment status                              │
+│                      │              │ 'refunded', 'partial_refund'],       │          │ Default: 'pending'                         │
+│                      │              │ default: 'pending'                   │          │                                             │
+│   └─ totalAmount     │ Number       │ default: 0                           │ No       │ Total payment amount                        │
+│   └─ paidAmount      │ Number       │ default: 0                           │ No       │ Amount actually paid                        │
+│   └─ currency        │ String       │ default: 'USD'                       │ No       │ Payment currency                            │
+│   └─ paymentRecords  │ Array        │ Array of Payment Record Objects      │ No       │ History of payment transactions             │
+│   └─ adminCommission │ Number       │ default: 0                           │ No       │ Admin commission (3% of total)              │
+│   └─ assemblerCommission│ Number    │ default: 0                           │ No       │ Assembler commission (7% of total)           │
+│   └─ assemblerCommissionPaid│ Boolean│ default: false                     │ No       │ Whether assembler commission was paid       │
+│   └─ assemblerCommissionPaidAt│ Date│                                      │ No       │ Timestamp when assembler was paid           │
+│   └─ assemblerCommissionTxId│ String│                                      │ No       │ Transaction ID for assembler payment       │
+│   └─ escrowAmount    │ Number       │ default: 0                           │ No       │ Amount held in escrow (90% of total)       │
+│   └─ escrowDistributed│ Boolean     │ default: false                       │ No       │ Whether escrow was distributed to suppliers │
+│ supplierPayouts      │ Array        │ Array of Supplier Payout Objects     │ No       │ Supplier payment tracking                   │
+│   └─ supplierID      │ ObjectId     │ ref: 'User'                          │ Yes      │ Reference to supplier user                   │
+│   └─ amount          │ Number       │                                      │ Yes      │ Payout amount for this supplier             │
+│   └─ componentID     │ ObjectId     │ ref: 'Component'                     │ No       │ Reference to component supplied              │
+│   └─ componentName   │ String       │                                      │ No       │ Component name                              │
+│   └─ paid            │ Boolean      │ default: false                       │ No       │ Whether payout was completed               │
+│   └─ paidAt          │ Date         │                                      │ No       │ Timestamp when payout was made              │
+│   └─ transactionId   │ String       │                                      │ No       │ Transaction ID for payout                  │
+│ refundRequests       │ Array        │ Array of Refund Request Objects      │ No       │ User-initiated refund requests              │
+│   └─ amount          │ Number       │                                      │ No       │ Refund amount requested                     │
+│   └─ reason          │ String       │                                      │ No       │ Reason for refund request                   │
+│   └─ status          │ String       │ enum: ['requested', 'approved',      │ No       │ Refund request status                       │
+│                      │              │ 'rejected', 'processed'],             │          │ Default: 'requested'                        │
+│                      │              │ default: 'requested'                  │          │                                             │
+│   └─ createdAt       │ Date         │                                      │ No       │ Timestamp when refund was requested          │
+│   └─ processedBy     │ String       │                                      │ No       │ Admin user ID who processed the refund      │
+│ createdAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when build was created            │
+│ updatedAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when build was last updated       │
+└──────────────────────┴──────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────────────────────┘
+
+================================================================================
+4. CATEGORY COLLECTION
+================================================================================
+
+Collection Name: categories
+Description: Stores component category definitions with priority and
+             activation status for organizing components.
+
+┌──────────────────────┬──────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────────────────────┐
+│ Field Name           │ Data Type    │ Constraints                          │ Required │ Description                                 │
+├──────────────────────┼──────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────────────────────┤
+│ _id                  │ ObjectId     │ Primary Key, Auto-generated          │ Yes      │ Unique identifier for each category         │
+│ name                 │ String       │ unique: true, trim: true,            │ Yes      │ Category name (e.g., "CPU", "GPU", "RAM")  │
+│                      │              │ uppercase: true                     │          │                                             │
+│ description          │ String       │ default: ''                         │ No       │ Category description                        │
+│ isActive             │ Boolean      │ default: true                       │ No       │ Whether category is active for selection    │
+│ priority             │ Number       │ min: 1, default: 1                  │ No       │ Display priority (higher = shown first)     │
+│ createdAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when category was created         │
+│ updatedAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when category was last updated    │
+└──────────────────────┴──────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────────────────────┘
+
+================================================================================
+5. TRANSACTION COLLECTION
+================================================================================
+
+Collection Name: transactions
+Description: Stores financial transaction records for payments, payouts,
+             and refunds across the platform.
+
+┌──────────────────────┬──────────────┬──────────────────────────────────────┬──────────┬─────────────────────────────────────────────┐
+│ Field Name           │ Data Type    │ Constraints                          │ Required │ Description                                 │
+├──────────────────────┼──────────────┼──────────────────────────────────────┼──────────┼─────────────────────────────────────────────┤
+│ _id                  │ ObjectId     │ Primary Key, Auto-generated          │ Yes      │ Unique identifier for each transaction      │
+│ type                 │ String       │ enum: ['payment', 'payout',          │ Yes      │ Transaction type                           │
+│                      │              │ 'refund']                            │          │                                             │
+│ buildId              │ ObjectId     │ ref: 'Build'                         │ No       │ Reference to associated build (if applicable)│
+│ from                 │ String       │ Values: 'user', 'admin',              │ Yes      │ Source of transaction                      │
+│                      │              │ 'assembler', 'supplier'               │          │                                             │
+│ to                   │ String       │ Values: 'admin', 'assembler',        │ Yes      │ Destination of transaction                 │
+│                      │              │ 'user', 'supplier'                    │          │                                             │
+│ amount               │ Number       │                                      │ Yes      │ Transaction amount                          │
+│ currency             │ String       │ default: 'USD'                       │ No       │ Transaction currency                        │
+│ status               │ String       │ enum: ['pending', 'completed',        │ No       │ Transaction status                          │
+│                      │              │ 'failed'], default: 'completed'      │          │ Default: 'completed'                        │
+│ meta                 │ Object       │ default: {}                          │ No       │ Additional metadata (e.g., supplierID)      │
+│ txId                 │ String       │                                      │ No       │ External transaction ID                     │
+│ createdAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when transaction was created      │
+│ updatedAt            │ Date         │ Auto-generated                       │ Yes      │ Timestamp when transaction was last updated │
+└──────────────────────┴──────────────┴──────────────────────────────────────┴──────────┴─────────────────────────────────────────────┘
+
+================================================================================
+RELATIONSHIPS SUMMARY
+================================================================================
+
+1. User → Component (One-to-Many)
+   - supplierID in Component references User._id
+   - A supplier user can have multiple components
+
+2. User → Build (One-to-Many)
+   - userID in Build references User._id
+   - A user can create multiple builds
+
+3. User → Build (One-to-Many) - Assembler Assignment
+   - assemblerID in Build references User._id
+   - An assembler can be assigned to multiple builds
+
+4. Component → Build (Many-to-Many)
+   - components array in Build contains componentID references
+   - A build contains multiple components
+   - A component can be used in multiple builds
+
+5. Build → Transaction (One-to-Many)
+   - buildId in Transaction references Build._id
+   - A build can have multiple transactions (payments, refunds)
+
+6. User → Build → Supplier Payouts (Many-to-Many)
+   - supplierPayouts array in Build contains supplierID references
+   - A build can have payouts to multiple suppliers
+   - A supplier can receive payouts from multiple builds
+
+================================================================================
+INDEXES
+================================================================================
+
+Automatically created indexes:
+- User.email: Unique index for fast email lookups
+- Category.name: Unique index for category name lookups
+- Build.userID: Index for querying builds by user
+- Build.assemblerID: Index for querying builds by assembler
+- Component.supplierID: Index for querying components by supplier
+- Transaction.buildId: Index for querying transactions by build
+
+================================================================================
+TIMESTAMPS
+================================================================================
+
+All collections include automatic timestamps:
+- createdAt: Automatically set when document is created
+- updatedAt: Automatically updated when document is modified
+
+These fields are managed by Mongoose and do not need to be manually set.
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
