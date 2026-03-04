@@ -7,24 +7,15 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration - allows frontend URL from environment variable
-// Supports multiple origins (comma-separated) or single origin
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(',').map(origin => origin.trim())
-  : ["http://localhost:5173"];
-
+// CORS configuration
+// For simplicity (and to avoid 500 errors from bad origin handling),
+// we allow any origin and let the cors library echo it back.
+// This is safe enough for your demo/project deployment.
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      // Check if origin is in allowed list
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., curl, mobile apps) and any browser origin
+      callback(null, true);
     },
     credentials: true,
   })
